@@ -21,7 +21,8 @@ class Transform(object):
     # Specifies the author of the transform. If not specified __author__ will be used.
     author = ''
 
-    # A detailed description of the transform. The description can be read from the Maltego Transforms dialog box.
+    # A detailed description of the transform. The description can be read from the Maltego Transforms dialog box. If
+    # this is not set, the transform class' doc comments will be used.
     description = ''
 
     # The label found in the transform context menu when right clicking on an entity.
@@ -62,7 +63,7 @@ class Transform(object):
         if not self.author and __author__:
             self.author = __author__
         if not self.name:
-            self.name = '.'.join([self.__module__, self.__class__.__name__])
+            self.name = '.'.join([self.__module__.split('.', 1)[0], self.__class__.__name__])
         if not self.display_name:
             self.display_name = self.__class__.__name__
         if not self.description and self.__doc__:
