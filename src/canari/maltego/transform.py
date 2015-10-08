@@ -1,3 +1,5 @@
+import re
+
 from canari.maltego.configuration import AuthenticationType
 from canari.maltego.entities import Unknown
 
@@ -14,6 +16,10 @@ __status__ = 'Development'
 __all__ = [
     'Transform'
 ]
+
+
+def camel_to_title(s):
+    return re.sub('([0-9A-Z]+)([A-Z])', r'\1 \2', re.sub('([a-z])([A-Z0-9])', r'\1 \2', s))
 
 
 class Transform(object):
@@ -65,7 +71,7 @@ class Transform(object):
         if not self.name:
             self.name = '.'.join([self.__module__.split('.', 1)[0], self.__class__.__name__])
         if not self.display_name:
-            self.display_name = self.__class__.__name__
+            self.display_name = camel_to_title(self.__class__.__name__)
         if not self.description and self.__doc__:
             self.description = self.__doc__
         if not self.transform_set:
