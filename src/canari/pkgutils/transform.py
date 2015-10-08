@@ -132,22 +132,21 @@ class TransformDistribution(object):
                 )
 
     @staticmethod
-    def import_package(pkg, prefix=''):
-        if prefix:
-            prefix = '%s.%s' % (prefix, pkg.__name__)
-        else:
-            prefix = pkg.__name__
+    def import_package(pkg):
+        prefix = pkg.__name__
 
         for importer, module_name, is_pkg in iter_modules(pkg.__path__):
+            module_name = '.'.join([prefix, module_name])
             pkg = importer.find_module(module_name).load_module(module_name)
             if is_pkg:
-                TransformDistribution.import_package(pkg, prefix)
+                TransformDistribution.import_package(pkg)
 
     @staticmethod
     def find_all_subclasses(cls):
         for subclass in cls.__subclasses__():
             yield subclass
-            TransformDistribution.find_all_subclasses(subclass)
+            for sub_subclass in TransformDistribution.find_all_subclasses(subclass):
+                yield sub_subclass
 
     def _update_config(self, canari_config, load=True, remote=False):
         ld = os.getcwd()
