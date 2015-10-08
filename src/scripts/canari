@@ -5,7 +5,6 @@ from canari.commands.common import canari_main
 # Do not remove this line. It loads all our sub-commands into the main commander.
 from canari.commands import *
 
-
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2012, Canari Project'
 __credits__ = []
@@ -16,11 +15,9 @@ __maintainer__ = 'Nadeem Douba'
 __email__ = 'ndouba@gmail.com'
 __status__ = 'Development'
 
-
 if __name__ == '__main__':
     try:
         set_canari_mode(CanariMode.LocalUnknown)
         canari_main()
     except KeyboardInterrupt:
         print('exiting...')
-        pass
