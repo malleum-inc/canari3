@@ -3,6 +3,7 @@
 from canari.mode import set_canari_mode, CanariMode
 from canari.commands.common import canari_main
 # Do not remove this line. It loads all our sub-commands into the main commander.
+# noinspection PyUnresolvedReferences
 from canari.commands import *
 
 __author__ = 'Nadeem Douba'
