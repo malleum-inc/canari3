@@ -7,7 +7,7 @@ __author__ = '${author}'
 __copyright__ = 'Copyright ${year}, ${project} Project'
 __credits__ = []
 
-__license__ = 'GPL'
+__license__ = 'GPLv3'
 __version__ = '0.1'
 __maintainer__ = '${author}'
 __email__ = '${email}'

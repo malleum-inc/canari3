@@ -41,7 +41,7 @@ setup(
     version='3.0',
     author_email='ndouba@gmail.com',
     description='Rapid transform development and transform execution framework for Maltego.',
-    license='GPL',
+    license='GPLv3',
     packages=find_packages('src'),
     package_dir={'': 'src'},
     include_package_data=True,
