@@ -1,0 +1,40 @@
+from canari.maltego.entities import Person, Phrase
+from canari.maltego.transform import Transform
+from canari.framework import EnableDebugWindow
+
+__author__ = '{{{ author.name }}}'
+__copyright__ = 'Copyright {{{ created.year }}}, {{{ project.name }}} Project'
+__credits__ = []
+
+__license__ = 'GPL'
+__version__ = '0.1'
+__maintainer__ = '{{{ author.name }}}'
+__email__ = '{{{ author.email }}}'
+__status__ = 'Development'
+
+
+@EnableDebugWindow
+class HelloWorld(Transform):
+    """This transform returns a set of phrases with various salutations to a Person's name."""
+
+    # The transform input entity type.
+    input_type = Person
+
+    # The transform set name.
+    transform_set = 'Canari'
+
+    def do_transform(self, request, response, config):
+        # Since we know what the input_type of this transform is, we can directly access static fields. Alternatively,
+        # dynamic field values can still be accessed by querying the entity.fields property.
+        person = request.entity
+        response += Phrase('Hello %s!' % person.value)
+        response += Phrase('This way Mr(s). %s!' % person.lastname)
+        response += Phrase('Hi %s!' % person.firstnames)
+        return response
+
+    def on_terminate(self):
+        """
+        This method gets called when transform execution is prematurely terminated. It is only applicable for local
+        transforms.
+        """
+        pass

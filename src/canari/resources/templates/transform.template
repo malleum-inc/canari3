@@ -1,0 +1,39 @@
+from canari.maltego.entities import Person
+from canari.maltego.utils import debug, progress
+from canari.framework import RequireSuperUser, EnableDebugWindow, EnableRemoteExecution
+from common.entities import ${entity}
+
+__author__ = '${author}'
+__copyright__ = 'Copyright ${year}, ${project} Project'
+__credits__ = []
+
+__license__ = 'GPL'
+__version__ = '0.1'
+__maintainer__ = '${author}'
+__email__ = '${email}'
+__status__ = 'Development'
+
+
+@EnableDebugWindow
+class HelloWorld(MaltegoTransform):
+    """This transform returns a set of phrases with various salutations to a Person's name."""
+
+    # The transform input entity type.
+    input_type = Person
+
+    # The transform set name.
+    transform_set = 'Canari'
+
+    def do_transform(self, request, response, config):
+        person = request.entity
+        response += Phrase('Hello %s!' % person.value)
+        response += Phrase('This way Mr(s). %s!' % person.lastname)
+        response += Phrase('Hi %s!' % person.firstnames)
+        return response
+
+    def on_terminate(self):
+        """
+        This method gets called when transform execution is prematurely terminated. It is only applicable for local
+        transforms.
+        """
+        pass

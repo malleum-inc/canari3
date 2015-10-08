@@ -1,0 +1,30 @@
+from common import canari_main
+from framework import SubCommand
+
+
+__author__ = 'Nadeem Douba'
+__copyright__ = 'Copyright 2015, Canari Project'
+__credits__ = []
+
+__license__ = 'GPL'
+__version__ = '0.1'
+__maintainer__ = 'Nadeem Douba'
+__email__ = 'ndouba@gmail.com'
+__status__ = 'Development'
+
+
+@SubCommand(
+    canari_main,
+    help='Show banner of Canari framework that is currently active.',
+    description='Show banner of Canari framework that is currently active.'
+)
+def banner(args):
+    print r"""
+    Your running ...
+                                 _   ___   ___
+         _______ ____  ___ _____(_) /_  / / _ \
+        / __/ _ `/ _ \/ _ `/ __/ / /_  /_/ // /
+        \__/\_,_/_//_/\_,_/_/ /_/ /___/(_)___/
+
+                                            ... http://canariproject.com
+    """

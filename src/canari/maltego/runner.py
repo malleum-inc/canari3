@@ -1,0 +1,180 @@
+from collections import defaultdict
+import os
+import sys
+import traceback
+
+from defusedxml.cElementTree import fromstring
+
+from safedexml import Model
+
+from canari.commands.common import load_object, sudo
+from canari.config import CanariConfig
+from canari.maltego.message import MaltegoTransformResponseMessage, UIMessage, MaltegoTransformRequestMessage, Field, \
+    MaltegoException, EntityTypeFactory, Entity
+from canari.maltego.utils import message, on_terminate, to_entity, croak, highlight
+
+__author__ = 'Nadeem Douba'
+__copyright__ = 'Copyright 2015, canari Project'
+__credits__ = []
+
+__license__ = 'GPL'
+__version__ = '0.1'
+__maintainer__ = 'Nadeem Douba'
+__email__ = 'ndouba@gmail.com'
+__status__ = 'Development'
+
+__all__ = []
+
+
+def local_transform_runner(transform, value, fields, params, config, message_writer=message):
+    """
+    Internal API: The local transform runner is responsible for executing the local transform.
+
+    Parameters:
+
+    transform      - The name or module of the transform to execute (i.e sploitego.transforms.whatismyip).
+    value          - The input entity value.
+    fields         - A dict of the field names and their respective values.
+    params         - The extra parameters passed into the transform via the command line.
+    config         - The Canari configuration object.
+    message_writer - The message writing function used to write the MaltegoTransformResponseMessage to stdout. This is
+                     can either be the console_message or message functions. Alternatively, the message_writer function
+                     can be any callable object that accepts the MaltegoTransformResponseMessage as the first parameter
+                     and writes the output to a destination of your choosing.
+
+    This helper function is only used by the run-transform, debug-transform, and dispatcher commands.
+    """
+
+    try:
+        transform = load_object(transform)()
+
+        if os.name == 'posix' and transform.superuser and os.geteuid():
+            rc = sudo(sys.argv)
+            if rc == 1:
+                message_writer(MaltegoTransformResponseMessage() + UIMessage('User cancelled transform.'))
+            elif rc == 2:
+                message_writer(MaltegoTransformResponseMessage() + UIMessage('Too many incorrect password attempts.'))
+            elif rc:
+                message_writer(MaltegoTransformResponseMessage() + UIMessage('Unknown error occurred.'))
+            exit(rc)
+
+        on_terminate(transform.on_terminate)
+
+        request = MaltegoTransformRequestMessage(
+            parameters={'canari.local.arguments': Field(name='canari.local.arguments', value=params)}
+        )
+
+        request._entities = [to_entity(transform.input_type, value, fields)]
+
+        msg = transform.do_transform(
+            request,
+            MaltegoTransformResponseMessage(),
+            config
+        )
+        if isinstance(msg, MaltegoTransformResponseMessage):
+            message_writer(msg)
+        elif isinstance(msg, basestring):
+            raise MaltegoException(msg)
+        else:
+            raise MaltegoException('Could not resolve message type returned by transform.')
+    except MaltegoException, me:
+        croak(str(me), message_writer)
+    except ImportError:
+        e = traceback.format_exc()
+        croak(e, message_writer)
+    except KeyboardInterrupt:
+        # Ensure that the keyboard interrupt handler does not execute twice if a transform is sudo'd
+        if (transform.superuser and not os.geteuid()) or (not transform.superuser and os.geteuid()):
+            transform.on_terminate()
+    except Exception:
+        e = traceback.format_exc()
+        croak(e, message_writer)
+
+
+class Response(object):
+    def __init__(self, maltego_response):
+        self._response = maltego_response
+        self._entities = [EntityTypeFactory.create(e.type)(e) for e in maltego_response.entities]
+        self._messages = defaultdict(list)
+        for m in maltego_response.uimessages:
+            self._messages[m.type].append(m.value)
+
+    def toXML(self):
+        return self._response.render(fragment=True)
+
+    @property
+    def entities(self):
+        return self._entities
+
+    @property
+    def messages(self):
+        return self._messages
+
+
+scriptable_api_initialized = False
+
+
+def scriptable_transform_runner(transform, value, fields, params, config):
+    global scriptable_api_initialized
+    if not scriptable_api_initialized:
+        scriptable_api_initialized = True
+
+        def run_transform(self, transform, params=None, config=None):
+            if isinstance(transform, basestring):
+                transform = load_object(transform)()
+            return scriptable_transform_runner(
+                transform,
+                self.value,
+                self.fields,
+                params or [],
+                config or CanariConfig().config
+            )
+
+        Entity.run_transform = run_transform
+
+    request = MaltegoTransformRequestMessage(
+        parameters={'canari.local.arguments': Field(name='canari.local.arguments', value=params)}
+    )
+
+    request._entities = [to_entity(transform.input_type, value, fields)]
+
+    msg = transform.do_transform(
+        request,
+        MaltegoTransformResponseMessage(),
+        config
+    )
+    if isinstance(msg, MaltegoTransformResponseMessage):
+        return Response(msg)
+    elif isinstance(msg, basestring):
+        raise MaltegoException(msg)
+    else:
+        raise MaltegoException('Could not resolve message type returned by transform.')
+
+
+def console_writer(msg, tab=-1):
+    """
+    Internal API: Returns a prettified tree-based output of an XML message for debugging purposes. This helper function
+    is used by the debug-transform command.
+    """
+    tab += 1
+
+    if isinstance(msg, Model):
+        msg = fromstring(msg.render(fragment=True))
+
+    print('%s`- %s: %s %s' % (
+        '  ' * tab,
+        highlight(msg.tag, None, True),
+        highlight(msg.text, 'red', False) if msg.text is not None else '',
+        highlight(msg.attrib, 'green', True) if msg.attrib.keys() else ''
+    ))
+    for c in msg.getchildren():
+        print('  %s`- %s: %s %s' % (
+            '  ' * tab,
+            highlight(c.tag, None, True),
+            highlight(c.text, 'red', False) if c.text is not None else '',
+            highlight(c.attrib, 'green', True) if c.attrib.keys() else ''
+        ))
+        for sc in c.getchildren():
+            tab += 1
+            console_writer(sc, tab)
+            tab -= 1
