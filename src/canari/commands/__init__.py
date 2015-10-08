@@ -30,7 +30,6 @@ __all__ = [
     'load_plume_package',
     'mtgx2csv',
     'rename_transform',
-    'run_server',
     'run_transform',
     'shell',
     'uninstall_package',
