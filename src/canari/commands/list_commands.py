@@ -22,7 +22,5 @@ __status__ = 'Development'
 )
 def list_commands(opts):
     cmds = canari_main.subparsers.choices
-    k = cmds.keys()
-    k.sort()
-    for i in k:
-        print ('%s - %s' % (highlight(i, 'green', True), cmds[i].description))
+    for name, cmd in sorted(cmds.iteritems()):
+        print ('%s - %s' % (highlight(name, 'green', True), cmd.description))
