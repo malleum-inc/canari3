@@ -57,7 +57,7 @@ def delete_transform(args):
         print ("Transform %r doesn't exists... quitting" % transform_file)
         exit(-1)
 
-    print ("deleting transform %r..." % transform_file)
+    print ("Deleting transform %r..." % transform_file)
     unlink(transform_file)
 
     print ('done!')
