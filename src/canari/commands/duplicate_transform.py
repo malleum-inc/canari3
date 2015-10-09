@@ -52,7 +52,7 @@ def duplicate_transform(args):
 
     opts = parse_args(args)
 
-    initf = os.path.join(opts.transform_dir, '__init__.py')
+    init_file = os.path.join(opts.transform_dir, '__init__.py')
     transform = opts.transform[:-3] if opts.transform.endswith('.py') else opts.transform
     new_transform = opts.new_transform[:-3] if opts.new_transform.endswith('.py') else opts.new_transform
 
@@ -60,35 +60,27 @@ def duplicate_transform(args):
         print("Transform name (%r) cannot have a dot ('.')." % transform)
         exit(-1)
     elif not transform:
-        print "You must specify a valid transform name."
+        print("You must specify a valid transform name.")
         exit(-1)
 
     directory = opts.transform_dir
-    transformf = os.path.join(directory, '%s.py' % transform)
-    new_transformf = os.path.join(directory, '%s.py' % new_transform)
+    transform_file = os.path.join(directory, '%s.py' % transform)
+    new_transform_file = os.path.join(directory, '%s.py' % new_transform)
 
-    if not os.path.exists(initf):
-        print ('Directory %r does not appear to be a python package directory... quitting!' % opts.transform_dir)
+    if not os.path.exists(init_file):
+        print('Directory %r does not appear to be a python package directory... quitting!' % opts.transform_dir)
         exit(-1)
-    if os.path.exists(new_transformf):
-        print ('Transform %r already exists... quitting' % new_transformf)
+    if os.path.exists(new_transform_file):
+        print ('Transform %r already exists... quitting' % new_transform_file)
         exit(-1)
 
-    print 'Copying transform %r to %r...' % (transformf, new_transformf)
-    with open(new_transformf, 'wb') as dst:
-        with open(transformf) as src:
-            dst.write(src.read())
-
-    print ('updating %s' % initf)
-    init = file(initf).read()
-
-    with file(initf, mode='wb') as w:
-        w.write(
-            re.sub(
-                r'__all__\s*\=\s*\[',
-                '__all__ = [\n    %r,' % new_transform,
-                init
-            )
-        )
-
-    print ('done!')
+    print('Copying transform %r to %r...' % (transform_file, new_transform_file))
+    try:
+        with open(transform_file) as src:
+            with open(new_transform_file, 'wb') as dst:
+                dst.write(src.read())
+        print('WARNING: You must change the names of the transform classes manually.')
+        print('done!')
+    except Exception, e:
+        print(e)
+        exit(-1)
