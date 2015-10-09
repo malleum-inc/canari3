@@ -105,6 +105,7 @@ class TransformSet(MaltegoElement):
     def __iadd__(self, other):
         if isinstance(other, Transform):
             self.transforms.append(other)
+        return self
 
 
 class InputConstraint(MaltegoElement):
@@ -245,6 +246,7 @@ class TransformSettings(MaltegoElement):
     def __iadd__(self, other):
         if isinstance(other, TransformPropertySetting):
             self.properties.append(other)
+        return self
 
 
 class Protocol(MaltegoElement):
@@ -279,6 +281,7 @@ class MaltegoServer(MaltegoElement):
     def __iadd__(self, other):
         if isinstance(other, Transform):
             self.transforms.append(other)
+        return self
 
 
 class EntityCategory(MaltegoElement):
@@ -300,6 +303,7 @@ class fileobject(MaltegoElement):
     def __iadd__(self, other):
         if isinstance(other, attr):
             self.attrs[other.name] = other
+        return self
 
 
 class attributes(MaltegoElement):
@@ -310,6 +314,7 @@ class attributes(MaltegoElement):
     def __iadd__(self, other):
         if isinstance(other, fileobject):
             self.fileobjects[other.name] = other
+        return self
 
 
 class Properties(MaltegoElement):
@@ -357,6 +362,7 @@ class MaltegoTransform(MaltegoElement):
             self.input.append(other)
         elif isinstance(other, OutputEntity):
             self.output.append(other)
+        return self
 
 
 class Field(MaltegoElement):
