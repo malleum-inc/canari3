@@ -69,6 +69,8 @@ def create_transform(args):
     )
 
     configurator.ask_questions()
+
+    print('Creating transform %r...' % transform_module)
     configurator.render()
 
     print('done!')
