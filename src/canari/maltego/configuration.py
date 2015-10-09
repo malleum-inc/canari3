@@ -58,6 +58,7 @@ class TransformAdapter:
     available in Maltego. They are listed below. This is just an enumeration class.
     """
     Local = 'com.paterva.maltego.transform.protocol.v2.LocalTransformAdapterV2'
+    Localv2 = 'com.paterva.maltego.transform.protocol.v2api.LocalTransformAdapterV2'
     Remote = 'com.paterva.maltego.transform.protocol.v2.RemoteTransformAdapterV2'
 
 
@@ -235,6 +236,8 @@ def CmdDbgTransformPropertySetting(dbg=False):
 class TransformSettings(MaltegoElement):
 
     enabled = fields_.Boolean(default=True)
+    runwithall = fields_.Boolean(default=True)
+    favorite = fields_.Boolean(default=False)
     accepted = fields_.Boolean(default=False, attrname='disclaimerAccepted')
     showhelp = fields_.Boolean(default=True, attrname='showHelp')
     properties = fields_.List(TransformPropertySetting, tagname='Properties')
@@ -316,6 +319,7 @@ class Properties(MaltegoElement):
     def __iadd__(self, other):
         if isinstance(other, TransformProperty):
             self.fields[other.name] = other
+        return self
 
 
 class MaltegoTransform(MaltegoElement):
