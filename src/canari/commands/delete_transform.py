@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 
+from os import path, unlink
+
 from common import canari_main, project_tree
 from framework import SubCommand, Argument
-
-from os import path, unlink
-from re import sub
-
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2012, Canari Project'
@@ -48,30 +46,18 @@ def delete_transform(args):
 
     opts = parse_args(args)
 
-    initf = path.join(opts.transform_dir, '__init__.py')
+    init_file = path.join(opts.transform_dir, '__init__.py')
     transform = opts.transform
-    transformf = path.join(opts.transform_dir, transform if transform.endswith('.py') else '%s.py' % transform)
+    transform_file = path.join(opts.transform_dir, transform if transform.endswith('.py') else '%s.py' % transform)
 
-    if not path.exists(initf):
+    if not path.exists(init_file):
         print ('Directory %r does not appear to be a python package directory... quitting!' % opts.transform_dir)
         exit(-1)
-    if not path.exists(transformf):
-        print ("Transform %r doesn't exists... quitting" % transformf)
+    if not path.exists(transform_file):
+        print ("Transform %r doesn't exists... quitting" % transform_file)
         exit(-1)
 
-    print ("deleting transform %r..." % transformf)
-    unlink(transformf)
-
-    print ('updating %s' % initf)
-    init = file(initf).read()
-
-    with file(initf, mode='wb') as w:
-        w.write(
-            sub(
-                r'\s*%r,?' % transform,
-                '',
-                init
-            )
-        )
+    print ("deleting transform %r..." % transform_file)
+    unlink(transform_file)
 
     print ('done!')
