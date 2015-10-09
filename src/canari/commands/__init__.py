@@ -23,7 +23,6 @@ __all__ = [
     'framework',
     'generate_entities',
     'help',
-    'install_package',
     'install_plume',
     'list_transforms',
     'list_commands',
