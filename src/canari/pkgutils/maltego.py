@@ -275,67 +275,69 @@ class MaltegoDistribution(object):
         if not os.listdir(transform_set_dir):
             os.rmdir(transform_set_dir)
 
-    def add_transform(self, working_dir, transform_repository, transform, server=None):
-        name = transform.__name__
-        author = getattr(transform, '__author__', 'Canari Ninja')
-        spec = transform.dotransform
+    def add_transform(self, working_dir, transform_repository, transform_class, server=None):
         transform_repository_dir = self.get_transform_repository_dir(transform_repository)
 
-        for transform_id, (input_set, input_entity) in zip(spec.uuids, spec.inputs):
+        transform = transform_class()
+        name = '.'.join([transform_class.__module__, transform_class.__name__])
+        author = transform.author
+        transform_id = transform.name
+        input_set = transform.transform_set
+        input_entity = transform.input_type
 
-            if transform_id in self.transform_uuids:
-                print('WARNING: Previous declaration of %s in transform %s. Overwriting...' % (transform_id, name))
-            else:
-                print('Installing transform %s from %s...' % (transform_id, name))
+        if transform.name in self.transform_uuids:
+            print('WARNING: Previous declaration of %s in transform %s. Overwriting...' % (transform_id, name))
+        else:
+            print('Installing transform %s from %s...' % (transform_id, name))
 
-            sets = None
-            if input_set:
-                sets = Set(name=input_set)
-                self.add_transform_to_set(transform_id, input_set)
+        sets = None
+        if input_set:
+            sets = Set(name=input_set)
+            self.add_transform_to_set(transform_id, input_set)
 
-            if server:
-                self.add_transform_to_server(server, transform_id)
+        if server:
+            self.add_transform_to_server(server, transform_id)
 
-            transform_def = MaltegoTransform(
-                name=transform_id,
-                displayname=spec.label,
-                author=author,
-                description=spec.description,
-                properties=(
-                    Properties() +
-                    CmdLineTransformProperty() +
-                    CmdCwdTransformProperty() +
-                    CmdDbgTransformProperty() +
-                    CmdParmTransformProperty()
-                ),
-                input=[InputConstraint(type=input_entity._type_)],
-                sets=[sets]
-            )
+        transform_def = MaltegoTransform(
+            name=transform_id,
+            displayname=transform.display_name,
+            author=author,
+            description=transform.description,
+            properties=(
+                Properties() +
+                CmdLineTransformProperty() +
+                CmdCwdTransformProperty() +
+                CmdDbgTransformProperty() +
+                CmdParmTransformProperty()
+            ),
+            input=[InputConstraint(type=input_entity._type_)],
+            sets=[sets]
+        )
 
-            self.write_file(
-                self.path_join(transform_repository_dir, '%s.transform' % transform_id),
-                transform_def
-            )
+        self.write_file(
+            self.path_join(transform_repository_dir, '%s.transform' % transform_id),
+            transform_def
+        )
 
-            if not transform_def.sets:
-                print('WARNING: Transform does not appear to be part of any Transform Sets (Perhaps an error?).')
+        if not transform_def.sets:
+            print('WARNING: Transform does not appear to be part of any Transform Sets (Perhaps an error?).')
 
-            transform_settings_def = TransformSettings(properties=[
-                CmdLineTransformPropertySetting(
-                    os.path.join(
-                        get_bin_dir(),
-                        'dispatcher.bat' if os.name == 'nt' else 'dispatcher'
-                    )
-                ),
-                CmdParmTransformPropertySetting(name),
-                CmdCwdTransformPropertySetting(working_dir),
-                CmdDbgTransformPropertySetting(spec.debug)
-            ])
+        transform_settings_def = TransformSettings(properties=[
+            CmdLineTransformPropertySetting(
+                os.path.join(
+                    get_bin_dir(),
+                    'dispatcher.bat' if os.name == 'nt' else 'dispatcher'
+                )
+            ),
+            CmdParmTransformPropertySetting(name),
+            CmdCwdTransformPropertySetting(working_dir),
+            CmdDbgTransformPropertySetting(transform.debug)
+        ])
 
-            self.write_file(
-                self.path_join(transform_repository_dir, '%s.transformsettings' % transform_id),
-                transform_settings_def
-            )
+        self.write_file(
+            self.path_join(transform_repository_dir, '%s.transformsettings' % transform_id),
+            transform_settings_def
+        )
 
     def remove_transform(self, transform_repository, transform, server=None):
         spec = transform.dotransform

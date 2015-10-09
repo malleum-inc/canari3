@@ -3,13 +3,14 @@ import string
 import sys
 import os
 from importlib import import_module
+from mrbob.configurator import Configurator
 from pkg_resources import resource_listdir, resource_filename
 
 from canari.pkgutils.maltego import MaltegoDistribution, MtzDistribution
 from canari.maltego.transform import Transform
 from canari.commands.common import parse_bool
-from canari.config import CanariConfigParser
-
+from canari.config import CanariConfigParser, OPTION_LOCAL_CONFIGS, SECTION_LOCAL, OPTION_REMOTE_PACKAGES, \
+    SECTION_REMOTE
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2012, Canari Project'
@@ -25,6 +26,28 @@ __all__ = [
     'TransformDistribution'
 ]
 
+INCOMPATIBLE = """
+!!!!!!!!!!!!!!!!!!!!!!!!!!! ERROR: NOT SUPPORTED !!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+ Starting from Maltego Radium (v3.4.0) the 'canari install-package' command
+ is no longer supported. Please use the 'canari create-profile' command,
+ instead. This will create an importable config file (*.mtz) which can be
+ imported using the 'Import Configuration' option in Maltego. This option
+ can be found by clicking on the <Maltego icon> in the top left corner of
+ your Maltego window then scrolling to 'Import' then 'Import Configuration'.
+
+ NOTE: This command will automatically install and configure the
+ 'canari.conf' file for you in the default location for your OS.
+
+ EXAMPLE:
+
+ shell> canari create-profile sploitego
+ ...
+ shell> ls
+ sploitego.mtz <--- Import this file
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!! ERROR: NOT SUPPORTED !!!!!!!!!!!!!!!!!!!!!!!!!!!
+"""
 
 class TransformDistribution(object):
     def __init__(self, package_name):
@@ -47,9 +70,12 @@ class TransformDistribution(object):
         self._resources = '%s.resources' % self.name
         self._package_path = os.path.abspath(self._package.__path__[0])
         self._default_prefix = os.path.join(os.path.expanduser('~'), '.canari') if self.is_site_package else os.getcwd()
-        # self._machines = [
-        #     m for m in resource_listdir(self.get_resource_module('maltego'), '') if m.endswith('.machine')
-        # ]
+        try:
+            self._machines = [
+                m for m in resource_listdir(self.get_resource_module('maltego'), '') if m.endswith('.machine')
+            ]
+        except ImportError:
+            self._machines = []
         if not self.has_transforms:
             raise ValueError('Error: no transforms found...')
         print('Package loaded.')
@@ -93,9 +119,9 @@ class TransformDistribution(object):
                 return True
         return False
 
-    # @property
-    # def machines(self):
-    #     return self._machines
+    @property
+    def machines(self):
+        return self._machines
 
     @property
     def entities_file(self):
@@ -155,17 +181,17 @@ class TransformDistribution(object):
         config = CanariConfigParser()
         config.read(canari_config)
 
-        if 'default/configs' not in config:
-            if 'default' not in config:
-                config.add_section('default')
-            config['default/configs'] = ''
-        if 'remote/packages' not in config:
-            if 'remote' not in config:
-                config.add_section('remote')
-            config['remote/packages'] = ''
+        if OPTION_LOCAL_CONFIGS not in config:
+            if SECTION_LOCAL not in config:
+                config.add_section(SECTION_LOCAL)
+            config[OPTION_LOCAL_CONFIGS] = ''
+        if OPTION_REMOTE_PACKAGES not in config:
+            if SECTION_REMOTE not in config:
+                config.add_section(SECTION_REMOTE)
+            config[OPTION_REMOTE_PACKAGES] = ''
 
-        configs = config['default/configs']
-        packages = config['remote/packages']
+        configs = config[OPTION_LOCAL_CONFIGS]
+        packages = config[OPTION_REMOTE_PACKAGES]
 
         if isinstance(configs, basestring):
             configs = [configs] if configs else []
@@ -177,35 +203,42 @@ class TransformDistribution(object):
             if self.config_file not in configs:
                 print ('Updating %s...' % canari_config)
                 configs.append(self.config_file)
-                config['default/configs'] = ','.join(configs)
+                config[OPTION_LOCAL_CONFIGS] = configs
 
             if self.name not in packages and remote:
                 packages.append(self.name)
-                config['remote/packages'] = ','.join(packages)
+                config[OPTION_REMOTE_PACKAGES] = packages
         else:
             if self.config_file in configs:
                 print ('Updating %s...' % canari_config)
                 configs.remove(self.config_file)
-                config['default/configs'] = ','.join(configs)
+                config[OPTION_LOCAL_CONFIGS] = configs
 
             if self.name in packages and remote:
                 packages.remove(self.name)
-                config['remote/packages'] = ','.join(packages)
+                config[OPTION_REMOTE_PACKAGES] = packages
 
         config.write(file(canari_config, mode='wb'))
         os.chdir(ld)
 
     def configure(self, install_prefix, load=True, remote=False, **kwargs):
         if load:
-            canari_config = resource_filename('canari.resources.template', 'canari.plate')
-            self._write_config(
-                canari_config,
-                os.path.join(install_prefix, 'canari.conf'),
-                is_template=True,
-                command=' '.join(sys.argv),
-                config=self.config_file if self.name != 'canari' else '',
-                path='${PATH},/usr/local/bin,/opt/local/bin' if os.name == 'posix' else ''
-            )
+            dst = os.path.join(install_prefix, 'canari.conf')
+            if os.path.lexists(dst) and \
+                    parse_bool('%s already exists. Would you like to overwrite it?' % dst, default=False):
+                print 'Writing fresh copy of canari.conf to %r...' % dst
+                variables = {
+                    'canari.command': ' '.join(sys.argv),
+                    'profile.config': self.config_file if self.name != 'canari' else '',
+                    'profile.path': '${PATH},/usr/local/bin,/opt/local/bin' if os.name == 'posix' else ''
+                }
+
+                configurator = Configurator('canari.resources.templates:create_profile',
+                                            install_prefix,
+                                            {'non_interactive': True, 'remember_answers': True},
+                                            variables=variables)
+                configurator.render()
+                return
 
         if self._package_name != 'canari':
             if load:
@@ -220,34 +253,12 @@ class TransformDistribution(object):
             os.makedirs(install_prefix)
         return install_prefix
 
-    def install(self, install_prefix, distribution, configure=True, remote=False):
+    def install(self, install_prefix, distribution, configure=True, is_remote=False):
         if isinstance(distribution, basestring) or not distribution:
             distribution = MaltegoDistribution(distribution)
-        if not isinstance(distribution, MtzDistribution) and distribution.version >= '3.4.0':
-            raise ValueError("""
-!!!!!!!!!!!!!!!!!!!!!!!!!!! ERROR: NOT SUPPORTED !!!!!!!!!!!!!!!!!!!!!!!!!!!
-
- Starting from Maltego Radium (v3.4.0) the 'canari install-package' command
- is no longer supported. Please use the 'canari create-profile' command,
- instead. This will create an importable config file (*.mtz) which can be
- imported using the 'Import Configuration' option in Maltego. This option
- can be found by clicking on the <Maltego icon> in the top left corner of
- your Maltego window then scrolling to 'Import' then 'Import Configuration'.
-
- NOTE: This command will automatically install and configure the
- 'canari.conf' file for you in the default location for your OS.
-
- EXAMPLE:
-
- shell> canari create-profile sploitego
- ...
- shell> ls
- sploitego.mtz <--- Import this file
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!! ERROR: NOT SUPPORTED !!!!!!!!!!!!!!!!!!!!!!!!!!!
-            """)
-
         if not isinstance(distribution, MtzDistribution):
+            if distribution.version >= '3.4.0':
+                raise ValueError(INCOMPATIBLE)
             print 'Installing transform package %s...' % self.name
 
         install_prefix = self._init_install_prefix(install_prefix)
@@ -257,7 +268,7 @@ class TransformDistribution(object):
         self._install_machines(distribution)
 
         if configure:
-            self.configure(install_prefix, remote=remote)
+            self.configure(install_prefix, remote=is_remote)
 
     def _install_transforms(self, prefix, distribution):
         for transform in self.transforms:
