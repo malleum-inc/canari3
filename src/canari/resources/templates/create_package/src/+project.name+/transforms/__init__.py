@@ -1,4 +1,3 @@
 __all__ = [
-    'common',
-    'helloworld'
+    'common'
 ]
