@@ -31,7 +31,6 @@ __all__ = [
     'rename_transform',
     'run_transform',
     'shell',
-    'uninstall_package',
     'unload_plume_package',
     'version'
 ]
