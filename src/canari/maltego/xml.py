@@ -25,4 +25,5 @@ class MaltegoElement(Model):
     def __iadd__(self, other):
         return self
 
-    __add__ = __iadd__
+    def __add__(self, other):
+        return self.__iadd__(other)
