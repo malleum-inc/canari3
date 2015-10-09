@@ -156,8 +156,6 @@ class MaltegoTransformResponseMessage(MaltegoElement):
             self.uimessages.append(other)
         return self
 
-    __add__ = __iadd__
-
 
 class StringEntityField(object):
     def __init__(self, name, displayname=None, decorator=None, matchingrule=MatchingRule.Strict, is_value=False,
