@@ -53,6 +53,5 @@ __status__ = 'Development'
 )  # This parameter will never be consumed because we use a special parser for this transform.
 def debug_transform(opts):
     set_canari_mode(CanariMode.LocalDebug)
-    fix_binpath(config['default/path'])
     with pushd(project_package_dir()):
         local_transform_runner(opts.transform, opts.value, opts.fields, opts.params, config, console_writer)

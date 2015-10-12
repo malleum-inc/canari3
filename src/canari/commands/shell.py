@@ -105,8 +105,6 @@ def shell(opts):
 
     set_canari_mode(CanariMode.LocalShellDebug)
 
-    fix_binpath(config['default/path'])
-
     if not opts.package.endswith('transforms'):
         opts.package = '%s.transforms' % opts.package
 

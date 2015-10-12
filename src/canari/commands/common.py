@@ -13,8 +13,7 @@ import re
 from pkg_resources import resource_filename
 
 from canari.commands.framework import Command
-from canari.config import CanariConfigParser
-
+from canari.config import CanariConfigParser, config, OPTION_LOCAL_PATH
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2015, Canari Project'
@@ -61,6 +60,7 @@ def canari_main(opts):
     This is the main function for the Canari commander. Nothing special here.
     """
     fix_pypath()
+    fix_binpath(config[OPTION_LOCAL_PATH])
     opts.command_function(opts)
 
 
