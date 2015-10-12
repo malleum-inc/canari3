@@ -78,17 +78,13 @@ def local_transform_runner(transform, value, fields, params, config, message_wri
         else:
             raise MaltegoException('Could not resolve message type returned by transform.')
     except MaltegoException, me:
-        croak(str(me), message_writer)
-    except ImportError:
-        e = traceback.format_exc()
-        croak(e, message_writer)
+        croak(me, message_writer)
     except KeyboardInterrupt:
         # Ensure that the keyboard interrupt handler does not execute twice if a transform is sudo'd
         if (transform.superuser and not os.geteuid()) or (not transform.superuser and os.geteuid()):
             transform.on_terminate()
     except Exception:
-        e = traceback.format_exc()
-        croak(e, message_writer)
+        croak(traceback.format_exc(), message_writer)
 
 
 class Response(object):
