@@ -32,8 +32,8 @@ __all__ = [
 
 class CanariConfigParser(SafeConfigParser):
 
-    dot_before_slash = re.compile(r'^[^/]+\.')
-    slash_before_dot = re.compile(r'^[^.]+/')
+    # dot_before_slash = re.compile(r'^[^/]+\.')
+    # slash_before_dot = re.compile(r'^[^.]+/')
 
     @staticmethod
     def _interpolate_environment_variables(value):
@@ -86,16 +86,11 @@ class CanariConfigParser(SafeConfigParser):
         return value
 
     def _get_option_value(self, key, raise_on_empty_option=False):
-        section = key
-        option = None
-        if self.dot_before_slash.search(key):
-            section, option = key.split('.', 1)
-        elif self.slash_before_dot.search(key):
-            section, option = key.split('/', 1)
-        elif raise_on_empty_option:
-            raise KeyError("Invalid key %r, must be in '<section>/<option>' "
-                           "or '<section>.<option>' format." % key)
-        return section, option
+        if not key and raise_on_empty_option:
+            raise KeyError("Invalid key %r, must be in '<section>.<option>'" % key)
+        if self.has_section(key):
+            return key, ''
+        return key.rsplit('.', 1) if '.' in key else (key, '')
 
     def __getitem__(self, key):
         section, option = self._get_option_value(key, True)
@@ -179,5 +174,15 @@ class CanariConfig(object):
     def __isub__(self, other):
         return self.config.__isub__(other)
 
+
+SECTION_LOCAL = 'canari.local'
+
+SECTION_REMOTE = 'canari.remote'
+
+OPTION_LOCAL_CONFIGS = 'canari.local.configs'
+
+OPTION_LOCAL_PATH = 'canari.local.path'
+
+OPTION_REMOTE_PACKAGES = 'canari.remote.packages'
 
 config = CanariConfig()
