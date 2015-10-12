@@ -136,15 +136,15 @@ class UIMessageType:
 
 
 class UIMessage(MaltegoElement):
-    def __init__(self, value=None, **kwargs):
-        super(UIMessage, self).__init__(value=value, **kwargs)
+    def __init__(self, message=None, **kwargs):
+        super(UIMessage, self).__init__(message=message, **kwargs)
 
     type = fields_.String(attrname='MessageType', default=UIMessageType.Inform)
-    value = fields_.String(tagname='.')
+    message = fields_.String(tagname='.')
 
 
 class MaltegoTransformResponseMessage(MaltegoElement):
-    uimessages = fields_.List(UIMessage, tagname='UIMessages')
+    messages = fields_.List(UIMessage, tagname='UIMessages')
     entities = fields_.List(_Entity, tagname='Entities')
 
     def __iadd__(self, other):
@@ -153,7 +153,7 @@ class MaltegoTransformResponseMessage(MaltegoElement):
         elif isinstance(other, _Entity):
             self.entities.append(other)
         elif isinstance(other, UIMessage):
-            self.uimessages.append(other)
+            self.messages.append(other)
         return self
 
 
@@ -379,6 +379,43 @@ class EntityTypeFactory(type):
         return mcs.registry[entity_type]
 
 
+class Bookmark:
+    NoColor = -1
+    Cyan = 0
+    Green = 1
+    Yellow = 2
+    Orange = 3
+    Red = 4
+
+
+class LinkStyle:
+    Normal = 0
+    Dashed = 1
+    Dotted = 2
+    DashDot = 3
+
+
+class LinkLabel:
+    UseGlobalSetting = 0
+    Show = 1
+    Hide = 2
+
+
+class LinkColor:
+    Black = '#000000'
+    DarkGray = '#7F7F7F'
+    LightGray = '#C3C3C3'
+    Red = '#F4291A'
+    Orange = '#FF810F'
+    DarkGreen = '#30AF44'
+    NavyBlue = '#00A2EB'
+    Magenta = '##A14DA7'
+    Cyan = '#99D9EB'
+    Lime = '#B9E500'
+    Yellow = '#FFE100'
+    Pink = '#FEAFCA'
+
+
 class Entity(object):
     __metaclass__ = EntityTypeFactory
     _namespace_ = None
@@ -386,12 +423,16 @@ class Entity(object):
     _type_ = None
 
     notes = StringEntityField('notes#', matchingrule=MatchingRule.Loose)
-    bookmark = IntegerEntityField('bookmark#', matchingrule=MatchingRule.Loose)
+    bookmark = IntegerEntityField('bookmark#', choices=range(-1, 5), matchingrule=MatchingRule.Loose)
     link_label = StringEntityField('link#maltego.link.label', matchingrule=MatchingRule.Loose)
-    link_style = IntegerEntityField('link#maltego.link.style', matchingrule=MatchingRule.Loose)
-    link_color = StringEntityField('link#maltego.link.color', matchingrule=MatchingRule.Loose)
-    link_thickness = IntegerEntityField('link#maltego.link.thickness', matchingrule=MatchingRule.Loose)
-    link_show_label = EnumEntityField('link#maltego.link.show-label', choices=[0, 1], matchingrule=MatchingRule.Loose)
+    link_style = EnumEntityField('link#maltego.link.style', choices=range(4), matchingrule=MatchingRule.Loose)
+    link_thickness = EnumEntityField('link#maltego.link.thickness', choices=range(6), matchingrule=MatchingRule.Loose)
+    link_show_label = EnumEntityField('link#maltego.link.show-label', choices=range(3), matchingrule=MatchingRule.Loose)
+    link_color = EnumEntityField('link#maltego.link.color',
+                                 choices=[LinkColor.Black, LinkColor.DarkGray, LinkColor.LightGray, LinkColor.Red,
+                                          LinkColor.Orange, LinkColor.DarkGreen, LinkColor.NavyBlue, LinkColor.Magenta,
+                                          LinkColor.Cyan, LinkColor.Lime, LinkColor.Yellow, LinkColor.Pink],
+                                 matchingrule=MatchingRule.Loose)
 
     def __init__(self, value='', **kwargs):
         if isinstance(value, _Entity):
