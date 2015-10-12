@@ -125,6 +125,10 @@ class TransformDistribution(object):
 
     @property
     def entities_file(self):
+        return resource_filename(self.get_resource_module('maltego'), 'entities.mtz')
+
+    @property
+    def profile_file(self):
         return resource_filename(self.get_resource_module('maltego'), 'profile.mtz')
 
     @property
