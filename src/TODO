@@ -1,0 +1,8 @@
+Fix broken config.py option and section key parser. Currently only supports the '/' as a delimeter but that won't work
+with remote transforms since options are in dotted form.
+
+Update the unit tests to target Canari v3 functionality.
+
+Test external transforms to ensure they work with the new Canari v3 functionality or deprecate this capability?
+
+Migrate the Entity programming model to something more readable than annotations.
