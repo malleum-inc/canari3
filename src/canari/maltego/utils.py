@@ -66,9 +66,12 @@ def highlight(s, color, bold):
     return s
 
 
-def croak(error_msg, message_writer=message):
+def croak(error, message_writer=message):
     """Throw an exception in the Maltego GUI containing error_msg."""
-    message_writer(MaltegoTransformExceptionMessage(exceptions=[MaltegoException(error_msg)]))
+    if isinstance(error, MaltegoException):
+        message_writer(MaltegoTransformExceptionMessage(exceptions=[error]))
+    else:
+        message_writer(MaltegoTransformExceptionMessage(exceptions=[MaltegoException(error)]))
 
 
 def guess_entity_type(transform_module, fields):
