@@ -209,7 +209,7 @@ class EnumEntityField(StringEntityField):
     def __set__(self, obj, val):
         val = str(val) if not isinstance(val, basestring) else val
         if val not in self.choices:
-            raise ValueError('Expected one of %s (got %s instead)' % (self.choices, val))
+            raise ValueError('Expected one of %s (got %r instead)' % (self.choices, val))
         super(EnumEntityField, self).__set__(obj, val)
 
 
