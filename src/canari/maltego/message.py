@@ -34,7 +34,7 @@ __all__ = [
     'LongEntityField',
     'DateTimeEntityField',
     'DateEntityField',
-    'timespan',
+    'TimeSpan',
     'TimeSpanEntityField',
     'RegexEntityField',
     'ColorEntityField',
@@ -47,10 +47,14 @@ class MaltegoException(MaltegoElement, Exception):
     class meta:
         tagname = 'Exception'
 
+    value = fields_.String(tagname='.')
+
     def __init__(self, value):
         super(MaltegoElement, self).__init__(value=value)
 
-    value = fields_.String(tagname='.')
+    def __str__(self):
+        return self.value
+
 
 
 class MaltegoTransformExceptionMessage(MaltegoElement):
@@ -104,8 +108,8 @@ class Field(MaltegoElement):
         super(Field, self).__init__(name=name, value=value, **kwargs)
 
     name = fields_.String(attrname='Name')
-    displayname = fields_.String(attrname='DisplayName', required=False)
-    matchingrule = fields_.String(attrname='MatchingRule', default=MatchingRule.Strict, required=False)
+    display_name = fields_.String(attrname='DisplayName', required=False)
+    matching_rule = fields_.String(attrname='MatchingRule', default=MatchingRule.Strict, required=False)
     value = fields_.String(tagname='.')
 
 
@@ -118,7 +122,7 @@ class _Entity(MaltegoElement):
     labels = fields_.Dict(Label, key='name', tagname='DisplayInformation', required=False)
     value = fields_.String(tagname='Value')
     weight = fields_.Integer(tagname='Weight', default=1)
-    iconurl = fields_.String(tagname='IconURL', required=False)
+    icon_url = fields_.String(tagname='IconURL', required=False)
 
     def __iadd__(self, other):
         if isinstance(other, Field):
@@ -157,15 +161,24 @@ class MaltegoTransformResponseMessage(MaltegoElement):
         return self
 
 
+class ValidationError(MaltegoException):
+    pass
+
+
 class StringEntityField(object):
-    def __init__(self, name, displayname=None, decorator=None, matchingrule=MatchingRule.Strict, is_value=False,
-                 alias=None, **extras):
+
+    error_msg = ''
+
+    def __init__(self, name, display_name=None, decorator=None, matching_rule=MatchingRule.Strict, is_value=False,
+                 alias=None, error_msg='', **extras):
         self.decorator = decorator
         self.is_value = is_value
         self.name = name
-        self.displayname = displayname
-        self.matchingrule = matchingrule
+        self.display_name = display_name
+        self.matching_rule = matching_rule
         self.alias = alias
+        if error_msg:
+            self.error_msg = error_msg
 
     def __get__(self, obj, objtype):
         if self.is_value:
@@ -189,8 +202,8 @@ class StringEntityField(object):
                 obj.fields[self.name] = Field(
                     name=self.name,
                     value=val,
-                    displayname=self.displayname,
-                    matchingrule=self.matchingrule
+                    display_name=self.display_name,
+                    matching_rule=self.matching_rule
                 )
             elif self.name in obj.fields:
                 obj.fields[self.name].value = val
@@ -199,87 +212,127 @@ class StringEntityField(object):
         if callable(self.decorator):
             self.decorator(obj, val)
 
+    def get_error_msg(self, field, value, **extras):
+        return self.error_msg.format(field=field, value=value, **extras)
+
 
 class EnumEntityField(StringEntityField):
-    def __init__(self, name, displayname=None, choices=None, decorator=None, matchingrule=MatchingRule.Strict,
-                 is_value=False, **extras):
+
+    error_msg = 'Invalid value ({value!r}) set for field {field!r}. Expected one of these values: {target!r}.'
+
+    def __init__(self, name, choices=None, **extras):
         self.choices = [str(c) if not isinstance(c, basestring) else c for c in choices or []]
-        super(EnumEntityField, self).__init__(name, displayname, decorator, matchingrule, is_value)
+        super(EnumEntityField, self).__init__(name, **extras)
 
     def __set__(self, obj, val):
         val = str(val) if not isinstance(val, basestring) else val
         if val not in self.choices:
-            raise ValueError('Expected one of %s (got %r instead)' % (self.choices, val))
+            raise ValidationError(self.get_error_msg(self.display_name or self.name, val, target=self.choices))
         super(EnumEntityField, self).__set__(obj, val)
 
 
 class IntegerEntityField(StringEntityField):
+
+    error_msg = 'The field value ({value!r}) set for field {field!r} is not an integer.'
+
     def __get__(self, obj, objtype):
         i = super(IntegerEntityField, self).__get__(obj, objtype)
-        return int(i) if i is not None else None
+        try:
+            return int(i) if i is not None else None
+        except ValueError:
+            raise ValidationError(self.get_error_msg(self.display_name or self.name, i))
 
     def __set__(self, obj, val):
         if not isinstance(val, Number):
-            raise TypeError('Expected an instance of int (got %s instance instead)' % type(val).__name__)
+            raise ValidationError(self.get_error_msg(self.display_name or self.name, val))
         super(IntegerEntityField, self).__set__(obj, val)
 
 
 class BooleanEntityField(StringEntityField):
+
+    error_msg = 'The field value ({value!r}) set for field {field!r} is not a boolean.'
+
     def __get__(self, obj, objtype):
         b = super(BooleanEntityField, self).__get__(obj, objtype)
         return b.startswith('t') or b == '1' if b is not None else None
 
     def __set__(self, obj, val):
         if not isinstance(val, bool):
-            raise TypeError('Expected an instance of bool (got %s instance instead)' % type(val).__name__)
+            raise ValidationError(self.get_error_msg(self.display_name or self.name, val))
         super(BooleanEntityField, self).__set__(obj, str(val).lower())
 
 
 class FloatEntityField(StringEntityField):
+
+    error_msg = 'The field value ({value!r}) set for field {field!r} is not a float.'
+
     def __get__(self, obj, objtype):
         f = super(FloatEntityField, self).__get__(obj, objtype)
-        return float(f) if f is not None else None
+        try:
+            return float(f) if f is not None else None
+        except ValueError:
+            raise ValidationError(self.get_error_msg(self.display_name or self.name, f))
 
     def __set__(self, obj, val):
         if not isinstance(val, Number):
-            raise TypeError('Expected an instance of float (got %s instance instead)' % type(val).__name__)
+            raise ValidationError(self.get_error_msg(self.display_name or self.name, val))
         super(FloatEntityField, self).__set__(obj, val)
 
 
 class LongEntityField(StringEntityField):
+
+    error_msg = 'The field value ({value!r}) set for field {field!r} is not a long integer.'
+
     def __get__(self, obj, objtype):
         l = super(LongEntityField, self).__get__(obj, objtype)
-        return long(l) if l is not None else None
+        try:
+            return long(l) if l is not None else None
+        except ValueError:
+            raise ValidationError(self.get_error_msg(self.display_name or self.name, l))
 
     def __set__(self, obj, val):
         if not isinstance(val, Number):
-            raise TypeError('Expected an instance of float (got %s instance instead)' % type(val).__name__)
+            raise ValidationError(self.get_error_msg(self.display_name or self.name, val))
         super(LongEntityField, self).__set__(obj, val)
 
 
 class DateTimeEntityField(StringEntityField):
+
+    error_msg = 'The field value ({value!r}) set for field {field!r} is not a valid date time. Date time fields must ' \
+                'have the following format: YYYY-MM-DD HH:MM:SS.MS.'
+
     def __get__(self, obj, objtype):
         d = super(DateTimeEntityField, self).__get__(obj, objtype)
-        return datetime.strptime(d, '%Y-%m-%d %H:%M:%S.%f') if d is not None else None
+        try:
+            return datetime.strptime(d, '%Y-%m-%d %H:%M:%S.%f') if d is not None else None
+        except ValueError:
+            raise ValidationError(self.get_error_msg(self.display_name or self.name, d))
 
     def __set__(self, obj, val):
         if not isinstance(val, datetime):
-            raise TypeError('Expected an instance of datetime (got %s instance instead)' % type(val).__name__)
+            raise ValidationError(self.get_error_msg(self.display_name or self.name, val))
         super(DateTimeEntityField, self).__set__(obj, val.strftime('%Y-%m-%d %H:%M:%S.%f'))
 
 
 class DateEntityField(StringEntityField):
+
+    error_msg = 'The field value ({value!r}) set for field {field!r} is not a valid date. Date fields must have the ' \
+                'following format: YYYY-MM-DD.'
+
     def __get__(self, obj, objtype):
         d = super(DateEntityField, self).__get__(obj, objtype)
-        return datetime.strptime(d, '%Y-%m-%d').date() if d is not None else None
+        try:
+            return datetime.strptime(d, '%Y-%m-%d').date() if d is not None else None
+        except ValueError:
+            raise ValidationError(self.get_error_msg(self.display_name or self.name, d))
 
     def __set__(self, obj, val):
         if not isinstance(val, date):
-            raise TypeError('Expected an instance of date (got %s instance instead)' % type(val).__name__)
+            raise ValidationError(self.get_error_msg(self.display_name or self.name, val))
         super(DateEntityField, self).__set__(obj, val.strftime('%Y-%m-%d'))
 
 
-class timespan(timedelta):
+class TimeSpan(timedelta):
     matcher = re.compile('(\d+)d (\d+)h(\d+)m(\d+)\.(\d+)s')
 
     def __str__(self):
@@ -297,42 +350,58 @@ class timespan(timedelta):
         if m is None:
             raise ValueError('Time span must be in "%%dd %%Hh%%Mm%%S.%%fs" format')
         days, hours, minutes, seconds, useconds = [int(i) for i in m.groups()]
-        return timespan(days, (hours * 3600) + (minutes * 60) + seconds, useconds)
+        return TimeSpan(days, (hours * 3600) + (minutes * 60) + seconds, useconds)
 
 
 class TimeSpanEntityField(StringEntityField):
+
+    error_msg = 'The field value ({value!r}) set for field {field!r} is not a valid time span. Time spans must have ' \
+                'the following format: DDd HHhMMmSS.MSs.'
+
     def __get__(self, obj, objtype):
         d = super(TimeSpanEntityField, self).__get__(obj, objtype)
-        return timespan.fromstring(d) if d is not None else None
+        try:
+            return TimeSpan.fromstring(d) if d is not None else None
+        except ValueError:
+            raise ValidationError(self.get_error_msg(self.display_name or self.name, d))
 
     def __set__(self, obj, val):
         if not isinstance(val, timedelta):
-            raise TypeError('Expected an instance of timedelta or timespan (got %s instance instead)' %
-                            type(val).__name__)
+            raise ValidationError(self.get_error_msg(self.display_name or self.name, val))
         if val.__class__ is timedelta:
-            val = timespan(val.days, val.seconds, val.microseconds)
+            val = TimeSpan(val.days, val.seconds, val.microseconds)
         super(TimeSpanEntityField, self).__set__(obj, str(val))
 
 
 class RegexEntityField(StringEntityField):
-    def __init__(self, name, displayname=None, pattern='.*', decorator=None, matchingrule=MatchingRule.Strict,
-                 is_value=False, **extras):
-        super(RegexEntityField, self).__init__(name, displayname, decorator, matchingrule, is_value, **extras)
-        self.pattern = re.compile(pattern)
+
+    error_msg = 'The field value ({value!r}) set for field {field!r} does not match the regular expression ' \
+                '/{pattern}/.'
+
+    def __init__(self, name, pattern='.*', **extras):
+        super(RegexEntityField, self).__init__(name, **extras)
+        self.matcher = re.compile(pattern)
+
+    def __get__(self, obj, objtype):
+        v = super(RegexEntityField, self).__get__(obj, objtype)
+        if not self.matcher.match(v):
+            raise ValidationError(self.get_error_msg(self.display_name or self.name, v, pattern=self.matcher.pattern))
+        return v
 
     def __set__(self, obj, val):
         if not isinstance(val, basestring):
             val = str(val)
-        if not self.pattern.match(val):
-            raise ValueError('Failed match for %r, expected pattern %r instead.' % (val, self.pattern.pattern))
+        if not self.matcher.match(val):
+            raise ValidationError(self.get_error_msg(self.display_name or self.name, val, pattern=self.matcher.pattern))
         super(RegexEntityField, self).__set__(obj, val)
 
 
 class ColorEntityField(RegexEntityField):
-    def __init__(self, name, displayname=None, decorator=None, matchingrule=MatchingRule.Strict, is_value=False,
-                 **extras):
-        super(ColorEntityField, self).__init__(name, displayname, '^#[0-9a-fA-F]{6}$', decorator, matchingrule,
-                                               is_value, **extras)
+
+    error_msg = 'The field value ({value!r}) set for {field!r} is not a valid color (i.e. #000000-#ffffff)'
+
+    def __init__(self, name, **extras):
+        super(ColorEntityField, self).__init__(name, pattern='^#[0-9a-fA-F]{6}$', **extras)
 
 
 class EntityTypeFactory(type):
@@ -422,17 +491,17 @@ class Entity(object):
     _alias_ = None
     _type_ = None
 
-    notes = StringEntityField('notes#', matchingrule=MatchingRule.Loose)
+    notes = StringEntityField('notes#', matching_rule=MatchingRule.Loose)
     bookmark = IntegerEntityField('bookmark#', choices=range(-1, 5), matchingrule=MatchingRule.Loose)
-    link_label = StringEntityField('link#maltego.link.label', matchingrule=MatchingRule.Loose)
-    link_style = EnumEntityField('link#maltego.link.style', choices=range(4), matchingrule=MatchingRule.Loose)
-    link_thickness = EnumEntityField('link#maltego.link.thickness', choices=range(6), matchingrule=MatchingRule.Loose)
-    link_show_label = EnumEntityField('link#maltego.link.show-label', choices=range(3), matchingrule=MatchingRule.Loose)
+    link_label = StringEntityField('link#maltego.link.label', matching_rule=MatchingRule.Loose)
+    link_style = EnumEntityField('link#maltego.link.style', choices=range(4), matching_rule=MatchingRule.Loose)
+    link_thickness = EnumEntityField('link#maltego.link.thickness', choices=range(6), matching_rule=MatchingRule.Loose)
+    link_show_label = EnumEntityField('link#maltego.link.show-label', choices=range(3), matching_rule=MatchingRule.Loose)
     link_color = EnumEntityField('link#maltego.link.color',
                                  choices=[LinkColor.Black, LinkColor.DarkGray, LinkColor.LightGray, LinkColor.Red,
                                           LinkColor.Orange, LinkColor.DarkGreen, LinkColor.NavyBlue, LinkColor.Magenta,
                                           LinkColor.Cyan, LinkColor.Lime, LinkColor.Yellow, LinkColor.Pink],
-                                 matchingrule=MatchingRule.Loose)
+                                 matching_rule=MatchingRule.Loose)
 
     def __init__(self, value='', **kwargs):
         if isinstance(value, _Entity):
@@ -498,12 +567,12 @@ class Entity(object):
         self._entity.weight = w
 
     @property
-    def iconurl(self):
-        return self._entity.iconurl
+    def icon_url(self):
+        return self._entity.icon_url
 
-    @iconurl.setter
-    def iconurl(self, url):
-        self._entity.iconurl = url
+    @icon_url.setter
+    def icon_url(self, url):
+        self._entity.icon_url = url
 
     def __iadd__(self, other):
         self._entity += other
