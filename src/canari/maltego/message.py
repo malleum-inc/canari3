@@ -56,7 +56,6 @@ class MaltegoException(MaltegoElement, Exception):
         return self.value
 
 
-
 class MaltegoTransformExceptionMessage(MaltegoElement):
     """
     MaltegoTransformExceptionMessage is the root container for the MaltegoException element.
@@ -496,7 +495,8 @@ class Entity(object):
     link_label = StringEntityField('link#maltego.link.label', matching_rule=MatchingRule.Loose)
     link_style = EnumEntityField('link#maltego.link.style', choices=range(4), matching_rule=MatchingRule.Loose)
     link_thickness = EnumEntityField('link#maltego.link.thickness', choices=range(6), matching_rule=MatchingRule.Loose)
-    link_show_label = EnumEntityField('link#maltego.link.show-label', choices=range(3), matching_rule=MatchingRule.Loose)
+    link_show_label = EnumEntityField('link#maltego.link.show-label', choices=range(3),
+                                      matching_rule=MatchingRule.Loose)
     link_color = EnumEntityField('link#maltego.link.color',
                                  choices=[LinkColor.Black, LinkColor.DarkGray, LinkColor.LightGray, LinkColor.Red,
                                           LinkColor.Orange, LinkColor.DarkGreen, LinkColor.NavyBlue, LinkColor.Magenta,
