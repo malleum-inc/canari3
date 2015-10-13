@@ -168,16 +168,14 @@ class StringEntityField(object):
 
     error_msg = ''
 
-    def __init__(self, name, display_name=None, decorator=None, matching_rule=MatchingRule.Strict, is_value=False,
-                 alias=None, error_msg='', **extras):
-        self.decorator = decorator
-        self.is_value = is_value
+    def __init__(self, name, **extras):
         self.name = name
-        self.display_name = display_name
-        self.matching_rule = matching_rule
-        self.alias = alias
-        if error_msg:
-            self.error_msg = error_msg
+        self.decorator = extras.pop('decorator', None)
+        self.is_value = extras.pop('is_value', False)
+        self.display_name = extras.pop('display_name', '')
+        self.matching_rule = extras.pop('matching_rule', MatchingRule.Strict)
+        self.alias = extras.pop('alias', None)
+        self.error_msg = extras.pop('error_msg', self.error_msg)
 
     def __get__(self, obj, objtype):
         if self.is_value:
@@ -217,16 +215,26 @@ class StringEntityField(object):
 
 class EnumEntityField(StringEntityField):
 
-    error_msg = 'Invalid value ({value!r}) set for field {field!r}. Expected one of these values: {target!r}.'
+    error_msg = 'Invalid value ({value!r}) set for field {field!r}. Expected one of these values: {expected!r}.'
 
     def __init__(self, name, choices=None, **extras):
-        self.choices = [str(c) if not isinstance(c, basestring) else c for c in choices or []]
+        if not choices:
+            raise ValueError('You must specify a non-empty set of choices.')
+        self.choices = [str(c) if not isinstance(c, basestring) else c for c in choices]
         super(EnumEntityField, self).__init__(name, **extras)
+
+    def __get__(self, obj, objtype):
+        c = super(EnumEntityField, self).__get__(obj, objtype)
+        if c is not None and not isinstance(c, basestring):
+            c = str(c)
+        if c and c not in self.choices:
+            raise ValidationError(self.get_error_msg(self.display_name or self.name, c, expected=self.choices))
+        return c
 
     def __set__(self, obj, val):
         val = str(val) if not isinstance(val, basestring) else val
         if val not in self.choices:
-            raise ValidationError(self.get_error_msg(self.display_name or self.name, val, target=self.choices))
+            raise ValidationError(self.get_error_msg(self.display_name or self.name, val, expected=self.choices))
         super(EnumEntityField, self).__set__(obj, val)
 
 
@@ -374,8 +382,7 @@ class TimeSpanEntityField(StringEntityField):
 
 class RegexEntityField(StringEntityField):
 
-    error_msg = 'The field value ({value!r}) set for field {field!r} does not match the regular expression ' \
-                '/{pattern}/.'
+    error_msg = 'The field value ({value!r}) set for field {field!r} does not match the regular expression /{pattern}/.'
 
     def __init__(self, name, pattern='.*', **extras):
         super(RegexEntityField, self).__init__(name, **extras)
@@ -383,7 +390,7 @@ class RegexEntityField(StringEntityField):
 
     def __get__(self, obj, objtype):
         v = super(RegexEntityField, self).__get__(obj, objtype)
-        if not self.matcher.match(v):
+        if v and not self.matcher.match(v):
             raise ValidationError(self.get_error_msg(self.display_name or self.name, v, pattern=self.matcher.pattern))
         return v
 
@@ -420,7 +427,7 @@ class EntityTypeFactory(type):
         # This is where we register our custom Entity subclasses.
         # We can register an alias for the entity. This was done to accommodate the difference between V2 and V3
         # entities. This is to support backwards compatibility with older versions of Maltego.
-        if not cls._alias_:
+        if '_alias_' not in dict_:
             cls._alias_ = name
 
         # Create a namespace if it is not explicitly defined. Dynamically created namespaces are based on which module
@@ -434,7 +441,7 @@ class EntityTypeFactory(type):
             else:
                 cls._namespace_ = cls.__module__.split('.', 1)[0]
 
-        if not cls._type_:
+        if '_type_' not in dict_:
             cls._type_ = '%s.%s' % (cls._namespace_, name)
 
         mcs.registry[cls._type_] = cls
@@ -577,6 +584,8 @@ class Entity(object):
     def __iadd__(self, other):
         self._entity += other
         return self
+
+    __add__ = __iadd__
 
     def __getitem__(self, item):
         return self._entity.fields[item].value
