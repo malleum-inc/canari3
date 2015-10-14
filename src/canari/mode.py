@@ -12,21 +12,20 @@ __all__ = [
     'CanariMode',
     'set_canari_mode',
     'get_canari_mode',
-    'is_remote_exec_mode',
-    'is_plume_exec_mode',
     'is_local_exec_mode',
     'is_debug_exec_mode',
     'is_dispatch_exec_mode',
+    'is_remote_exec_mode',
+    'is_plume_exec_mode',
+    'is_shell_exec_mode',
     'is_unknown_exec_mode',
     'is_local_debug_exec_mode',
     'is_local_dispatch_exec_mode',
     'is_local_unknown_exec_mode',
     'is_remote_plume_debug_exec_mode',
     'is_remote_plume_dispatch_exec_mode',
-    'is_remote_runner_debug_exec_mode',
-    'is_remote_runner_dispatch_exec_mode',
     'is_remote_unknown_exec_mode',
-    'is_runner_exec_mode',
+    'is_local_shell_debug_exec_mode',
     'get_canari_mode_str'
 ]
 
@@ -49,13 +48,10 @@ class CanariMode:
     Debug = 0x04
     Dispatch = 0x08
     Plume = 0x10
-    Runner = 0x20
     Shell = 0x40
     Unknown = 0x80
     RemotePlumeDispatch = Remote | Dispatch | Plume
     RemotePlumeDebug = Remote | Debug | Plume
-    RemoteRunnerDispatch = Remote | Dispatch | Runner
-    RemoteRunnerDebug = Remote | Debug | Runner
     RemoteUnknown = Remote | Unknown
     LocalDispatch = Local | Dispatch
     LocalDebug = Local | Debug
@@ -68,13 +64,10 @@ class CanariMode:
         Debug: 'Debug',
         Dispatch: 'Dispatch',
         Plume: 'Plume',
-        Runner: 'Runner',
         Shell: 'Shell',
         Unknown: 'Unknown',
         RemotePlumeDispatch: 'Remote (server:Plume, debug:False)',
         RemotePlumeDebug: 'Remote (server:Plume, debug:True)',
-        RemoteRunnerDispatch: 'Remote (server:Runner, debug:False)',
-        RemoteRunnerDebug: 'Remote (server:Runner, debug:True)',
         RemoteUnknown: 'Remote (server:?, debug:?)',
         LocalDispatch: 'Local (runner:Canari, debug:False)',
         LocalDebug: 'Local (runner:Canari, debug:True)',
@@ -174,15 +167,6 @@ def is_plume_exec_mode():
     return get_canari_mode() & CanariMode.Plume
 
 
-def is_runner_exec_mode():
-    """
-    Returns a boolean specifying whether Canari is operating in Runner mode.
-
-    :return: True if Canari is operating in Runner mode.
-    """
-    return get_canari_mode() & CanariMode.Runner
-
-
 def is_unknown_exec_mode():
     """
     Returns a boolean specifying whether Canari is operating in an unknown mode.
@@ -208,24 +192,6 @@ def is_remote_plume_debug_exec_mode():
     :return: True if Canari is operating in Plume debug mode.
     """
     return is_plume_exec_mode() and is_debug_exec_mode()
-
-
-def is_remote_runner_dispatch_exec_mode():
-    """
-    Returns a boolean specifying whether Canari is operating in remote Runner dispatch mode.
-
-    :return: True if Canari is operating in remote Runner dispatch mode.
-    """
-    return is_runner_exec_mode() and is_dispatch_exec_mode()
-
-
-def is_remote_runner_debug_exec_mode():
-    """
-    Returns a boolean specifying whether Canari is operating in remote Runner debug mode.
-
-    :return: True if Canari is operating in remote Runner debug mode.
-    """
-    return is_runner_exec_mode() and is_debug_exec_mode()
 
 
 def is_remote_unknown_exec_mode():
@@ -262,3 +228,11 @@ def is_local_unknown_exec_mode():
     :return: True if Canari is operating in local unknown mode.
     """
     return is_local_exec_mode() and is_unknown_exec_mode()
+
+
+def is_shell_exec_mode():
+    return get_canari_mode() & CanariMode.Shell
+
+
+def is_local_shell_debug_exec_mode():
+    return is_local_exec_mode() and is_shell_exec_mode() and is_debug_exec_mode()
