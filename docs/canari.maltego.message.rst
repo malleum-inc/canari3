@@ -65,7 +65,8 @@ Finally, each messaging object can be separately serialized and deserialized to 
     <canari.maltego.message.MaltegoTransformResponseMessage object at 0x10e99e150>
 
 However, if you're a transform developer you will never really need to use the :meth:`render` or :meth:`parse` methods
-as they are primarily used by the ``dispatcher``, ``canari debug-transform``, and ``plume`` transform runners.
+as they are primarily used by the :program:`dispatcher`, :program:`canari debug-transform`, and :program:`plume`
+transform runners.
 
 Maltego Request and Response Objects
 ------------------------------------
@@ -98,7 +99,7 @@ string whose root element is the ``<MaltegoTransformRequestMessage>`` tag, or by
     .. attribute:: parameters
 
         In **local transform execution mode**, :attr:`parameters` is a list of extraneous command line arguments
-        not handled by the Canari ``dispatcher``. This is useful in scenarios where you want to use command line
+        not handled by the Canari :program:`dispatcher`. This is useful in scenarios where you want to use command line
         arguments to manage the behavior of a transform, for example::
 
                 # transform executed using 'dispatcher foo.transforms.HelloWorld -u Bob'
@@ -698,7 +699,7 @@ All entity field types are subclasses of :class:`StringEntityField` and can be c
 
     :keyword str description: The "Description" of the entity field in Maltego.
     :keyword str display_name: The "Property display name" of the entity field in Maltego.
-    :keyword str matching_rule: The default matching rule for the entity field (default: :attr:`MatchingRule.Strict`).
+    :keyword MatchingRule matching_rule: The default matching rule for the entity field (default: :attr:`MatchingRule.Strict`).
     :keyword str alias: The alias for the "Unique property name". Used for backwards compatible entity fields.
     :keyword str error_msg: The custom error message that gets displayed when a :exc:`ValidationError` is raised.
     :keyword bool is_value: ``True`` if the property is the main property, else ``False`` (default).
@@ -953,6 +954,10 @@ proxies to the :attr:`fields` dictionary. A field object can be constructed in t
     :param MatchingRule matching_rule: the matching rule for this field, either :attr:`MatchingRule.Strict` (default) or
                                        :attr:`MatchingRule.Loose`.
 
+.. seealso::
+
+    :ref:`Matching rules<matching_rules>` for more information on matching rules and how they relate to Maltego graph behavior.
+
 Fields that are pre-defined (or statically defined) for a particular entity in Maltego do not require the specification
 of the ``display_name`` argument. The display name defined in Maltego will be used instead. The ``display_name``
 argument is particularly important for dynamic fields (fields that are not part of the entity definition in Maltego).
@@ -1013,6 +1018,28 @@ setting ``type`` to ``'text/html'`` and ``value`` to an HTML fragment, like so::
 
     >>> t = Threat('Cheese', country='Switzerland')
     >>> t += Label('Table', '<table><tr><th>header</th></tr><tr><td>row</td></tr></table>', 'text/html')
+
+.. _matching_rules:
+
+Matching Rules and Maltego
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+Maltego supports the concept of matching rules for entity fields. A matching rule defines how an output entity (returned
+by a transform) is merged with other pre-existing entities, of the same type, that share the same entity value.
+Maltego currently supports two matching rules, loose and strict matching, which are represented in Canari with the
+:attr:`MatchingRule.Loose` and :attr:`MatchingRule.Strict` attributes, respectively. Take a look at how the behavior of
+these two matching rules differ when used to compare two entities (``x`` and ``y``) of the same type:
+
+.. csv-table::
+    :header: Value,Meaning
+
+    :attr:`MatchingRule.Strict`,if ``x.value == y.value and x.field == y.field`` then allow entities to merge.
+    :attr:`MatchingRule.Loose`,if ``x.value == y.value`` then ``x.field = y.field`` and merge entities.
+
+.. attention::
+
+    It is important to note that with loosely matched entity fields, the previous value is overridden with the new
+    value for that field. If you wish to preserve the different values for particular entity field, then you will have
+    to revert to strict matching.
 
 Automatically Generating Canari Entity Definitions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
