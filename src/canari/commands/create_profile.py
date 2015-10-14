@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+from canari.mode import CanariMode, set_canari_mode
 
 from canari.pkgutils.transform import TransformDistribution
 from common import canari_main, uproot
@@ -46,6 +47,8 @@ def parse_args(args):
          'transforms being installed (default: current working directory)'
 )
 def create_profile(args):
+
+    set_canari_mode(CanariMode.Local)
 
     opts = parse_args(args)
     current_dir = os.getcwd()
