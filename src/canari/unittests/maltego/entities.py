@@ -1,6 +1,6 @@
 from datetime import date, datetime, timedelta
 from canari.maltego.message import Entity, Field, StringEntityField, IntegerEntityField, FloatEntityField, \
-    BooleanEntityField, EnumEntityField, LongEntityField, DateTimeEntityField, DateEntityField, timespan, \
+    BooleanEntityField, EnumEntityField, LongEntityField, DateTimeEntityField, DateEntityField, TimeSpan, \
     TimeSpanEntityField, RegexEntityField, ColorEntityField
 from unittest import TestCase
 
