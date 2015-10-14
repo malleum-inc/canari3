@@ -92,8 +92,8 @@ class Response(object):
         self._response = maltego_response
         self._entities = [EntityTypeFactory.create(e.type)(e) for e in maltego_response.entities]
         self._messages = defaultdict(list)
-        for m in maltego_response.uimessages:
-            self._messages[m.type].append(m.value)
+        for m in maltego_response.messages:
+            self._messages[m.type].append(m.message)
 
     def toXML(self):
         return self._response.render(fragment=True)
