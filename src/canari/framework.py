@@ -1,3 +1,4 @@
+from canari.mode import is_remote_exec_mode
 from canari.resource import external_resource
 from canari.utils.stack import calling_package
 
@@ -39,8 +40,8 @@ def RequireSuperUser(transform):
 
     :Example:
 
-    @superuser
-    dotransform(*args):
+    @RequireSuperUser
+    class MyTransform(Transform):
         pass
     """
     transform.superuser = True
@@ -53,8 +54,8 @@ def Deprecated(transform):
 
     :Example:
 
-    @deprecated
-    dotransform(*args):
+    @Deprecated
+    class MyTransform(Transform):
         pass
 
     :param transform: the transform class that will be marked as deprecated.
@@ -66,12 +67,12 @@ def Deprecated(transform):
 
 def EnableRemoteExecution(transform):
     """
-    Marks the transform as deprecated.
+    Marks the transform as a remote transform. This allows Plume to import and execute the transform.
 
     :Example:
 
-    @remote
-    dotransform(*args):
+    @EnableRemoteExecution
+    class MyTransform(Transform):
         pass
 
     :param transform: the transform class that will be marked as deprecated.
@@ -79,6 +80,26 @@ def EnableRemoteExecution(transform):
     """
     transform.remote = True
     return transform
+
+
+class RequestFilter(object):
+
+    def __init__(self, filter_=None, remote_only=True, **kwargs):
+        self.filter = filter_
+        self.remote_only = remote_only
+
+    def __call__(self, transform):
+        if callable(filter):
+            if self.remote_only and is_remote_exec_mode():
+                orig_do_transform = transform.do_transform
+
+                def do_transform(self_, request, response, config):
+                    self.filter.__call__(request, response, config)
+                    return orig_do_transform(self_, request, response, config)
+
+                transform.do_transform = do_transform
+            return transform
+        raise ValueError('Expected callable (got %s instead).' % type(self.filter).__name__)
 
 
 def EnableDebugWindow(transform):
