@@ -157,7 +157,7 @@ Foreign Language Support
 ------------------------
 If you've already developed your cool Maltego transforms in another language, such as Perl, Ruby, or Java, you can still
 take advantage of Canari's powerful transform packaging and distribution features. By setting
-:attr:`Transform.do_transform` to and instance of :class:`ExternalCommand` and placing your transform code in the
+:attr:`Transform.do_transform` to an instance of :class:`ExternalCommand` and placing your transform code in the
 ``<project name>/src/<project name>/resources/external`` directory, you have the ability to run transform code written
 in other languages. For example, let's assume we've written a Perl transform, ``do_nothing.pl``, that we'd like to
 package and distribute using the Canari framework::
