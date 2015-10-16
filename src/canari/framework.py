@@ -1,11 +1,10 @@
-from canari.mode import is_remote_exec_mode
-from canari.resource import external_resource
-from canari.utils.stack import calling_package
-
-from subprocess import PIPE, Popen
+from subprocess import Popen
 import os
 import re
 
+from canari.mode import is_remote_exec_mode
+from canari.resource import external_resource
+from canari.utils.stack import calling_package
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2015, Canari Project'
@@ -84,7 +83,7 @@ def EnableRemoteExecution(transform):
 
 class RequestFilter(object):
 
-    def __init__(self, filter_=None, remote_only=True, **kwargs):
+    def __init__(self, filter_=None, remote_only=False, **kwargs):
         self.filter = filter_
         self.remote_only = remote_only
 
@@ -108,8 +107,8 @@ def EnableDebugWindow(transform):
 
     :Example:
 
-    @remote
-    dotransform(*args):
+    @EnableDebugWindow
+    MyTransform(Transform):
         pass
 
     :param transform: the transform class that will be marked as deprecated.
@@ -120,28 +119,26 @@ def EnableDebugWindow(transform):
 
 
 class ExternalCommand(object):
-    def __init__(self, transform_name, transform_args=None, interpreter=None, is_resource=True):
+    def __init__(self, interpreter, transform_name, transform_args=None):
         if transform_args is None:
             transform_args = []
-        self._extra_external_args = []
+        self.args = []
 
-        if interpreter is not None:
-            self._extra_external_args.append(interpreter)
+        if interpreter:
+            self.args.append(interpreter)
             libpath = external_resource(
                 os.path.dirname(transform_name),
                 '%s.resources.external' % calling_package()
             )
             if interpreter.startswith('perl') or interpreter.startswith('ruby'):
-                self._extra_external_args.extend(['-I', libpath])
+                self.args.append('-I%s' % libpath)
             elif interpreter.startswith('java'):
-                self._extra_external_args.extend(['-cp', libpath])
+                self.args.extend(['-cp', libpath])
 
         if ' ' in transform_name:
             raise ValueError('Transform name %r cannot have spaces.' % transform_name)
-        elif not is_resource:
-            self._extra_external_args.append(transform_name)
         else:
-            self._extra_external_args.append(
+            self.args.append(
                 external_resource(
                     transform_name,
                     '%s.resources.external' % calling_package()
@@ -149,20 +146,21 @@ class ExternalCommand(object):
             )
 
         if isinstance(transform_args, basestring):
-            self._extra_external_args = re.split(r'\s+', transform_args)
+            self.args = re.split(r'\s+', transform_args)
         else:
-            self._extra_external_args.extend(transform_args)
+            self.args.extend(transform_args)
 
-    def __call__(self, request, request_xml):
-        args = [request.value]
-        if isinstance(request.params, list) and request.params:
-            args.extend(request.params)
-        if request.fields:
-            args.append('#'.join(['%s=%s' % (k, v) for k, v in request.fields.iteritems()]))
-        if isinstance(request_xml, basestring):
-            p = Popen(self._extra_external_args + list(args), stdin=PIPE, stdout=PIPE)
-            out, err = p.communicate(request_xml)
-            return out
-        p = Popen(self._extra_external_args + list(args))
+    def __call__(self, request, *args):
+        self.args.append(request.entity.value)
+        if isinstance(request.parameters, list) and request.parameters:
+            self.args.extend(request.parameters)
+        if request.entity.fields:
+            self.args.append(
+                '#'.join(
+                    ['%s=%s' % (k, v.value.replace('#', '\\#').replace('=', '\\='))
+                     for k, v in request.entity.fields.iteritems()]
+                )
+            )
+        p = Popen(self.args)
         p.communicate()
         exit(p.returncode)
