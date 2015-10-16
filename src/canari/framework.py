@@ -83,7 +83,7 @@ def EnableRemoteExecution(transform):
 
 class RequestFilter(object):
 
-    def __init__(self, filter_=None, remote_only=False, **kwargs):
+    def __init__(self, filter_, remote_only=False, **kwargs):
         self.filter = filter_
         self.remote_only = remote_only
 
@@ -93,7 +93,8 @@ class RequestFilter(object):
                 orig_do_transform = transform.do_transform
 
                 def do_transform(self_, request, response, config):
-                    self.filter.__call__(request, response, config)
+                    if self.filter.__call__(request, response, config):
+                        return response
                     return orig_do_transform(self_, request, response, config)
 
                 transform.do_transform = do_transform
@@ -103,7 +104,7 @@ class RequestFilter(object):
 
 def EnableDebugWindow(transform):
     """
-    Marks the transform as deprecated.
+    TODO.
 
     :Example:
 
@@ -119,15 +120,15 @@ def EnableDebugWindow(transform):
 
 
 class ExternalCommand(object):
-    def __init__(self, interpreter, transform_name, transform_args=None):
-        if transform_args is None:
-            transform_args = []
+    def __init__(self, interpreter, program, args=None):
+        if args is None:
+            args = []
         self.args = []
 
         if interpreter:
             self.args.append(interpreter)
             libpath = external_resource(
-                os.path.dirname(transform_name),
+                os.path.dirname(program),
                 '%s.resources.external' % calling_package()
             )
             if interpreter.startswith('perl') or interpreter.startswith('ruby'):
@@ -135,20 +136,20 @@ class ExternalCommand(object):
             elif interpreter.startswith('java'):
                 self.args.extend(['-cp', libpath])
 
-        if ' ' in transform_name:
-            raise ValueError('Transform name %r cannot have spaces.' % transform_name)
+        if ' ' in program:
+            raise ValueError('Transform name %r cannot have spaces.' % program)
         else:
             self.args.append(
                 external_resource(
-                    transform_name,
+                    program,
                     '%s.resources.external' % calling_package()
                 )
             )
 
-        if isinstance(transform_args, basestring):
-            self.args = re.split(r'\s+', transform_args)
+        if isinstance(args, basestring):
+            self.args = re.split(r'\s+', args)
         else:
-            self.args.extend(transform_args)
+            self.args.extend(args)
 
     def __call__(self, request, *args):
         self.args.append(request.entity.value)
