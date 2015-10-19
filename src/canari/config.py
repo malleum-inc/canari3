@@ -5,10 +5,9 @@ from ConfigParser import SafeConfigParser, NoOptionError, NoSectionError
 from urlparse import urlparse, urlunparse
 
 from canari.utils.fs import pushd
-from resource import conf
-from canari.mode import is_local_exec_mode, get_canari_mode_str
+from resource import global_config
+from canari.mode import is_local_exec_mode
 from utils.wordlist import wordlist
-
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2015, Canari Project'
@@ -29,9 +28,18 @@ __all__ = [
     'config'
 ]
 
+SECTION_LOCAL = 'canari.local'
+
+SECTION_REMOTE = 'canari.remote'
+
+OPTION_LOCAL_CONFIGS = 'canari.local.configs'
+
+OPTION_LOCAL_PATH = 'canari.local.path'
+
+OPTION_REMOTE_PACKAGES = 'canari.remote.packages'
+
 
 class CanariConfigParser(SafeConfigParser):
-
     # dot_before_slash = re.compile(r'^[^/]+\.')
     # slash_before_dot = re.compile(r'^[^.]+/')
 
@@ -125,7 +133,7 @@ class CanariConfigParser(SafeConfigParser):
         self._sections.update(other._sections)
 
 
-def load_config(config_file=None, recursive_load=False):
+def load_config(config_file=None, recursive_load=True):
     if not config_file:
         config_file = os.path.join(os.getcwd(), 'canari.conf')
         if not os.path.lexists(config_file):
@@ -133,56 +141,7 @@ def load_config(config_file=None, recursive_load=False):
 
     with pushd(os.path.dirname(config_file)):
         config_parser = CanariConfigParser()
-        config_parser.read([conf, config_file])
-        if recursive_load and 'default/configs' in config_parser:
-            config_parser.read(config_parser['default/configs'])
+        config_parser.read([global_config, config_file])
+        if recursive_load and OPTION_LOCAL_CONFIGS in config_parser:
+            config_parser.read(config_parser[OPTION_LOCAL_CONFIGS])
         return config_parser
-
-
-class CanariConfig(object):
-
-    def __init__(self):
-        self._config = None
-
-    @property
-    def config(self):
-        if not is_local_exec_mode():
-            raise RuntimeError('Use of the global configuration object is not supported while '
-                               'Canari is operating in %s mode.' % get_canari_mode_str())
-        if not self._config:
-            self._config = load_config(recursive_load=True)
-        return self._config
-
-    def __getattr__(self, item):
-        return getattr(self.config, item)
-
-    def __getitem__(self, item):
-        return self.config[item]
-
-    def __setitem__(self, key, value):
-        self.config[key] = value
-
-    def __delitem__(self, key):
-        del self.config[key]
-
-    def __contains__(self, item):
-        return self.config.__contains__(item)
-
-    def __iadd__(self, other):
-        return self.config.__iadd__(other)
-
-    def __isub__(self, other):
-        return self.config.__isub__(other)
-
-
-SECTION_LOCAL = 'canari.local'
-
-SECTION_REMOTE = 'canari.remote'
-
-OPTION_LOCAL_CONFIGS = 'canari.local.configs'
-
-OPTION_LOCAL_PATH = 'canari.local.path'
-
-OPTION_REMOTE_PACKAGES = 'canari.remote.packages'
-
-config = CanariConfig()
