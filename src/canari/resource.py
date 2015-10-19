@@ -17,7 +17,7 @@ __all__ = [
     'image_resource',
     'icon_resource',
     'image_resources',
-    'conf'
+    'global_config'
 ]
 
 
@@ -89,4 +89,4 @@ def image_resources(package=None, directory='resources'):
 
 
 # etc
-conf = resource_filename('canari.resources.etc', 'canari.conf')
+global_config = resource_filename('canari.resources.etc', 'canari.conf')
