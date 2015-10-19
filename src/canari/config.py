@@ -21,11 +21,9 @@ __status__ = 'Development'
 
 __all__ = [
     'CanariConfigParser',
-    'CanariConfig',
     'load_config',
     'NoOptionError',
-    'NoSectionError',
-    'config'
+    'NoSectionError'
 ]
 
 SECTION_LOCAL = 'canari.local'
@@ -40,8 +38,6 @@ OPTION_REMOTE_PACKAGES = 'canari.remote.packages'
 
 
 class CanariConfigParser(SafeConfigParser):
-    # dot_before_slash = re.compile(r'^[^/]+\.')
-    # slash_before_dot = re.compile(r'^[^.]+/')
 
     @staticmethod
     def _interpolate_environment_variables(value):
