@@ -11,7 +11,10 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   canari.quickstart
+   canari.framework
    canari.maltego.message
+   canari.config
    canari.mode
 
 Indices and tables
