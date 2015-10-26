@@ -57,7 +57,7 @@ class CanariConfigParser(SafeConfigParser):
         return self
 
     def _parse_value(self, value):
-        if value.startswith('module://') and is_local_exec_mode():
+        if value.startswith('object://') and is_local_exec_mode():
             r = urlparse(value)
             try:
                 v = r.path.lstrip('/')
@@ -83,8 +83,8 @@ class CanariConfigParser(SafeConfigParser):
             value = value.replace(',', '\\,')
         elif isinstance(value, list):
             value = ','.join([self._render_value(v) for v in value])
-        elif callable(value):
-            value = urlunparse(('module', value.__module__, value.__name__, '', '', ''))
+        # elif callable(value):
+        #     value = urlunparse(('python', value.__module__, value.__name__, '', '', ''))
         else:
             value = str(value)
         return value
@@ -105,6 +105,8 @@ class CanariConfigParser(SafeConfigParser):
         return value
 
     def __setitem__(self, key, value):
+        if value.strip().startswith('object://'):
+            raise ValueError('Cannot set object option.')
         section, option = self._get_option_value(key, True)
         if not self.has_section(section):
             self.add_section(section)
