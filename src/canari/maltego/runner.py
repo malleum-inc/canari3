@@ -8,7 +8,7 @@ from defusedxml.cElementTree import fromstring
 from safedexml import Model
 
 from canari.commands.common import load_object, sudo
-from canari.config import CanariConfig
+from canari.config import load_config
 from canari.maltego.message import MaltegoTransformResponseMessage, UIMessage, MaltegoTransformRequestMessage, Field, \
     MaltegoException, EntityTypeFactory, Entity
 from canari.maltego.utils import message, on_terminate, to_entity, croak, highlight
@@ -123,7 +123,7 @@ def scriptable_transform_runner(transform, value, fields, params, config):
                 self.value,
                 self.fields,
                 params or [],
-                config or CanariConfig().config
+                config or load_config()
             )
 
         Entity.run_transform = run_transform

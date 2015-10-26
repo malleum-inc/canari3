@@ -3,12 +3,11 @@
 import argparse
 
 from canari.mode import set_canari_mode, CanariMode
-
 from canari.utils.fs import pushd
-from common import canari_main, fix_binpath, ParseFieldsAction, project_package_dir
+from common import canari_main, ParseFieldsAction, project_package_dir
 from canari.maltego.runner import local_transform_runner, console_writer
 from framework import SubCommand, Argument
-from canari.config import config
+from canari.config import load_config
 
 
 __author__ = 'Nadeem Douba'
@@ -54,4 +53,4 @@ __status__ = 'Development'
 def debug_transform(opts):
     set_canari_mode(CanariMode.LocalDebug)
     with pushd(project_package_dir()):
-        local_transform_runner(opts.transform, opts.value, opts.fields, opts.params, config, console_writer)
+        local_transform_runner(opts.transform, opts.value, opts.fields, opts.params, load_config(), console_writer)

@@ -5,12 +5,12 @@ from atexit import register
 
 from canari.mode import CanariMode, set_canari_mode
 from canari.pkgutils.transform import TransformDistribution
-from common import canari_main, fix_binpath, import_package, parse_bool
+from common import canari_main, parse_bool
 from canari.utils.fs import pushd
 from framework import SubCommand, Argument
-from canari.config import config
+from canari.config import load_config
 from canari.maltego.utils import highlight
-from canari.maltego.runner import local_transform_runner, console_writer, scriptable_transform_runner
+from canari.maltego.runner import scriptable_transform_runner
 import canari
 
 __author__ = 'Nadeem Douba'
@@ -32,8 +32,9 @@ def sudo():
 
 class ShellCommand(object):
 
-    def __init__(self, transform):
+    def __init__(self, transform, config):
         self.transform = transform
+        self.config = config
 
     def __call__(self, value, *args, **kwargs):
         if os.name == 'posix' and self.transform.superuser and os.geteuid():
@@ -41,7 +42,7 @@ class ShellCommand(object):
         if args and isinstance(args[0], dict):
             kwargs.update(args[0])
             args = args[1:]
-        return scriptable_transform_runner(self.transform, value, kwargs, list(args), config)
+        return scriptable_transform_runner(self.transform, value, kwargs, list(args), self.config)
 
 
 class MtgConsole(InteractiveConsole):
@@ -49,9 +50,10 @@ class MtgConsole(InteractiveConsole):
     def __init__(self, transform_classes, auto_sudo=False):
         locals_ = {}
         asked = False
+        config = load_config()
         for transform_class in transform_classes:
             transform = transform_class()
-            locals_['do' + transform.name.split('.')[-1]] = ShellCommand(transform)
+            locals_['do' + transform.name.split('.')[-1]] = ShellCommand(transform, config)
             if not asked and transform.superuser and os.name == 'posix' and os.geteuid():
                 if not auto_sudo and parse_bool("A transform requiring 'root' access was detected."
                                                 " Would you like to run this shell as 'root'?", False):
