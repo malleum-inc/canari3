@@ -64,7 +64,7 @@ class TransformDistribution(object):
                               "Couldn't import the '%s.transforms' package in '%s'. Error message: %s" %
                               (self.name, self.name, e))
 
-        self._transforms = list(TransformDistribution.find_all_subclasses(Transform))
+        self._transforms = list(self.find_all_subclasses(Transform))
         self._remote_transforms = [t for t in self._transforms if t.remote]
         self._config = '%s.conf' % self.name
         self._resources = '%s.resources' % self.name
@@ -171,11 +171,11 @@ class TransformDistribution(object):
             if is_pkg:
                 TransformDistribution.import_package(pkg)
 
-    @staticmethod
-    def find_all_subclasses(cls):
+    def find_all_subclasses(self, cls):
         for subclass in cls.__subclasses__():
-            yield subclass
-            for sub_subclass in TransformDistribution.find_all_subclasses(subclass):
+            if subclass.__module__.startswith(self._package_name):
+                yield subclass
+            for sub_subclass in self.find_all_subclasses(subclass):
                 yield sub_subclass
 
     def _update_config(self, canari_config, load=True, remote=False):
