@@ -1,6 +1,9 @@
 from imghdr import what
 from utils.stack import calling_package
 from pkg_resources import resource_filename, resource_listdir, resource_isdir
+from os.path import abspath
+
+from canari.mode import is_plume_exec_mode
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2015, Canari Project'
@@ -16,7 +19,6 @@ __all__ = [
     'external_resource',
     'image_resource',
     'icon_resource',
-    'image_resources',
     'global_config'
 ]
 
@@ -35,20 +37,6 @@ def external_resource(name, package=None):
     return resource_filename(package, name)
 
 
-def image_resource(name, package=None):
-    """
-    Returns the absolute path to an image. If a package is not explicitly specified then the calling package name is
-    used.
-
-    :param name: path relative to package path of the image resource.
-    :param package: package name in dotted format.
-    :return: the absolute path to the image resource.
-    """
-    if not package:
-        package = '%s.resources.images' % calling_package()
-    return resource_filename(package, name)
-
-
 def icon_resource(name, package=None):
     """
     Returns the absolute URI path to an image. If a package is not explicitly specified then the calling package name is
@@ -62,7 +50,7 @@ def icon_resource(name, package=None):
         package = '%s.resources.images' % calling_package()
     name = resource_filename(package, name)
     if not name.startswith('/'):
-        return 'file:///%s' % name
+        return 'file://%s' % abspath(name)
     return 'file://%s' % name
 
 
