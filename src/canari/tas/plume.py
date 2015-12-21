@@ -10,7 +10,7 @@ from ConfigParser import NoSectionError
 from hashlib import md5
 from logging.handlers import RotatingFileHandler
 
-from flask import Flask, Response, request
+from flask import Flask, Response, request, safe_join, url_for
 
 import canari.resource
 from canari.commands.common import fix_binpath, fix_pypath
@@ -41,7 +41,6 @@ set_canari_mode(CanariMode.RemotePlumeDispatch)
 fix_binpath(load_config()[OPTION_REMOTE_PATH])
 fix_pypath()
 
-print os.getcwd()
 
 def get_image_path(i):
     return os.path.join('static', md5(i).hexdigest())
@@ -63,11 +62,12 @@ os.environ['PYTHON_EGG_CACHE'] = tempfile.gettempdir()
 
 
 class Version(Transform):
-
     input_type = Phrase
 
-    def do_transform(self, request, response, config):
-        return request + Phrase('Canari v%s' % __version__)
+    def do_transform(self, r, res, config):
+        if r.entity.value == 'version':
+            res += Phrase('Canari v%s' % __version__)
+        return res
 
 
 class Plume(Flask):
@@ -119,7 +119,6 @@ class Plume(Flask):
         # Iterate through the list of packages to load
         for p in packages:
             # Copy all the image resource files in case they are used as entity icons
-            self._copy_images(p)
 
             distribution = TransformDistribution(p)
 
@@ -135,11 +134,13 @@ class Plume(Flask):
 
                 self.transforms[transform_name] = transform
 
+            self._copy_images(p)
+
         if not self.transforms:
             sys.stderr.write('Exiting... Your transform packages have no remote transforms.\n')
             exit(-1)
 
-        self.transforms[Version().name] = Version
+        self.transforms['canari.Version'] = Version
 
 
 # Create our Flask app.
@@ -178,7 +179,7 @@ def do_transform(transform):
             return Response(application.four_o_four, status=404)
 
         # Execute it!
-        msg = transform(
+        msg = transform().do_transform(
                 req,
                 MaltegoTransformResponseMessage(),
                 load_config()
@@ -188,7 +189,7 @@ def do_transform(transform):
         if isinstance(msg, MaltegoTransformResponseMessage):
             return message(msg)
         else:
-            raise MaltegoException(msg)
+            raise MaltegoException(str(msg))
 
     # Unless we croaked somewhere, then we need to fix things up here...
     except MaltegoException, me:
@@ -208,12 +209,12 @@ def transform_checker(transform_name):
     return Response(application.four_o_four, status=404)
 
 
-# @application.route('/static/<resource_name>', methods=['GET'])
-# def static_fetcher(resource_name):
-#     resource_name = 'static/%s' % resource_name
-#     if resource_name in application.resources:
-#         return Response(file(resource_name, mode='rb').read(), status=200, mimetype='application/octet-stream')
-#     return Response(application.four_o_four, status=404)
+@application.route('/static/<resource_name>', methods=['GET'])
+def static_fetcher(resource_name):
+    resource_name = safe_join('static', resource_name)
+    if resource_name in application.resources:
+        return Response(file(resource_name, mode='rb').read(), status=200, mimetype='application/octet-stream')
+    return Response(application.four_o_four, status=404)
 
 
 # This is where we process a transform request.

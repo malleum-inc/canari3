@@ -46,8 +46,7 @@ case $1 in
                     web \
                     --wsgi=canari.tas.plume.application \
                     --logfile=$LOG_FILE \
-                    --port=$PLUME_PORT \
-                    --path=$PLUME_DIR;
+                    --port=$PLUME_PORT;
         else
             twistd \
                     --pidfile=$PID_FILE \
@@ -59,8 +58,7 @@ case $1 in
                     --logfile=$LOG_FILE \
                     --certificate=$PLUME_CERTIFICATE \
                     --privkey=$PLUME_PRIVATE_KEY \
-                    --https=$PLUME_PORT \
-                    --path=$PLUME_DIR;
+                    --https=$PLUME_PORT;
         fi;
         sleep 1
         if [ -f $PID_FILE ]; then
