@@ -2,11 +2,11 @@ import os
 import re
 import string
 from ConfigParser import SafeConfigParser, NoOptionError, NoSectionError
-from urlparse import urlparse, urlunparse
+from urlparse import urlparse
 
+from canari.mode import is_local_exec_mode, is_remote_exec_mode
 from canari.utils.fs import pushd
 from resource import global_config
-from canari.mode import is_local_exec_mode
 from utils.wordlist import wordlist
 
 __author__ = 'Nadeem Douba'
@@ -31,8 +31,10 @@ SECTION_LOCAL = 'canari.local'
 SECTION_REMOTE = 'canari.remote'
 
 OPTION_LOCAL_CONFIGS = 'canari.local.configs'
+OPTION_REMOTE_CONFIGS = 'canari.remote.configs'
 
 OPTION_LOCAL_PATH = 'canari.local.path'
+OPTION_REMOTE_PATH = 'canari.remote.path'
 
 OPTION_REMOTE_PACKAGES = 'canari.remote.packages'
 
@@ -140,6 +142,10 @@ def load_config(config_file=None, recursive_load=True):
     with pushd(os.path.dirname(config_file)):
         config_parser = CanariConfigParser()
         config_parser.read([global_config, config_file])
-        if recursive_load and OPTION_LOCAL_CONFIGS in config_parser:
-            config_parser.read(config_parser[OPTION_LOCAL_CONFIGS])
+        if recursive_load:
+            if is_remote_exec_mode() and OPTION_REMOTE_CONFIGS in config_parser:
+                config_parser.read(config_parser[OPTION_REMOTE_CONFIGS])
+            elif OPTION_LOCAL_CONFIGS in config_parser:
+                config_parser.read(config_parser[OPTION_LOCAL_CONFIGS])
+
         return config_parser
