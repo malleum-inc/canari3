@@ -1,0 +1,94 @@
+#!/bin/sh
+
+
+# The user running Plume server
+PLUME_UID={{{ plume.user }}}
+
+# The group running Plume server
+PLUME_GID={{{ plume.group }}}
+
+# The port on which the clear-text or HTTPS Plume server will listen on
+PLUME_PORT={{{ plume.port }}}
+
+# The working directory where Plume will host it's canari.conf and static files
+PLUME_DIR={{{ plume.dir }}}
+
+# The public/private key pair for HTTP/S if enabled
+PLUME_ENABLE_SSL={{{ plume.enable_ssl }}}
+PLUME_CERTIFICATE={{{ plume.certificate }}}
+PLUME_PRIVATE_KEY={{{ plume.private_key }}}
+
+PID_FILE={{{ plume.run_dir }}}/plume.pid
+LOG_FILE={{{ plume.log_dir }}}/log/plume.log
+
+# Do not change anything below this line unless you know what you're doing.
+
+PATH=/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/local/sbin
+
+
+{{% if plume.venv %}}
+# Activate virtualenv prior to running twistd
+. {{{ plume.venv }}}/bin/activate
+{{% endif %}}
+
+# Change to the Plume directory before executing twistd
+cd $PLUME_DIR
+
+case $1 in
+    start)
+        echo -n 'Starting plume: '
+        if [ $PLUME_ENABLE_SSL == 0 ]; then
+            twistd \
+                    --pidfile=$PID_FILE \
+                    --rundir=$PLUME_DIR \
+                    --uid=$PLUME_UID \
+                    --gid=$PLUME_GID \
+                    web \
+                    --wsgi=canari.tas.plume.application \
+                    --logfile=$LOG_FILE \
+                    --port=$PLUME_PORT \
+                    --path=$PLUME_DIR;
+        else
+            twistd \
+                    --pidfile=$PID_FILE \
+                    --rundir=$PLUME_DIR \
+                    --uid=$PLUME_UID \
+                    --gid=$PLUME_GID \
+                    web \
+                    --wsgi=canari.tas.plume.application \
+                    --logfile=$LOG_FILE \
+                    --certificate=$PLUME_CERTIFICATE \
+                    --privkey=$PLUME_PRIVATE_KEY \
+                    --https=$PLUME_PORT \
+                    --path=$PLUME_DIR;
+        fi;
+        sleep 1
+        if [ -f $PID_FILE ]; then
+            echo 'done.';
+        else
+            echo 'failed.';
+        fi;
+        ;;
+    stop)
+        echo -n 'Stopping plume: '
+        if [ -f $PID_FILE ]; then
+            kill -9 $(cat $PID_FILE);
+            rm -f $PID_FILE;
+        fi;
+        echo 'done.'
+        ;;
+    restart)
+        $0 stop
+        $0 start
+        ;;
+    status)
+        if [ -f $PID_FILE ]; then
+            echo 'Plume: running...';
+        else
+            echo 'Plume: stopped.';
+        fi;
+        ;;
+    *)
+        echo "usage: $0 {start|stop|restart|status}" >&2
+        ;;
+esac;

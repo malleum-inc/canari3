@@ -17,6 +17,7 @@ __all__ = [
     'easygui',
     'framework',
     'mode',
-    'resource'
+    'resource',
+    'tas'
 ]
 

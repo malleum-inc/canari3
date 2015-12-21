@@ -62,7 +62,7 @@ def load_plume_package(opts):
             transform_package.configure(opts.plume_dir, remote=True)
         except ImportError:
             pass
-        print('Please restart plume (./plume.sh restart) for changes to take effect.')
+        print('Please restart plume for changes to take effect.')
         exit(0)
 
     print ('Error: no remote transforms found. '
