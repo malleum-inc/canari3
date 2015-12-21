@@ -6,7 +6,3 @@
 configs = {{{ profile.config }}}
 
 path = {{{ profile.path }}}
-
-[canari.remote]
-
-packages =
