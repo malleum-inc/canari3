@@ -65,6 +65,9 @@ class Transform(object):
     # Specifies a disclaimer for the transform that appears prior to the first execution of a transform
     disclaimer = ''
 
+    # Reserved for future external Maltego transforms support
+    command = None
+
     def __init__(self):
         if not self.author and __author__:
             self.author = __author__
