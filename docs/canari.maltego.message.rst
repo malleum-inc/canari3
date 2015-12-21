@@ -121,7 +121,7 @@ string whose root element is the ``<MaltegoTransformRequestMessage>`` tag, or by
                 def do_transform(self, request, response, config):
                     fields = request.parameters
                     if 'my.license' not in fields or not valid_api_key(fields['my.license'].value):
-                        raise MaltegoException('Invalid API key! Send cheque!')
+                        raise MaltegoException('Invalid API key! Send cheque!', code=600Å)
                     response += Phrase('Hello %s!' + request.entity.value)
                     return response
 
