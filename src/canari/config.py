@@ -85,6 +85,8 @@ class CanariConfigParser(SafeConfigParser):
             value = value.replace(',', '\\,')
         elif isinstance(value, list):
             value = ','.join([self._render_value(v) for v in value])
+        elif value.strip().startswith('object://'):
+            raise ValueError('Cannot set object option.')
         # elif callable(value):
         #     value = urlunparse(('python', value.__module__, value.__name__, '', '', ''))
         else:
@@ -107,8 +109,6 @@ class CanariConfigParser(SafeConfigParser):
         return value
 
     def __setitem__(self, key, value):
-        if value.strip().startswith('object://'):
-            raise ValueError('Cannot set object option.')
         section, option = self._get_option_value(key, True)
         if not self.has_section(section):
             self.add_section(section)
@@ -126,6 +126,12 @@ class CanariConfigParser(SafeConfigParser):
         if option:
             return self.has_option(section, option)
         return self.has_section(section)
+
+    def get_as_list(self, key):
+        opt = self.__getitem__(key)
+        if isinstance(opt, basestring):
+            opt = [opt] if opt else []
+        return opt
 
     def update(self, other):
         if not isinstance(other, CanariConfigParser):
