@@ -1,12 +1,8 @@
 #!/usr/bin/env python
 
 import os
-import sys
-from setuptools import setup, find_packages
 
-# sys.path.insert(0, 'src')
-#
-# import canari
+from setuptools import setup, find_packages
 
 scripts = [
     'src/scripts/canari',
