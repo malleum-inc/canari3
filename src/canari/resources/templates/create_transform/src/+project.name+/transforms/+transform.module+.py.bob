@@ -20,9 +20,6 @@ class {{{ transform.name }}}(Transform):
     # The transform input entity type.
     input_type = Unknown
 
-    # The transform set name.
-    transform_set = 'Canari'
-
     def do_transform(self, request, response, config):
         # TODO: write your code here.
         return response
