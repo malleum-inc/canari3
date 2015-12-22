@@ -2,6 +2,7 @@
 
 import os
 from canari.pkgutils.transform import TransformDistribution
+from canari.utils.fs import pushd
 
 from common import canari_main
 from framework import SubCommand, Argument
@@ -36,13 +37,14 @@ __status__ = 'Development'
     help='the path where Plume is installed.'
 )
 def unload_plume_package(opts):
-    if not os.path.exists(os.path.join(opts.plume_dir, 'plume.py')):
-        print('Plume does not appear to be installed in %s.' % opts.plume_dir)
-        exit(-1)
-
-    try:
-        TransformDistribution(opts.package).configure(opts.plume_dir, load=False, remote=True)
-    except ImportError:
-        pass
+    with pushd(opts.plume_dir):
+        if not os.path.exists('canari.conf'):
+            print('Plume does not appear to be installed in %s.' % opts.plume_dir)
+            print("Please run 'canari install-plume' and try again.")
+            exit(-1)
+        try:
+            TransformDistribution(opts.package).configure(opts.plume_dir, load=False, remote=True)
+        except ImportError:
+            pass
 
     exit(0)

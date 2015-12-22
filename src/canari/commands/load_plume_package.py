@@ -2,6 +2,7 @@
 
 import os
 from canari.pkgutils.transform import TransformDistribution
+from canari.utils.fs import pushd
 
 from common import canari_main, parse_bool
 from framework import SubCommand, Argument
@@ -42,29 +43,31 @@ transforms = {}
 )
 def load_plume_package(opts):
 
-    if not os.path.exists(os.path.join(opts.plume_dir, 'plume.py')):
-        print('Plume does not appear to be installed in %s.' % opts.plume_dir)
-        ans = parse_bool("Would you like to install it [Y/n]: ")
-        if not ans:
-            print 'Installation cancelled. Quitting...'
+    with pushd(opts.plume_dir):
+        if not os.path.exists('canari.conf'):
+            print('Plume does not appear to be installed in %s.' % opts.plume_dir)
+            print("Please run 'canari install-plume' and try again.")
             exit(-1)
-        os.system('canari install-plume --install-dir %s' % opts.plume_dir)
-        opts.plume_dir = os.path.join(opts.plume_dir, 'plume')
 
-    transform_package = None
-    try:
-        transform_package = TransformDistribution(opts.package)
-    except ValueError:
-        exit(-1)
-
-    if transform_package.has_remote_transforms:
+        transform_package = None
         try:
-            transform_package.configure(opts.plume_dir, remote=True)
-        except ImportError:
-            pass
-        print('Please restart plume for changes to take effect.')
-        exit(0)
+            transform_package = TransformDistribution(opts.package)
+        except ValueError, e:
+            print 'An error occurred', e
+            exit(-1)
+
+        if transform_package.has_remote_transforms:
+            try:
+                transform_package.configure(opts.plume_dir, remote=True)
+            except ImportError, e:
+                print 'An error occurred while trying to import %r from %s: %s' % (
+                    transform_package.name, opts.plume_dir, e
+                )
+                print 'Please make sure that %r is importable from %s' % (transform_package.name, opts.plume_dir)
+                exit(-1)
+            print('Please restart plume for changes to take effect.')
+            exit(0)
 
     print ('Error: no remote transforms found. '
-           'Please make sure that at least one transform has remote=True in @configure before retrying.')
+           'Please make sure that at least one transform has remote=True set before retrying.')
     exit(-1)
