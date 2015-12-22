@@ -10,7 +10,8 @@ from canari.pkgutils.maltego import MaltegoDistribution, MtzDistribution
 from canari.maltego.transform import Transform
 from canari.commands.common import parse_bool
 from canari.config import CanariConfigParser, OPTION_LOCAL_CONFIGS, SECTION_LOCAL, OPTION_REMOTE_PACKAGES, \
-    SECTION_REMOTE
+    SECTION_REMOTE, OPTION_REMOTE_CONFIGS
+from canari.utils.fs import pushd
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2012, Canari Project'
@@ -179,51 +180,44 @@ class TransformDistribution(object):
                 yield sub_subclass
 
     def _update_config(self, canari_config, load=True, remote=False):
-        ld = os.getcwd()
-        os.chdir(os.path.dirname(canari_config))
+        with pushd(os.path.dirname(canari_config)):
 
-        config = CanariConfigParser()
-        config.read(canari_config)
+            config = CanariConfigParser()
+            config.read(canari_config)
 
-        if OPTION_LOCAL_CONFIGS not in config:
-            if SECTION_LOCAL not in config:
-                config.add_section(SECTION_LOCAL)
-            config[OPTION_LOCAL_CONFIGS] = ''
-        if OPTION_REMOTE_PACKAGES not in config:
-            if SECTION_REMOTE not in config:
-                config.add_section(SECTION_REMOTE)
-            config[OPTION_REMOTE_PACKAGES] = ''
+            configs_option = OPTION_REMOTE_CONFIGS if remote else OPTION_LOCAL_CONFIGS
+            config_section = SECTION_REMOTE if remote else SECTION_LOCAL
 
-        configs = config[OPTION_LOCAL_CONFIGS]
-        packages = config[OPTION_REMOTE_PACKAGES]
+            if configs_option not in config:
+                if config_section not in config:
+                    config.add_section(config_section)
 
-        if isinstance(configs, basestring):
-            configs = [configs] if configs else []
+            configs = config.get_as_list(configs_option)
 
-        if isinstance(packages, basestring):
-            packages = [packages] if packages else []
+            if load:
+                if self.config_file not in configs:
+                    print ('Updating %s...' % canari_config)
+                    configs.append(self.config_file)
+                    config[configs_option] = configs
 
-        if load:
-            if self.config_file not in configs:
-                print ('Updating %s...' % canari_config)
-                configs.append(self.config_file)
-                config[OPTION_LOCAL_CONFIGS] = configs
+                if remote:
+                    packages = config.get_as_list(OPTION_REMOTE_PACKAGES)
+                    if self.name not in packages:
+                        packages.append(self.name)
+                        config[OPTION_REMOTE_PACKAGES] = packages
+            else:
+                if self.config_file in configs:
+                    print ('Updating %s...' % canari_config)
+                    configs.remove(self.config_file)
+                    config[configs_option] = configs
 
-            if self.name not in packages and remote:
-                packages.append(self.name)
-                config[OPTION_REMOTE_PACKAGES] = packages
-        else:
-            if self.config_file in configs:
-                print ('Updating %s...' % canari_config)
-                configs.remove(self.config_file)
-                config[OPTION_LOCAL_CONFIGS] = configs
+                if remote:
+                    packages = config.get_as_list(OPTION_REMOTE_PACKAGES)
+                    if self.name in packages:
+                        packages.remove(self.name)
+                        config[OPTION_REMOTE_PACKAGES] = packages
 
-            if self.name in packages and remote:
-                packages.remove(self.name)
-                config[OPTION_REMOTE_PACKAGES] = packages
-
-        config.write(file(canari_config, mode='wb'))
-        os.chdir(ld)
+            config.write(file(canari_config, mode='wb'))
 
     def configure(self, install_prefix, load=True, remote=False, **kwargs):
         if load:
