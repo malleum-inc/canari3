@@ -19,7 +19,19 @@ __all__ = [
 
 
 def camel_to_title(s):
-    return re.sub('([0-9A-Z]+)([A-Z])', r'\1 \2', re.sub('([a-z])([A-Z0-9])', r'\1 \2', s))
+    return re.sub(
+            '([A-Z]+)([A-Z][a-z])',
+            r'\1 \2',
+            re.sub(
+                    '([a-z])([A-Z]+)',
+                    r'\1 \2',
+                    re.sub(
+                        '([0-9]+)',
+                        r' \1 ',
+                        s
+                    )
+            )
+    ).strip()
 
 
 class Transform(object):
