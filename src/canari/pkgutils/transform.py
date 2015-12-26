@@ -191,6 +191,7 @@ class TransformDistribution(object):
             if configs_option not in config:
                 if config_section not in config:
                     config.add_section(config_section)
+                config[configs_option] = ''
 
             configs = config.get_as_list(configs_option)
 
