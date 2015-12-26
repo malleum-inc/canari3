@@ -20,9 +20,6 @@ class HelloWorld(Transform):
     # The transform input entity type.
     input_type = Person
 
-    # The transform set name.
-    transform_set = 'Canari'
-
     def do_transform(self, request, response, config):
         # Since we know what the input_type of this transform is, we can directly access static fields. Alternatively,
         # dynamic field values can still be accessed by querying the entity.fields property.
