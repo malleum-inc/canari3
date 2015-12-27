@@ -137,9 +137,9 @@ package, a "Hello World!" transform gets created for your reference. We'll execu
           `- Value: Hi None!
           `- Weight: 1
 
-You'll probably see the output above - but wait why are we seeing ``None`` in places where we'd expect to see ``Bob``.
-This is because the example transform also demonstrates the use of transform fields. Go ahead and open the transform in
-your favorite text editor located at ``hello/transforms/helloworld.py`` - you should see the following::
+You'll probably see the output above and you may be wondering why are we seeing ``None`` in places where we'd expect to
+see ``Bob``. This is because the example transform also demonstrates the use of transform fields. Go ahead and open the
+transform in your favorite text editor located at ``src/hello/transforms/helloworld.py`` - you should see the following::
 
     class HelloWorld(Transform):
         # The transform input entity type.
@@ -175,4 +175,339 @@ entity fields. Let's pass these fields to our transform runner::
     In this case, the entity field names coincidentally matched the names in our code example above. However, this will
     not always be the case. Take a look at the :mod:`canari.maltego.entities` file for a full set of builtin Maltego
     entity definitions and their fields.
+
+Now that we've run our first transform successfully and understand the use of transform fields, let's create our first
+custom transform.
+
+Your First Transform
+--------------------
+
+Using the same package above, in our ``hello`` directory, let's start off by creating a transform using the
+:program:`canari create-transform` commandlet, like so::
+
+    $ canari create-transform whatismyip
+    Creating transform 'whatismyip'...
+    done!
+
+As you may have guessed already, we are going to write a transform that determines our current Internet IP address.
+Let's use the free JSON API at `ipify <https://www.ipify.org/>`_. First let's make sure you can reach the server by
+clicking `here <https://api.ipify.org?format=json>`_ or typing the following in your terminal::
+
+    $ curl 'https://api.ipify.org?format=json'
+    {"ip":"123.123.123.123"}
+
+You should see something like the output above, except your IP address would appear in place of "123.123.123.123".
+Great! Let's write the transform with the following design principles:
+
+    #.  Our transform will expect a ``Location`` entity as input.
+    #.  Our transform will return an ``IPv4Address`` entity as output.
+
+Let's go ahead and open our ``src/hello/transforms/whatismyip.py`` transform and implement the code::
+
+    from urllib import urlopen
+    import json
+
+    from canari.maltego.entities import IPv4Address, Location
+    from canari.maltego.transform import Transform
+    from canari.framework import EnableDebugWindow
+
+    @EnableDebugWindow
+    class Whatismyip(Transform):
+        """Returns my Internet IP Address"""
+
+        input_type = Location
+
+        def do_transform(self, request, response, config):
+            ip_json = urlopen('https://api.ipify.org?format=json').read() # <-- 1
+            ip_address = json.loads(ip_json)['ip'] # <------------------------- 2
+            response += IPv4Address(ip_address) # <---------------------------- 3
+            return response # <------------------------------------------------ 4
+
+
+The ``input_type`` class property tells Canari to expect an input entity of type ``Location``. This ensures that the
+transform will only appear in the context menu of a ``Location`` entity in Maltego (i.e. under the run transform menu
+options). Here's what's going on line-by-line inside the :meth:`do_transform()`:
+
+    #.  First we make our request to ``ipify`` and get our IP address as a JSON string
+    #.  We parse the JSON we got from ``ipify`` (i.e. ``{"ip":"123.123.123.123"}``) and extract our IP address.
+    #.  We then create an ``IPv4Address`` entity with the default value set to our IP address and append it to our response.
+    #.  Finally we return the response to Maltego.
+
+Let's see if our transform is operating correctly::
+
+    $ cd src
+    $ canari debug-transform hello.transforms.whatismyip.Whatismyip Home
+    `- MaltegoTransformResponseMessage:
+      `- UIMessages:
+      `- Entities:
+        `- Entity:  {'Type': 'maltego.IPv4Address'}
+          `- Value: 216.48.160.29
+          `- Weight: 1
+
+Great! Let's try this out in Maltego. First we need to create a profile that can be imported by Maltego to configure the
+transforms in the GUI::
+
+    $ canari create-profile hello
+    Looking for transforms in hello...
+    Package loaded.
+    Creating profile ~/hello/src/hello.mtz...
+    Installing transform hello.HelloWorld from hello.transforms.helloworld.HelloWorld...
+    Installing transform hello.Whatismyip from hello.transforms.whatismyip.Whatismyip...
+    Writing ~/hello/src/hello/resources/etc/hello.conf to /Users/ndouba/tools/canari3/build/hello/src/hello.conf
+    Updating ~/hello/src/canari.conf...
+    Writing transform set Hello to ~/hello/src/hello.mtz...
+    Writing transform set Canari to ~/hello/src/hello.mtz...
+    Writing server Local to ~/hello/src/hello.mtz
+
+    %%%%%%%%%%%%%%%%%%%%%%%%%%% SUCCESS! %%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+     Successfully created /Users/ndouba/tools/canari3/build/hello/src/hello.mtz. You may now import this file into
+     Maltego.
+
+     INSTRUCTIONS:
+     -------------
+     1. Open Maltego.
+     2. Click on the home button (Maltego icon, top-left corner).
+     3. Click on 'Import'.
+     4. Click on 'Import Configuration'.
+     5. Follow prompts.
+     6. Enjoy!
+
+    %%%%%%%%%%%%%%%%%%%%%%%%%%% SUCCESS! %%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+This should have created a ``hello.mtz`` file in the directory where you ran the command. Let's import this profile into
+Maltego:
+
+    #. Open Maltego.
+    #. Click on the Maltego home button (big Maltego icon in the top left corner).
+    #. Navigate to ``Import`` then click on ``Import Configuration``
+    #. Select your ``hello.mtz`` file and accept the defaults in the wizard.
+
+    .. figure:: images/maltego_import_profile.png
+        :align: center
+        :alt: Maltego Import Profile
+
+        Maltego ``Import Profile`` menu option
+
+Once you've successfully imported your profile, create a new graph and drag a ``Location`` entity onto the graph. Then
+right click on the newly created ``Location`` entity, look for the ``Hello`` transform set, and click ``Whatismyip``.
+
+    .. figure:: images/maltego_run_transform.png
+        :align: center
+        :alt: Maltego Run Transform
+
+        Maltego run transform steps
+
+If all went well you should now see your IP address magically appear on the graph right below your ``Location`` entity.
+
+.. note::
+
+    If you're familiar with Canari v1 you may have noticed a few of Canari v3's awesome features at work. One of them is
+    that the transform set and transform name in the Maltego UI are derived from the Canari package and transform names,
+    respectively. If you dig a little deeper, you may also notice that the transform description is derived from the
+    transform class' ``__doc__`` string property.
+
+Let's say you wanted to change the name of the transform as it appears in Maltego. There are two ways of doing this:
+
+    #. You can adjust the transform class' name into camel case (i.e. ``Whatismyip`` to ``WhatIsMyIP``). This will
+       tell Canari to insert a space between each uppercase letter in the transform's name in Maltego.
+    #. You can set the transform class' ``display_name`` property to the label of your choice.
+
+Let's try it out by subclassing the :class:`Whatismyip` and adding the following lines to the end of the
+``src/hello/transforms/whatismyip.py`` file::
+
+    class ToMyIP(Whatismyip):
+        pass
+
+After you've saved your changes, recreate your Maltego profile using the :program:`canari create-profile hello` command,
+re-import the configuration into Maltego, and run the transform like before. You should now see a ``To My IP`` transform
+in the transform context menu.
+
+    .. figure:: images/maltego_transform_friendly_name.png
+        :align: center
+        :alt: Transform user-friendly name
+
+        Transform user-friendly name.
+
+The previous example demonstrated the use of subclassing to reuse transform code. Subclassing a transform is useful when
+you want to reuse transform logic that could be applied to other entity types as well. For example, say you have a nifty
+threat intelligence transform that could be run on either an IP address or a DNS name. Instead of copying and pasting
+the same code over and over again, you can simply implement it once, subclass the original transform, and adjust the
+``input_type`` property to the desired type in the child class. Let's say we wanted :class:`ToMyIP` in our previous
+example to only apply to ``Phrase`` entities then we'd adjust the code, like so::
+
+    class ToMyIP(Whatismyip):
+        # don't forget to import maltego.entities.Phrase
+        input_type = Phrase
+
+Finally, you may have noticed that we completely ignored the value of the input entity in this example. This is because
+our transform didn't need to use your location's name in order to get your IP address. Let's create another transform,
+except this time we'll use the information passed into the transform by the input entity.
+
+.. note::
+
+    You may be wondering if you have to recreate and re-import Maltego profiles each time you make a transform change.
+    The answer is yes and no. If you are only updating the behaviour (i.e. body of the :meth:`do_transform` method) of
+    your transform, the answer is no. However, if you want to adjust things such as the display name, the transform
+    class name, transform description, transform set name, then the answer is yes. Often times you will find yourself
+    recreating the profile and reinstalling it whenever you add or rename a transform in your package.
+
+Working With Input Entities
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Now that we know how to return entities to Maltego, let's take a look at how to receive input. In this example we'll use
+the `FreeGeoIP <https://freegeoip.net>`_ JSON API to get the country, city, and region associated with an IP address.
+The transform will be designed with the following design principles:
+
+    #. The transform will accept an ``IPv4Address`` as input.
+    #. The transform will return a ``Location`` entity as output.
+
+
+First let's create our transform by running :program:`canari create-transform IPToLocation` in your terminal::
+
+    $ canari create-transform IPToLocation
+    Creating transform 'iptolocation'...
+    done!
+
+.. note::
+
+    This time we've passed the name of the transform in camel case to the ``create-transform`` command to avoid having
+    to change it later.
+
+Next, let's edit the ``src/hello/transforms/iptolocation.py`` file and implement our transform logic::
+
+    import json
+    from urllib import urlopen
+
+    from canari.framework import EnableDebugWindow
+    from canari.maltego.entities import IPv4Address, Location
+    from canari.maltego.transform import Transform
+
+
+    @EnableDebugWindow
+    class IPToLocation(Transform):
+        """Get's the city/country associated with a particular IP address."""
+
+        # The transform input entity type.
+        input_type = IPv4Address
+
+        def do_transform(self, request, response, config):
+            ip_address = request.entity.value # <----------------------- 1
+
+            geoip_str = urlopen('https://freegeoip.net/json/%s' % ip_address).read()
+            geoip_json = json.loads(geoip_str)
+
+            l = Location()
+            l.country = geoip_json.get('country_name', 'Unknown') # <--- 2
+            l.city = geoip_json.get('city')
+            l.countrycode = geoip_json.get('country_code')
+            l.latitude = geoip_json.get('latitude')
+            l.longitude = geoip_json.get('longitude')
+            l.area = geoip_json.get('region_name')
+
+            response += l
+            return response
+
+As you can see, the first line (1) in our :meth:`do_transform` method retrieves the display value of our input entity
+and stores it in the ``ip_address`` variable. The display value is the value that is shown below the entity's icon in
+the Maltego GUI. For example, the display value for an ``IPv4Address`` entity in Maltego is an IP V4 address
+(i.e. ``192.168.0.1``). The ``request`` object is where all Maltego request information is stored and has the following
+properties:
+
+    #. The input entity and its fields are stored in the ``entity`` property; its type is determined by the
+       value of your transform's ``input_type``.
+    #. The ``parameters`` property returns a list of transform parameters. When Canari is operating in local
+       transform mode, this property contains the unparsed command line arguments. In remote operating mode,
+       the transform parameters passed in by the Maltego client are stored.
+    #. The ``limits`` property returns the transforms soft and hard limit. This property is not applicable in local
+       transform mode as Maltego's local transform adapter doesn't pass in this information.
+
+Next we issue our request to FreeGeoIP for the requested IP address and convert the JSON response into a python
+dictionary. The ``Location`` entity is then initialized (2) and its respective field values are then set to the values
+retrieved from our JSON object. Finally, we append the entity to our ``response`` object and return the output to
+Maltego.
+
+.. note::
+    The default value of a ``Location`` entity in Maltego's GUI is calculated based on the values of the city and
+    country name entity fields. Therefore, setting a default value for a ``Location`` entity has no effect and is
+    unnecessary.
+
+In our previous example, we illustrated how to set the values of our output entity's fields using the property setters
+(i.e. ``l.country = 'CA'``). However, we can also set these entity fields by passing them in as keyword arguments. Let's
+refactor the code in the :meth:`IPToLocation.do_transform` method to demonstrate this feature::
+
+
+    def do_transform(self, request, response, config):
+            ip_address = request.entity.value
+
+            geoip_str = urlopen('https://freegeoip.net/json/%s' % ip_address).read()
+            geoip_json = json.loads(geoip_str)
+
+            response += Location(
+                country=geoip_json.get('country_name', 'Unknown'),
+                city=geoip_json.get('city'),
+                countrycode=geoip_json.get('country_code'),
+                latitude=geoip_json.get('latitude'),
+                longitude=geoip_json.get('longitude'),
+                area=geoip_json.get('region_name')
+            )
+
+            return response
+
+Now that we've covered the ``request`` and ``response`` parameters, let's take a look at the ``config`` parameter and
+how we can use it to make our transforms configurable.
+
+Using Configuration Files
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Now that you're familiar with the request and response architecture in Canari, let's make our transforms configurable.
+Let's assume we want to store the URL to our GeoIP API endpoint for our ``IPToLocation`` in a configuration file. First,
+let's open the ``src/hello/resources/etc/hello.conf`` file in a text editor. You'll notice a bunch of default values in
+the configuration file::
+
+    [hello.local]
+
+    # TODO: put local transform options here
+
+    [hello.remote]
+
+    # TODO: put remote transform options here
+
+Just like an INI file in Windows, each Canari configuration file is made up of sections whose names appear within square
+brackets (``[``, ``]``), and options that appear as name-value pairs under each section header (``opt_name=opt_value``).
+Let's add our FreeGeoIP endpoint URL configuration option in the configuration file::
+
+    [hello.local]
+
+    geo_ip_url=https://freegeoip.net/json/{ip}
+
+    [hello.remote]
+
+    # TODO: put remote transform options here
+
+Now let's refactor our :meth:`IPToLocation.do_transform` code to query the configuration file for our API endpoint URL::
+
+    def do_transform(self, request, response, config):
+            ip_address = request.entity.value
+
+            url_template = config['hello.local.geo_ip_url'] # <------------ 1
+
+            geoip_str = urlopen(url_template.format(ip=ip_address)).read()
+            geoip_json = json.loads(geoip_str)
+
+            response += Location(
+                country=geoip_json.get('country_name', 'Unknown'),
+                city=geoip_json.get('city'),
+                countrycode=geoip_json.get('country_code'),
+                latitude=geoip_json.get('latitude'),
+                longitude=geoip_json.get('longitude'),
+                area=geoip_json.get('region_name')
+            )
+
+            return response
+
+As demonstrated, above, the ``config`` behaves just like a python dictionary; the keys are derived by appending the
+option name to the section name using a period (``.``).
+
+
 .. _bottom:
