@@ -40,8 +40,9 @@ def create_transform(args):
 
     opts = parse_args(args)
 
-    transform_module = (opts.transform if not opts.transform.endswith('.py') else opts.transform[:-3]).lower()
-    transform_name = ''.join([i.title() for i in transform_module.split('_')])
+    transform_module = (opts.transform if not opts.transform.endswith('.py') else opts.transform[:-3])
+    transform_name = ''.join([i[0].upper()+i[1:] for i in transform_module.split('_')])
+    transform_module = transform_module.lower()
 
     if '.' in transform_module:
         print("Transform name (%r) cannot have a dot ('.')." % transform_name)
