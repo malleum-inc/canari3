@@ -59,6 +59,9 @@ def canari_main(opts):
     """
     This is the main function for the Canari commander. Nothing special here.
     """
+    profile_dir = os.path.join(os.path.expanduser('~'), '.canari')
+    if not os.path.lexists(profile_dir):
+        os.makedirs(profile_dir)
     fix_pypath()
     fix_binpath(load_config()[OPTION_LOCAL_PATH])
     opts.command_function(opts)
