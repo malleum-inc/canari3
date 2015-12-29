@@ -1,4 +1,5 @@
 import os
+import sys
 
 from tempfile import NamedTemporaryFile, gettempdir
 from time import time
@@ -152,7 +153,11 @@ class pushd(object):
 
     def __enter__(self):
         self.original_dir = os.getcwd()
-        os.chdir(self.cwd)
+        if os.path.lexists(self.cwd):
+            os.chdir(self.cwd)
+        else:
+            sys.stderr.write('WARNING: %r directory does not exist. Falling back to %r.' %
+                             (self.cwd, self.original_dir))
         return self
 
     def __exit__(self, type_, value, tb):
