@@ -12,6 +12,8 @@ transform package. We'll start by developing a local transform package and then 
 package which you can distributed via the `Paterva TDS <https://cetas.paterva.com/TDS/>`_. Enough jibber jabber and
 let's get this show on the road.
 
+.. _installation:
+
 Installation
 ------------
 Canari requires the following dependencies to get started:
@@ -438,21 +440,54 @@ refactor the code in the :meth:`IPToLocation.do_transform` method to demonstrate
 
 
     def do_transform(self, request, response, config):
-            ip_address = request.entity.value
+        ip_address = request.entity.value
 
-            geoip_str = urlopen('https://freegeoip.net/json/%s' % ip_address).read()
-            geoip_json = json.loads(geoip_str)
+        geoip_str = urlopen('https://freegeoip.net/json/%s' % ip_address).read()
+        geoip_json = json.loads(geoip_str)
 
-            response += Location(
-                country=geoip_json.get('country_name', 'Unknown'),
-                city=geoip_json.get('city'),
-                countrycode=geoip_json.get('country_code'),
-                latitude=geoip_json.get('latitude'),
-                longitude=geoip_json.get('longitude'),
-                area=geoip_json.get('region_name')
-            )
+        response += Location(
+            country=geoip_json.get('country_name', 'Unknown'),
+            city=geoip_json.get('city'),
+            countrycode=geoip_json.get('country_code'),
+            latitude=geoip_json.get('latitude'),
+            longitude=geoip_json.get('longitude'),
+            area=geoip_json.get('region_name')
+        )
 
-            return response
+        return response
+
+Let's say we wanted to add a little more information or color to our graphs. Maltego supports both link and entity
+decorations. Labels, colors, thicknesses and styles can be applied to the links or edges connecting the output
+entities to their parent input entities. Entities can be bookmarked (or starred) and comments can be attached. Let's add
+a link label and bookmark the ``Location`` entity returned in our previous example::
+
+    def do_transform(self, request, response, config):
+        # don't forget to add `from maltego.message import Bookmark`
+        ip_address = request.entity.value
+
+        geoip_str = urlopen('https://freegeoip.net/json/%s' % ip_address).read()
+        geoip_json = json.loads(geoip_str)
+
+        response += Location(
+            country=geoip_json.get('country_name', 'Unknown'),
+            city=geoip_json.get('city'),
+            countrycode=geoip_json.get('country_code'),
+            latitude=geoip_json.get('latitude'),
+            longitude=geoip_json.get('longitude'),
+            area=geoip_json.get('region_name'),
+            link_label='From FreeGeoIP',
+            bookmark=Bookmark.Orange
+        )
+
+        return response
+
+Let's take a look at the before and after difference:
+
+    .. figure:: images/maltego_add_decorations.png
+        :align: center
+        :alt: Maltego Link Label and Bookmark
+
+        Entity with link label and bookmark (left) versus undecorated entity (right)
 
 Now that we've covered the ``request`` and ``response`` parameters, let's take a look at the ``config`` parameter and
 how we can use it to make our transforms configurable.
@@ -507,7 +542,136 @@ Now let's refactor our :meth:`IPToLocation.do_transform` code to query the confi
             return response
 
 As demonstrated, above, the ``config`` behaves just like a python dictionary; the keys are derived by appending the
-option name to the section name using a period (``.``).
+option name to the section name using a period (``.``). We've now covered all the basics for local transform development
+but what if we wanted to make our transforms remotely accessible?
+
+Making Transforms Remote
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you're using Maltego Chlorine or later, you will probably be familiar with the Transform Hub (figure below) that
+appears as soon as Maltego is opened in the "Home" tab. The transform hub provides access to transforms provided by
+several providers. These providers operate transform application servers that host remotely accessible transforms or
+remote transforms.
+
+    .. figure:: images/maltego_transform_hub.png
+        :alt: Maltego Transform Hub
+        :align: center
+
+        Maltego Transform Hub
+
+Take a look at Paterva's `documentation <https://www.paterva.com/web6/products/servers.php>`_ on how remote transforms
+work. As can be seen in the figure below, remote transform requests are proxied via a transform distribution server
+(or TDS). The TDS hosts a Maltego configuration profile that can be imported into the client via a "seed" URL. The seed
+URL is unique to each set of remote transforms and can be created via the web-based TDS administration console.
+
+    .. figure:: images/maltego_tas_infrastructure.png
+        :alt: Maltego TDS Infrastructure
+        :align: center
+
+        Maltego TDS infrastructure.
+
+In order to run our transforms remotely, you need to have access to a TDS. You can either buy your own TDS from Paterva
+if you wish to keep your data private or use their `public TDS <https://cetas.paterva.com/TDS/>`_. Since we're not
+dealing with sensitive data in our examples, we'll use the public TDS server. Before we start, you'll need to `register
+an account <https://cetas.paterva.com/TDS/register/>`_ with Paterva's public TDS. Once you've registered for a free
+account, login to make sure you can access the console.
+
+    .. figure:: images/paterva_tds_console.png
+        :alt: Paterva TDS Console
+        :align: center
+
+        Paterva TDS console
+
+Great! Now that you're setup with a free TDS account, let's go ahead and create our first seed:
+
+    #.  Click on `Seeds <https://cetas.paterva.com/TDS/seeds>`_
+    #.  Then `Add Seed <https://cetas.paterva.com/TDS/seeds/add>_`
+    #.  Leave all fields as-is and click ``Add Seed`` at the bottom of the form. This will save a new seed called
+        ``MySeed`` that we'll populate with transforms later. Take note of the ``Seed URL`` for now as we'll be using it
+        later.
+
+Now that we've created our seed, we can now configure our remote transforms. First, we'll setup our remote transform
+application server, Plume, on an Internet accessible system. Plume is Canari's remote transform runner and can be used
+to host and execute the same transforms you wrote earlier with minor modifications to their code. Let's take our IP to
+location transform and make it a remote transform::
+
+    import json
+    from urllib import urlopen
+
+    from canari.framework import EnableDebugWindow
+    from canari.maltego.entities import IPv4Address, Location
+    from canari.maltego.transform import Transform
+
+
+    @EnableDebugWindow
+    class IPToLocation(Transform):
+        """Get's the city/country associated with a particular IP address."""
+
+        # The transform input entity type.
+        input_type = IPv4Address
+
+        # Make our transform remote
+        remote = True # <------------ 1
+
+        def do_transform(self, request, response, config):
+            ip_address = request.entity.value
+
+            url_template = config['hello.local.geo_ip_url']
+
+            geoip_str = urlopen(url_template.format(ip=ip_address)).read()
+            geoip_json = json.loads(geoip_str)
+
+            response += Location(
+                country=geoip_json.get('country_name', 'Unknown'),
+                city=geoip_json.get('city'),
+                countrycode=geoip_json.get('country_code'),
+                latitude=geoip_json.get('latitude'),
+                longitude=geoip_json.get('longitude'),
+                area=geoip_json.get('region_name')
+            )
+
+            return response
+
+By simply setting the class property ``remote`` to ``True`` (1) we have now told Plume that this transform can be run
+remotely. Now all we have to do is install Canari, Plume, and our transform package on the Internet-accessible server.
+Follow the same steps to install Canari on your remote transform server as mentioned in the :ref:`Installation` section.
+Now archive and upload your ``hello`` Canari package to the server and run the :program:`python setup.py install` script::
+
+    $ python setup.py sdist
+    $ scp dist/hello-1.0.tar.gz root@server:.
+
+.. note::
+
+    Plume is only compatible with UNIX-based systems such as Linux, BSD, Darwin, etc. Windows support has not been
+    implemented yet.
+
+Run :program:`canari install-plume` and step through the installation wizard on your server. You can simply accept all
+the defaults (in square brackets) by pressing enter. Here's an example of a successful Plume install::
+
+    server$ canari install-plume
+    --> What directory would you like to install the Plume init script in? [/etc/init.d]:
+
+    --> What directory would you like to use as the Plume root directory? [/var/plume]:
+
+    --> What directory would you like to save Plume logs in? [/var/log]:
+
+    --> What directory would you like to save the Plume PID file in? [/var/run]:
+
+    --> What user would you like Plume to run as? [nobody]:
+
+    --> What group would you like Plume to run as? [nobody]:
+
+    --> What port would you like Plume to listen on? [8080]:
+
+    --> Would you like Plume to use TLS? [n]:
+
+    --> Canari has detected that you're running this install script from within a virtualenv.
+    --> Would you like to run Plume from this virtualenv ('~/venvs/canari') as well? [Y/n]:
+    Writing canari.conf to '/var/plume'...
+    done!
+
+Decompress your ``hello-1.0.tar.gz`` archive and run :program:`canari load-plume-package hello` from within the ``hello/
+src`` directory.
 
 
 .. _bottom:
