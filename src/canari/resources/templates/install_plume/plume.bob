@@ -14,12 +14,11 @@ PLUME_PORT={{{ plume.port }}}
 PLUME_DIR={{{ plume.dir }}}
 
 # The public/private key pair for HTTP/S if enabled
-PLUME_ENABLE_SSL={{{ plume.enable_ssl }}}
 PLUME_CERTIFICATE={{{ plume.certificate }}}
 PLUME_PRIVATE_KEY={{{ plume.private_key }}}
 
 PID_FILE={{{ plume.run_dir }}}/plume.pid
-LOG_FILE={{{ plume.log_dir }}}/log/plume.log
+LOG_FILE={{{ plume.log_dir }}}/plume.log
 
 # Do not change anything below this line unless you know what you're doing.
 
@@ -37,7 +36,7 @@ cd $PLUME_DIR
 case $1 in
     start)
         echo -n 'Starting plume: '
-        if [ $PLUME_ENABLE_SSL == 0 ]; then
+        if [ -e $PLUME_CERTIFICATE ]; then
             twistd \
                     --pidfile=$PID_FILE \
                     --rundir=$PLUME_DIR \
