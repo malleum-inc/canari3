@@ -36,7 +36,7 @@ cd $PLUME_DIR
 case $1 in
     start)
         echo -n 'Starting plume: '
-        if [ -e $PLUME_CERTIFICATE ]; then
+        if [ -z "$PLUME_CERTIFICATE" ]; then
             twistd \
                     --pidfile=$PID_FILE \
                     --rundir=$PLUME_DIR \
@@ -57,7 +57,8 @@ case $1 in
                     --logfile=$LOG_FILE \
                     --certificate=$PLUME_CERTIFICATE \
                     --privkey=$PLUME_PRIVATE_KEY \
-                    --https=$PLUME_PORT;
+                    --https=$PLUME_PORT \
+                    --port=0;
         fi;
         sleep 1
         if [ -f $PID_FILE ]; then
