@@ -1,12 +1,15 @@
 import os
 import re
 import sys
-import time
 import tempfile
-from zipfile import ZipFile, ZIP_STORED
+import time
+from distutils.spawn import find_executable
 from distutils.version import LooseVersion
+from zipfile import ZipFile, ZIP_STORED
 
-from canari.commands.common import parse_int, get_bin_dir
+from safedexml import Model
+
+from canari.commands.common import parse_int
 from canari.maltego.configuration import (TransformSettings, CmdLineTransformPropertySetting, InputConstraint, Set,
                                           CmdParmTransformPropertySetting, CmdCwdTransformPropertySetting,
                                           CmdDbgTransformPropertySetting, MaltegoTransform,
@@ -14,8 +17,6 @@ from canari.maltego.configuration import (TransformSettings, CmdLineTransformPro
                                           CmdParmTransformProperty, TransformSet, Transform, MaltegoServer, Protocol,
                                           Authentication, EntityCategory, Properties, attributes, fileobject, attr,
                                           MaltegoEntity)
-from safedexml import Model
-
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2012, Canari Project'
@@ -324,8 +325,7 @@ class MaltegoDistribution(object):
 
         transform_settings_def = TransformSettings(properties=[
             CmdLineTransformPropertySetting(
-                os.path.join(
-                    get_bin_dir(),
+                find_executable(
                     'dispatcher.bat' if os.name == 'nt' else 'dispatcher'
                 )
             ),

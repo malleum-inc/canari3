@@ -1,15 +1,14 @@
-from distutils.command.install import install
-from distutils.dist import Distribution
-from argparse import Action
-from datetime import datetime
-from importlib import import_module
-from string import Template
-import unicodedata
-import subprocess
-import sys
 import os
 import re
+import subprocess
+import sys
+import unicodedata
+from datetime import datetime
+from distutils.spawn import find_executable
+from importlib import import_module
+from string import Template
 
+from argparse import Action
 from pkg_resources import resource_filename
 
 from canari.commands.framework import Command
@@ -67,21 +66,12 @@ def canari_main(opts):
     opts.command_function(opts)
 
 
-def get_bin_dir():
-    """
-    Returns the absolute path of the installation directory for the Canari scripts.
-    """
-    d = install(Distribution())
-    d.finalize_options()
-    return d.install_scripts
-
-
 def to_utf8(s):
     return unicodedata.normalize('NFKD', unicode(s)).encode('ascii', 'ignore')
 
 
 def sudo(args):
-    p = subprocess.Popen([os.path.join(get_bin_dir(), 'pysudo')] + args)
+    p = subprocess.Popen([find_executable('pysudo')] + args)
     p.communicate()
     return p.returncode
 
