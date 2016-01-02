@@ -519,7 +519,7 @@ class Entity(object):
                 type=kwargs.pop('type', self._type_),
                 value=value,
                 weight=kwargs.pop('weight', None),
-                iconurl=kwargs.pop('iconurl', None),
+                icon_url=kwargs.pop('icon_url', None),
                 fields=self._list_to_dict(kwargs.pop('fields', None)),
                 labels=self._list_to_dict(kwargs.pop('labels', None))
             )
