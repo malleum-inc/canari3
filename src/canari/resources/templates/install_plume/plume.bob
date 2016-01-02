@@ -70,7 +70,7 @@ case $1 in
     stop)
         echo -n 'Stopping plume: '
         if [ -f $PID_FILE ]; then
-            kill -9 $(cat $PID_FILE);
+            kill -15 $(cat $PID_FILE);
             rm -f $PID_FILE;
         fi;
         echo 'done.'
