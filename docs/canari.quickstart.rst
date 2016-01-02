@@ -489,6 +489,32 @@ Let's take a look at the before and after difference:
 
         Entity with link label and bookmark (left) versus undecorated entity (right)
 
+Finally, let's add an icon to our output entity. Since we're working with locations, we'll set the output entity's icon
+to the flag that corresponds with the country code::
+
+    def do_transform(self, request, response, config):
+        # don't forget to add `from maltego.message import Bookmark`
+        ip_address = request.entity.value
+
+        geoip_str = urlopen('https://freegeoip.net/json/%s' % ip_address).read()
+        geoip_json = json.loads(geoip_str)
+
+        country_code = geoip_json.get('country_code').lower()
+
+        response += Location(
+            country=geoip_json.get('country_name', 'Unknown'),
+            city=geoip_json.get('city'),
+            countrycode=country_code,
+            latitude=geoip_json.get('latitude'),
+            longitude=geoip_json.get('longitude'),
+            area=geoip_json.get('region_name'),
+            link_label='From FreeGeoIP',
+            bookmark=Bookmark.Orange,
+            icon_url='http://www.geoips.com/assets/img/flag/256/%s.png' % country_code
+        )
+
+        return response
+
 Now that we've covered the ``request`` and ``response`` parameters, let's take a look at the ``config`` parameter and
 how we can use it to make our transforms configurable.
 
@@ -523,23 +549,28 @@ Let's add our FreeGeoIP endpoint URL configuration option in the configuration f
 Now let's refactor our :meth:`IPToLocation.do_transform` code to query the configuration file for our API endpoint URL::
 
     def do_transform(self, request, response, config):
-            ip_address = request.entity.value
+        ip_address = request.entity.value
 
-            url_template = config['hello.local.geo_ip_url'] # <------------ 1
+        url_template = config['hello.local.geo_ip_url'] # <------------ 1
 
-            geoip_str = urlopen(url_template.format(ip=ip_address)).read()
-            geoip_json = json.loads(geoip_str)
+        geoip_str = urlopen(url_template.format(ip=ip_address)).read()
+        geoip_json = json.loads(geoip_str)
 
-            response += Location(
-                country=geoip_json.get('country_name', 'Unknown'),
-                city=geoip_json.get('city'),
-                countrycode=geoip_json.get('country_code'),
-                latitude=geoip_json.get('latitude'),
-                longitude=geoip_json.get('longitude'),
-                area=geoip_json.get('region_name')
-            )
+        country_code = geoip_json.get('country_code').lower()
 
-            return response
+        response += Location(
+            country=geoip_json.get('country_name', 'Unknown'),
+            city=geoip_json.get('city'),
+            countrycode=country_code,
+            latitude=geoip_json.get('latitude'),
+            longitude=geoip_json.get('longitude'),
+            area=geoip_json.get('region_name'),
+            link_label='From FreeGeoIP',
+            bookmark=Bookmark.Orange,
+            icon_url='http://www.geoips.com/assets/img/flag/256/%s.png' % country_code
+        )
+
+        return response
 
 As demonstrated, above, the ``config`` behaves just like a python dictionary; the keys are derived by appending the
 option name to the section name using a period (``.``). We've now covered all the basics for local transform development
@@ -585,7 +616,7 @@ account, login to make sure you can access the console.
 Great! Now that you're setup with a free TDS account, let's go ahead and create our first seed:
 
     #.  Click on `Seeds <https://cetas.paterva.com/TDS/seeds>`_
-    #.  Then `Add Seed <https://cetas.paterva.com/TDS/seeds/add>_`
+    #.  Then `Add Seed <https://cetas.paterva.com/TDS/seeds/add>`_
     #.  Leave all fields as-is and click ``Add Seed`` at the bottom of the form. This will save a new seed called
         ``MySeed`` that we'll populate with transforms later. Take note of the ``Seed URL`` for now as we'll be using it
         later.
@@ -616,18 +647,23 @@ location transform and make it a remote transform::
         def do_transform(self, request, response, config):
             ip_address = request.entity.value
 
-            url_template = config['hello.local.geo_ip_url']
+            url_template = config['hello.local.geo_ip_url'] # <------------ 1
 
             geoip_str = urlopen(url_template.format(ip=ip_address)).read()
             geoip_json = json.loads(geoip_str)
 
+            country_code = geoip_json.get('country_code').lower()
+
             response += Location(
                 country=geoip_json.get('country_name', 'Unknown'),
                 city=geoip_json.get('city'),
-                countrycode=geoip_json.get('country_code'),
+                countrycode=country_code,
                 latitude=geoip_json.get('latitude'),
                 longitude=geoip_json.get('longitude'),
-                area=geoip_json.get('region_name')
+                area=geoip_json.get('region_name'),
+                link_label='From FreeGeoIP',
+                bookmark=Bookmark.Orange,
+                icon_url='http://www.geoips.com/assets/img/flag/256/%s.png' % country_code
             )
 
             return response
@@ -635,7 +671,8 @@ location transform and make it a remote transform::
 By simply setting the class property ``remote`` to ``True`` (1) we have now told Plume that this transform can be run
 remotely. Now all we have to do is install Canari, Plume, and our transform package on the Internet-accessible server.
 Follow the same steps to install Canari on your remote transform server as mentioned in the :ref:`Installation` section.
-Now archive and upload your ``hello`` Canari package to the server and run the :program:`python setup.py install` script::
+Now archive and upload your ``hello`` Canari package to the server and run the :program:`python setup.py install`
+script::
 
     $ python setup.py sdist
     $ scp dist/hello-1.0.tar.gz root@server:.
@@ -670,8 +707,53 @@ the defaults (in square brackets) by pressing enter. Here's an example of a succ
     Writing canari.conf to '/var/plume'...
     done!
 
-Decompress your ``hello-1.0.tar.gz`` archive and run :program:`canari load-plume-package hello` from within the ``hello/
-src`` directory.
+The Plume root directory (`/var/plume`) is where you will be running the :program:`canari load-plume-package` or
+:program:`canari unload-plume-package` commands. It's also where the `canari.conf` file for Plume will be stored as well
+as any static resources your transform package may rely on. Make note of the path you used for the Plume root directory
+as we'll be using it later::
+
+    server$ export PLUME_ROOT=/var/plume
+
+Next, decompress your ``hello-1.0.tar.gz`` archive and run :program:`python setup.py install` from within the ``hello/``
+directory. At this point all our dependencies have been installed and all we need to do is configure Plume to load the
+Canari transform package::
+
+    server$ cd $PLUME_ROOT
+    server$ canari load-plume-package hello
+    Looking for transforms in hello...
+    Package loaded.
+    /var/plume/canari.conf already exists. Would you like to overwrite it? [y/N]:
+    Please restart plume for changes to take effect.
+
+At this point, we are ready to go and all we have to do is run our init script (i.e. :program:`/etc/init.d/plume start`)
+from the init script directory::
+
+    server$ /etc/init.d/plume start
+    Starting plume: non-SSL server
+    Looking for transforms in hello...
+    Package loaded.
+    Loading transform package 'hello'
+    Loading transform 'hello.IPToLocation' at /hello.IPToLocation...
+    done.
+
+At this point what need to do is add our transform to our seed on the Paterva community TDS server:
+
+    #. Go back to the `TDS console <https://cetas.paterva.com/TDS/>`_ in your browser and login, if required.
+    #. Click on `Transforms <https://cetas.paterva.com/TDS/transforms>`_.
+    #. Click on `Add Transform <https://cetas.paterva.com/TDS/transforms/add>`_.
+    #. Set the following values:
+
+        a. `Transform Name` to ``IPToLocation``.
+        b. `Tranform UI Display` to ``IP To Location``.
+        c. `Transform URL` to ``http://<server IP or hostname>:<port>/hello.IPToLocation``.
+        d. Select the ``Paterva Entities`` radio button then ``maltego.IPv4Address`` from the drop-down menu under
+           `Input Entity`.
+        e. Select ``MySeed`` from `Available Seeds` and click the ``>`` button.
+
+    #. Finally, click `Add Transform` to add your transform to the seed.
+
+Now for the moment of truth, copy the seed URL from the `Paterva TDS console <https://cetas.paterva.com/TDS/seeds>`_ and
+add it to Maltego.
 
 
 .. _bottom:
