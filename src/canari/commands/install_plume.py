@@ -136,7 +136,7 @@ def install_defaults(opts):
     configurator.variables['plume.enable_ssl'] = 'n'
     print 'Installing init script to /etc/init.d...'
     configurator.variables['plume.init'] = check_init_script(configurator, '', '/etc/init.d')
-    print 'Creating Plume root directory at /var/plume'
+    print 'Creating Plume root directory at /var/plume...'
     configurator.variables['plume.dir'] = check_mkdir(configurator, '', '/var/plume')
     print 'The PID file will be at /var/run/plume.pid...'
     configurator.variables['plume.run_dir'] = '/var/run'
@@ -145,7 +145,8 @@ def install_defaults(opts):
     configurator.variables['plume.user'] = check_uid(configurator, '', 'nobody')
     configurator.variables['plume.group'] = check_gid(configurator, '',
                                                       'www-data' if 'linux' in sys.platform else 'nobody')
-    print 'The Plume server will run as nobody/%s...' % configurator.variables['plume.group']
+    print 'The Plume server will under UID/GID=%s/%s...' % (
+        configurator.variables['plume.user'], configurator.variables['plume.group'])
     print 'TLS will be disabled by default...'
     configurator.variables['plume.certificate'] = ''
     configurator.variables['plume.private_key'] = ''
