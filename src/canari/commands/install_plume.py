@@ -1,16 +1,15 @@
 #!/usr/bin/env python
 import grp
 import os
-
+import sys
 import pwd
 from stat import ST_MODE, S_ISDIR
-from tempfile import NamedTemporaryFile
 
 from mrbob.bobexceptions import ValidationError
 from mrbob.configurator import Configurator, Question
 
 from common import canari_main, parse_bool
-from framework import SubCommand
+from framework import SubCommand, Argument
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2012, Canari Project'
@@ -109,11 +108,54 @@ def configure_ssl(configurator, question, answer):
 
 
 @SubCommand(
-        canari_main,
-        help='Sets up Canari Plume directory structure and configuration files.',
-        description='Sets up Canari Plume directory structure and configuration files.'
+    canari_main,
+    help='Sets up Canari Plume directory structure and configuration files.',
+    description='Sets up Canari Plume directory structure and configuration files.'
+)
+@Argument(
+    '--accept-defaults',
+    '-y',
+    help='Install Plume with all the defaults in non-interactive mode.',
+    default=False,
+    action='store_true'
 )
 def install_plume(opts):
+
+    if not opts.accept_defaults:
+        return install_wizard(opts)
+    install_defaults(opts)
+
+
+def install_defaults(opts):
+    configurator = Configurator('canari.resources.templates:install_plume', '.',
+                                {'non_interactive': True, 'remember_answers': False})
+
+    configurator.variables['plume.venv'] = os.environ.get('VIRTUAL_ENV')
+    if configurator.variables['plume.venv']:
+        print 'Will use the virtual environment in %r to run Plume...' % configurator.variables['plume.venv']
+    configurator.variables['plume.enable_ssl'] = 'n'
+    print 'Installing init script to /etc/init.d...'
+    configurator.variables['plume.init'] = check_init_script(configurator, '', '/etc/init.d')
+    print 'Creating Plume root directory at /var/plume'
+    configurator.variables['plume.dir'] = check_mkdir(configurator, '', '/var/plume')
+    print 'The PID file will be at /var/run/plume.pid...'
+    configurator.variables['plume.run_dir'] = '/var/run'
+    print 'The log files will be at /var/log/plume.log...'
+    configurator.variables['plume.log_dir'] = '/var/log'
+    configurator.variables['plume.user'] = check_uid(configurator, '', 'nobody')
+    configurator.variables['plume.group'] = check_gid(configurator, '',
+                                                      'www-data' if 'linux' in sys.platform else 'nobody')
+    print 'The Plume server will run as nobody/%s...' % configurator.variables['plume.group']
+    print 'TLS will be disabled by default...'
+    configurator.variables['plume.certificate'] = ''
+    configurator.variables['plume.private_key'] = ''
+
+    configurator.ask_questions()
+    configurator.render()
+    finish(configurator)
+
+
+def install_wizard(opts):
     configurator = Configurator('canari.resources.templates:install_plume', '.',
                                 {'non_interactive': False, 'remember_answers': False})
     configurator.ask_questions()
@@ -125,7 +167,10 @@ def install_plume(opts):
         configurator.variables['plume.venv'] = os.environ['VIRTUAL_ENV'] if run_venv else False
 
     configurator.render()
+    finish(configurator)
 
+
+def finish(configurator):
     print 'Writing canari.conf to %r...' % configurator.variables['plume.dir']
 
     # move the canari.conf file from the init.d directory to the plume content directory
