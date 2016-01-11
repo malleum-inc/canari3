@@ -5,7 +5,7 @@ from canari.mode import CanariMode, set_canari_mode
 
 from canari.pkgutils.transform import TransformDistribution
 from common import canari_main, uproot
-from canari.utils.fs import pushd
+from canari.utils.fs import PushDir
 from framework import SubCommand, Argument
 
 
@@ -53,7 +53,7 @@ def create_profile(args):
     opts = parse_args(args)
     current_dir = os.getcwd()
     try:
-        with pushd(opts.working_dir or current_dir):
+        with PushDir(opts.working_dir or current_dir):
             transform_package = TransformDistribution(opts.package)
             transform_package.create_profile(opts.working_dir, current_dir)
     except ValueError, e:

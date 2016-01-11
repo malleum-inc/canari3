@@ -4,7 +4,7 @@ import sys
 import subprocess
 import getpass
 
-from canari.utils.fs import fmutex
+from canari.utils.fs import FileMutex
 from canari.easygui import passwordbox
 
 __author__ = 'Nadeem Douba'
@@ -33,7 +33,7 @@ def main():
         exit(0)
 
     # It didn't :( - let's lock this region now to avoid having multiple password boxes pop-up
-    l = fmutex('pysudo.%s.lock' % getpass.getuser())
+    l = FileMutex('pysudo.%s.lock' % getpass.getuser())
 
     # Try running it again (maybe another process authenticated... why ask for a password again?)
     p = subprocess.Popen(['sudo', '-S'] + sys.argv[1:], stdin=subprocess.PIPE)

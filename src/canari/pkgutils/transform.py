@@ -11,7 +11,7 @@ from canari.maltego.transform import Transform
 from canari.commands.common import parse_bool
 from canari.config import CanariConfigParser, OPTION_LOCAL_CONFIGS, SECTION_LOCAL, OPTION_REMOTE_PACKAGES, \
     SECTION_REMOTE, OPTION_REMOTE_CONFIGS
-from canari.utils.fs import pushd
+from canari.utils.fs import PushDir
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2012, Canari Project'
@@ -180,7 +180,7 @@ class TransformDistribution(object):
                 yield sub_subclass
 
     def _update_config(self, canari_config, load=True, remote=False):
-        with pushd(os.path.dirname(canari_config)):
+        with PushDir(os.path.dirname(canari_config)):
 
             config = CanariConfigParser()
             config.read(canari_config)

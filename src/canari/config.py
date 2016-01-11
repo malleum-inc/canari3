@@ -5,7 +5,7 @@ from ConfigParser import SafeConfigParser, NoOptionError, NoSectionError
 from urlparse import urlparse
 
 from canari.mode import is_local_exec_mode, is_remote_exec_mode
-from canari.utils.fs import pushd
+from canari.utils.fs import PushDir
 from resource import global_config
 from utils.wordlist import wordlist
 
@@ -145,7 +145,7 @@ def load_config(config_file=None, recursive_load=True):
         if not os.path.lexists(config_file):
             config_file = os.path.join(os.path.expanduser('~'), '.canari', 'canari.conf')
 
-    with pushd(os.path.dirname(config_file)):
+    with PushDir(os.path.dirname(config_file)):
         config_parser = CanariConfigParser()
         config_parser.read([global_config, config_file])
         if recursive_load:

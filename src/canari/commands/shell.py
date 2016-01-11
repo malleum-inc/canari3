@@ -6,7 +6,7 @@ from atexit import register
 from canari.mode import CanariMode, set_canari_mode
 from canari.pkgutils.transform import TransformDistribution
 from common import canari_main, parse_bool
-from canari.utils.fs import pushd
+from canari.utils.fs import PushDir
 from framework import SubCommand, Argument
 from canari.config import load_config
 from canari.maltego.utils import highlight
@@ -112,7 +112,7 @@ def shell(opts):
 
     try:
         transform_package = TransformDistribution(opts.package)
-        with pushd(opts.working_dir or transform_package.default_prefix):
+        with PushDir(opts.working_dir or transform_package.default_prefix):
             mtg_console = MtgConsole(transform_package.transforms, auto_sudo=opts.sudo)
             mtg_console.interact(highlight('Welcome to Canari %s.' % canari.__version__, 'green', True))
     except ValueError, e:

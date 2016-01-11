@@ -5,6 +5,25 @@ from tempfile import NamedTemporaryFile, gettempdir
 from time import time
 
 
+__author__ = 'Nadeem Douba'
+__copyright__ = 'Copyright 2015, Canari Project'
+__credits__ = ['Andrew Udvare']
+
+__license__ = 'GPLv3'
+__version__ = '0.1'
+__maintainer__ = 'Nadeem Douba'
+__email__ = 'ndouba@gmail.com'
+__status__ = 'Development'
+
+__all__ = [
+    'flock',
+    'FileSemaphore',
+    'FileMutex',
+    'UniqueFile',
+    'PushDir'
+]
+
+
 if os.name == 'nt':
     import msvcrt
     from ctypes import *
@@ -21,6 +40,7 @@ if os.name == 'nt':
     def is_64bit():
         return sizeof(c_ulong) != sizeof(c_void_p)
 
+
     if is_64bit():
         ULONG_PTR = c_int64
     else:
@@ -33,11 +53,13 @@ if os.name == 'nt':
             ('Offset', DWORD),
             ('OffsetHigh', DWORD)]
 
+
     class _OFFSET_UNION(Union):
         _anonymous_ = ['_offset']
         _fields_ = [
             ('_offset', _OFFSET),
             ('Pointer', PVOID)]
+
 
     class OVERLAPPED(Structure):
         _anonymous_ = ['_offset_union']
@@ -46,6 +68,7 @@ if os.name == 'nt':
             ('InternalHigh', ULONG_PTR),
             ('_offset_union', _OFFSET_UNION),
             ('hEvent', HANDLE)]
+
 
     LPOVERLAPPED = POINTER(OVERLAPPED)
 
@@ -56,6 +79,7 @@ if os.name == 'nt':
     UnlockFileEx = windll.kernel32.UnlockFileEx
     UnlockFileEx.restype = BOOL
     UnlockFileEx.argtypes = [HANDLE, DWORD, DWORD, DWORD, LPOVERLAPPED]
+
 
     def flock(file_, flags):
         hfile = msvcrt.get_osfhandle(file_.fileno())
@@ -71,66 +95,56 @@ else:
     from fcntl import flock, LOCK_EX, LOCK_NB, LOCK_SH, LOCK_UN
 
 
-__author__ = 'Nadeem Douba'
-__copyright__ = 'Copyright 2015, Canari Project'
-__credits__ = []
-
-__license__ = 'GPLv3'
-__version__ = '0.1'
-__maintainer__ = 'Nadeem Douba'
-__email__ = 'ndouba@gmail.com'
-__status__ = 'Development'
-
-__all__ = [
-    'cookie',
-    'flock',
-    'fsemaphore',
-    'fmutex',
-    'ufile',
-    'age',
-    'pushd'
-]
-
-
-def cookie(name):
-    return os.path.join(gettempdir(), name)
-
-
-class fsemaphore(file):
+class FileSemaphore(file):
 
     def __init__(self, name, mode='rb', buffering=-1):
-        super(fsemaphore, self).__init__(name, mode, buffering)
+        self.locked = False
+        super(FileSemaphore, self).__init__(name, mode, buffering)
 
     def lockex(self, nb=False):
         flags = LOCK_EX
         if nb:
             flags |= LOCK_NB
         flock(self, flags)
+        self.locked = True
 
     def locksh(self, nb=False):
         flags = LOCK_SH
         if nb:
             flags |= LOCK_NB
         flock(self, flags)
+        self.locked = True
 
     def unlock(self, nb=False):
         flags = LOCK_UN
         if nb:
             flags |= LOCK_NB
         flock(self, flags)
-
-
-class fmutex(fsemaphore):
-
-    def __init__(self, name):
-        super(fmutex, self).__init__(cookie(name), 'wb')
-        self.lockex()
+        self.locked = False
 
     def __del__(self):
-        self.unlock()
+        if self.locked and not self.closed:
+            self.unlock()
+
+    def close(self):
+        super(FileSemaphore, self).close()
+        if self.locked and not self.closed:
+            self.unlock()
+
+    def __exit__(self, *args):
+        super(FileSemaphore, self).__exit__(*args)
+        if self.locked and not self.closed:
+            self.unlock()
 
 
-def ufile(name, delete=False):
+class FileMutex(FileSemaphore):
+
+    def __init__(self, name):
+        super(FileMutex, self).__init__(os.path.join(gettempdir(), name), 'wb')
+        self.lockex()
+
+
+def UniqueFile(self, name, delete=False):
     n, e = os.path.splitext(name)
     f = NamedTemporaryFile(suffix=e, prefix='%s_' % n, delete=delete)
     if os.name == 'posix':
@@ -138,14 +152,8 @@ def ufile(name, delete=False):
     return f
 
 
-def age(path):
-    return time() - os.stat(path).st_mtime
-
-
-class pushd(object):
-    """
-    Ripped from here: https://gist.github.com/Tatsh/7131812
-    """
+class PushDir(object):
+    """Ripped from here: https://gist.github.com/Tatsh/7131812"""
 
     def __init__(self, dir_name):
         self.cwd = os.path.realpath(dir_name)
@@ -162,3 +170,27 @@ class pushd(object):
 
     def __exit__(self, type_, value, tb):
         os.chdir(self.original_dir)
+
+
+class CookieFile(FileSemaphore):
+
+    @property
+    def age(self):
+        return time() - os.stat(self.name).st_mtime
+
+    @property
+    def expired(self):
+        return self.age > self.max_age
+
+    def __init__(self, name, mode='rb', buffering=-1, max_age=86400):
+        name = os.path.join(gettempdir(), name)
+        self.max_age = max_age
+        super(CookieFile, self).__init__(name, mode, buffering=-1)
+
+        if 'w' in self.mode:
+            self.lockex()
+        elif 'r' in self.mode:
+            self.locksh()
+            if self.expired:
+                self.close()
+                raise IOError('Cookie file expired (age=%d > max_age=%d).' % (self.age, max_age))

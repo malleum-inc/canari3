@@ -2,7 +2,7 @@
 
 import os
 from canari.pkgutils.transform import TransformDistribution
-from canari.utils.fs import pushd
+from canari.utils.fs import PushDir
 
 from common import canari_main
 from framework import SubCommand, Argument
@@ -37,7 +37,7 @@ __status__ = 'Development'
     help='the path where Plume is installed.'
 )
 def unload_plume_package(opts):
-    with pushd(opts.plume_dir):
+    with PushDir(opts.plume_dir):
         if not os.path.exists('canari.conf'):
             print('Plume does not appear to be installed in %s.' % opts.plume_dir)
             print("Please run 'canari install-plume' and try again.")
