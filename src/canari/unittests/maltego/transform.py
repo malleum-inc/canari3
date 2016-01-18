@@ -1,5 +1,5 @@
 from unittest import TestCase
-from canari.maltego.transform import MaltegoTransform
+from canari.maltego.transform import Transform
 from canari.framework import *
 
 __author__ = 'Nadeem Douba'
@@ -19,12 +19,12 @@ class TransformTests(TestCase):
     """
 
     def test_create_default_transform(self):
-        class MyTransform(MaltegoTransform):
+        class MyTransform(Transform):
             """This is a test."""
             pass
         transform = MyTransform()
         self.assertEqual(transform.name, 'transform.MyTransform')
-        self.assertEqual(transform.display_name, 'MyTransform')
+        self.assertEqual(transform.display_name, 'My Transform')
         self.assertEqual(transform.author, __author__)
         self.assertEqual(transform.description, 'This is a test.')
         self.assertEqual(transform.help_url, '')
@@ -36,12 +36,12 @@ class TransformTests(TestCase):
 
     def test_create_default_superuser_transform(self):
         @RequireSuperUser
-        class MyTransform(MaltegoTransform):
+        class MyTransform(Transform):
             """This is a test."""
             pass
         transform = MyTransform()
         self.assertEqual(transform.name, 'transform.MyTransform')
-        self.assertEqual(transform.display_name, 'MyTransform')
+        self.assertEqual(transform.display_name, 'My Transform')
         self.assertEqual(transform.author, __author__)
         self.assertEqual(transform.description, 'This is a test.')
         self.assertEqual(transform.help_url, '')
@@ -54,12 +54,12 @@ class TransformTests(TestCase):
     def test_create_default_superuser_debug_transform(self):
         @RequireSuperUser
         @EnableDebugWindow
-        class MyTransform(MaltegoTransform):
+        class MyTransform(Transform):
             """This is a test."""
             pass
         transform = MyTransform()
         self.assertEqual(transform.name, 'transform.MyTransform')
-        self.assertEqual(transform.display_name, 'MyTransform')
+        self.assertEqual(transform.display_name, 'My Transform')
         self.assertEqual(transform.author, __author__)
         self.assertEqual(transform.description, 'This is a test.')
         self.assertEqual(transform.help_url, '')
@@ -73,12 +73,12 @@ class TransformTests(TestCase):
         @RequireSuperUser
         @EnableDebugWindow
         @EnableRemoteExecution
-        class MyTransform(MaltegoTransform):
+        class MyTransform(Transform):
             """This is a test."""
             pass
         transform = MyTransform()
         self.assertEqual(transform.name, 'transform.MyTransform')
-        self.assertEqual(transform.display_name, 'MyTransform')
+        self.assertEqual(transform.display_name, 'My Transform')
         self.assertEqual(transform.author, __author__)
         self.assertEqual(transform.description, 'This is a test.')
         self.assertEqual(transform.help_url, '')
@@ -93,12 +93,12 @@ class TransformTests(TestCase):
         @EnableDebugWindow
         @EnableRemoteExecution
         @Deprecated
-        class MyTransform(MaltegoTransform):
+        class MyTransform(Transform):
             """This is a test."""
             pass
         transform = MyTransform()
         self.assertEqual(transform.name, '.'.join([MyTransform.__module__, MyTransform.__name__]))
-        self.assertEqual(transform.display_name, MyTransform.__name__)
+        self.assertEqual(transform.display_name, 'My Transform')
         self.assertEqual(transform.author, __author__)
         self.assertEqual(transform.description, 'This is a test.')
         self.assertEqual(transform.help_url, '')
@@ -109,11 +109,11 @@ class TransformTests(TestCase):
         self.assertEqual(transform.transform_set, self.__module__.split('.', 1)[0].title())
 
     def test_create_no_description_transform(self):
-        class MyTransform(MaltegoTransform):
+        class MyTransform(Transform):
             pass
         transform = MyTransform()
         self.assertEqual(transform.name, '.'.join([MyTransform.__module__, MyTransform.__name__]))
-        self.assertEqual(transform.display_name, MyTransform.__name__)
+        self.assertEqual(transform.display_name, 'My Transform')
         self.assertEqual(transform.author, __author__)
         self.assertEqual(transform.description, '')
         self.assertEqual(transform.help_url, '')
@@ -124,11 +124,11 @@ class TransformTests(TestCase):
         self.assertEqual(transform.transform_set, self.__module__.split('.', 1)[0].title())
 
     def test_create_explicit_name_transform(self):
-        class MyTransform(MaltegoTransform):
+        class MyTransform(Transform):
             name = 'foobar.Transform'
         transform = MyTransform()
         self.assertEqual(transform.name, 'foobar.Transform')
-        self.assertEqual(transform.display_name, MyTransform.__name__)
+        self.assertEqual(transform.display_name, 'My Transform')
         self.assertEqual(transform.author, __author__)
         self.assertEqual(transform.description, '')
         self.assertEqual(transform.help_url, '')
@@ -139,7 +139,7 @@ class TransformTests(TestCase):
         self.assertEqual(transform.transform_set, self.__module__.split('.', 1)[0].title())
 
     def test_create_explicit_display_name_transform(self):
-        class MyTransform(MaltegoTransform):
+        class MyTransform(Transform):
             display_name = 'Foo'
         transform = MyTransform()
         self.assertEqual(transform.name, '.'.join([MyTransform.__module__, MyTransform.__name__]))
@@ -154,11 +154,11 @@ class TransformTests(TestCase):
         self.assertEqual(transform.transform_set, self.__module__.split('.', 1)[0].title())
 
     def test_create_explicit_description_transform(self):
-        class MyTransform(MaltegoTransform):
+        class MyTransform(Transform):
             description = 'foo'
         transform = MyTransform()
         self.assertEqual(transform.name, '.'.join([MyTransform.__module__, MyTransform.__name__]))
-        self.assertEqual(transform.display_name, MyTransform.__name__)
+        self.assertEqual(transform.display_name, 'My Transform')
         self.assertEqual(transform.author, __author__)
         self.assertEqual(transform.description, 'foo')
         self.assertEqual(transform.help_url, '')
@@ -169,11 +169,11 @@ class TransformTests(TestCase):
         self.assertEqual(transform.transform_set, self.__module__.split('.', 1)[0].title())
 
     def test_create_explicit_help_url_transform(self):
-        class MyTransform(MaltegoTransform):
+        class MyTransform(Transform):
             help_url = 'foo'
         transform = MyTransform()
         self.assertEqual(transform.name, '.'.join([MyTransform.__module__, MyTransform.__name__]))
-        self.assertEqual(transform.display_name, MyTransform.__name__)
+        self.assertEqual(transform.display_name, 'My Transform')
         self.assertEqual(transform.author, __author__)
         self.assertEqual(transform.description, '')
         self.assertEqual(transform.help_url, 'foo')
@@ -184,11 +184,11 @@ class TransformTests(TestCase):
         self.assertEqual(transform.transform_set, self.__module__.split('.', 1)[0].title())
 
     def test_create_explicit_author_transform(self):
-        class MyTransform(MaltegoTransform):
+        class MyTransform(Transform):
             author = 'foo'
         transform = MyTransform()
         self.assertEqual(transform.name, '.'.join([MyTransform.__module__, MyTransform.__name__]))
-        self.assertEqual(transform.display_name, MyTransform.__name__)
+        self.assertEqual(transform.display_name, 'My Transform')
         self.assertEqual(transform.author, 'foo')
         self.assertEqual(transform.description, '')
         self.assertEqual(transform.help_url, '')
@@ -199,11 +199,11 @@ class TransformTests(TestCase):
         self.assertEqual(transform.transform_set, self.__module__.split('.', 1)[0].title())
 
     def test_create_explicit_transform_set(self):
-        class MyTransform(MaltegoTransform):
+        class MyTransform(Transform):
             transform_set = 'foo'
         transform = MyTransform()
         self.assertEqual(transform.name, '.'.join([MyTransform.__module__, MyTransform.__name__]))
-        self.assertEqual(transform.display_name, MyTransform.__name__)
+        self.assertEqual(transform.display_name, 'My Transform')
         self.assertEqual(transform.author, __author__)
         self.assertEqual(transform.description, '')
         self.assertEqual(transform.help_url, '')
