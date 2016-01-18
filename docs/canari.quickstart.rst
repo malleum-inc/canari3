@@ -40,7 +40,7 @@ On Fedora-based (Fedora, RedHat, CentOS, etc.) systems, all these dependencies c
 
     $ sudo yum groupinstall -y 'development tools'
     $ sudo yum install zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel \
-         readline-devel tk-devel gdbm-devel db4-devel libpcap-devel xz-devel
+         readline-devel tk-devel gdbm-devel db4-devel libpcap-devel xz-devel python-devel
     $ sudo easy_install virtualenv
 
 **Mac OS/X**
@@ -119,6 +119,30 @@ If your transform package was successfully created, you should now see a ``hello
 
     $ ls
     hello ...
+
+
+**Directory and Files Structure of the Package:**
+
+Inside `hello` folder you can find the following files and directory structure:
+
+* ``.canari`` - canari internal config to help you using the canari framework
+* ``.mrbob.ini`` - **FIXME**
+* ``README`` - file where you can write the transform documentation
+* ``setup.py`` - installation script which is already configured
+* ``src/hello`` - directory is where all your stuff goes in terms of code
+* ``src/hello/transforms`` - directory is where all your transform modules should be placed. An example `helloworld` transform is there for your viewing pleasure.
+* ``src/hello/transforms/helloworld.py`` - transform example which can be used to create your transforms
+* ``src/hello/transforms/common`` - directory is where you can put some common code for your transforms like result parsing, entities, etc.
+* ``src/hello/transforms/common/entities.py`` - is where you define your custom entities. Take a look at the examples provided if you want to play around with custom entities.
+* ``src/hello/resources`` - directory is where multiple types of resources can be stored to support your transform package
+* ``src/hello/resources/etc`` - directory is where configuration can be stored
+* ``src/hello/resources/etc/hello.conf`` - configuration file for all transform package
+* ``src/hello/resources/external`` - directory is where you can place non-Python transforms written in other languages.
+* ``src/hello/resources/images`` - directory is where images files can be stored to be use as icons, etc.
+* ``src/hello/resources/maltego`` - directory is where your `entities.mtz` and `*.machine` files can be stored for auto install and uninstall.
+
+
+**Understand and Debug Default Transform**
 
 Let's drop into that directory and run our first transform. As mentioned earlier, each time you create a new transform
 package, a "Hello World!" transform gets created for your reference. We'll execute this transform using the
@@ -249,6 +273,7 @@ Let's see if our transform is operating correctly::
 Great! Let's try this out in Maltego. First we need to create a profile that can be imported by Maltego to configure the
 transforms in the GUI::
 
+    $ cd src
     $ canari create-profile hello
     Looking for transforms in hello...
     Package loaded.
