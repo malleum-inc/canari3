@@ -1,101 +1,56 @@
 import sys
 import re
 import json
-
-if len(sys.argv) != 2:
-    print "\n\tMaltego Entities Reference Generator\n\n\tUsage:\n\t\t$ python %s <entities.py>\n" % sys.argv[0]
-    exit(-1)
+import inspect
+import canari.maltego.entities
 
 filename = sys.argv[0].split('.py')[0]
 
-
-regex_blocks = 'class .*?\n\n'
-regex_class = 'class ([^\(]+)\(([^\)]+)\)'
-regex_class_alias = "_alias_ = '([^']+)'"
-regex_parameters = "([^\ ]+)[\ ]+=\ ([A-Z][a-z]+[A-Za-z]+)\('([^']+)'([^\)]+)"
-regex_parameter_alias = "alias='([^']+)'"
-regex_parameter_dname = "display_name='([^']+)'"
-regex_parameter_is_value = "is_value=([a-zA-Z]+)"
-
 entities = list()
+entities_list = list()
 
+for entity_name, entity_object in inspect.getmembers(canari.maltego.entities):
+    if entity_name == "__all__":
+        entities_list = entity_object
 
-# Read file
-with open(sys.argv[1]) as fp:
-    text = fp.read()
+for entity_name, entity_object in inspect.getmembers(canari.maltego.entities):
 
+    if not inspect.isclass(entity_object):
+        continue
 
-# Split in blocks of entities
-blocks = re.findall(regex_blocks, text, re.DOTALL)
+    if entity_name not in entities_list:
+        continue
 
-
-# Iterate through blocks
-for block in blocks:
-
-    params_lines = list()
     entity = dict()
+    entity['class'] = entity_name
+    entity['superclass'] = str(inspect.getmro(entity_object)[1]).split('.')[-1][:-2]
     entity['parameters'] = list()
 
-    for line in block.split('\n'):
-        line = line.strip()
+    if '_alias_' in entity_object.__dict__:
+	if entity_object.__dict__['_alias_'] != entity_name:
+	        entity['alias'] = entity_object.__dict__['_alias_']
 
-        # Ignore empty or irrelevant lines
-        if line == "" or line == "pass":
+    for param_key, param_value in entity_object.__dict__.iteritems():
+        if param_key.startswith('_'):
             continue
 
-        # Detect _alias_ / _namespace_
-        if line.startswith("_") or line.startswith("class "):
-            params_lines.append(line)
+        if not hasattr(param_value, 'display_name'):
             continue
 
-        # Find splitted lines and merge
-        if not re.search("[^\ ]+ = [A-Za-z]+\(", line):
-            params_lines[-1] += " " + line
-            continue
+        parameter = dict()
+        parameter['display_name'] = param_value.display_name  # Display Name
+        parameter['type'] = str(param_value.__class__).split('.')[-1][:-2]  # Type
+        parameter['canari'] = param_key  # Canary Property
+        parameter['maltego'] = param_value.name  # Maltego Property
+        parameter['is_value'] = param_value.is_value  # Main Property
 
-        params_lines.append(line)
+        entity['parameters'].append(parameter)
 
-
-    for line in params_lines:
-
-        # Get entity class and entity superclass
-        match = re.search(regex_class, line)
-        if match:
-            entity['class'] = match.group(1)
-            entity['superclass'] = match.group(2)
-            continue
-
-        # Get class alias
-        match = re.search(regex_class_alias, line)
-        if match:
-            entity['alias'] = match.group(1)
-
-        # Get parameters details
-        match = re.search(regex_parameters, line)
-        if match:
-            parameter = dict()
-            parameter['canari'] = match.group(1)
-            parameter['type'] = match.group(2)
-            parameter['maltego'] = match.group(3)
-
-            submatch = re.search(regex_parameter_alias, match.group(4))
-            if submatch:
-                parameter['alias'] = submatch.group(1)
-                
-            submatch = re.search(regex_parameter_dname, match.group(4))
-            if submatch:
-                parameter['display_name'] = submatch.group(1)
-
-            submatch = re.search(regex_parameter_is_value, match.group(4))
-            if submatch:
-                parameter['is_value'] = submatch.group(1)
-            
-            entity['parameters'].append(parameter)
-            continue
-
+    entity['parameters'] = sorted(entity['parameters'], key=lambda k: k['canari'])
     entities.append(entity)
 
-entities = sorted(entities, key=lambda k: k['class']) 
+entities = sorted(entities, key=lambda k: k['class'])
+
 
 ###########################
 # WRITE JSON FILE
@@ -161,7 +116,7 @@ for entity in entities:
             p_type = parameter['type'] if 'type' in parameter else '-'
             p_canari = parameter['canari'] if 'canari' in parameter else '-'
             p_maltego = parameter['maltego'] if 'maltego' in parameter else '-'
-            p_isvalue = "Yes" if 'is_value' in parameter else "No"
+            p_isvalue = "Yes" if parameter['is_value'] else "No"
 
             rst_content += template_entity_table_data % (p_dname, p_type, p_canari, p_maltego, p_isvalue)
 
@@ -176,5 +131,9 @@ with open(filename + ".rst", 'w') as fp:
 
 
 print "Check the files '%s' and '%s'" % (filename + ".rst", filename + ".json")
+
+
+
+
 
 

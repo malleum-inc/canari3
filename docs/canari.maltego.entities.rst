@@ -45,10 +45,10 @@ Affiliation
 .. csv-table::
     :header: Display Name,Type,Canari Property,Maltego Property,Main Property
 
-    Name,StringEntityField,``person_name``,``person.name``,Yes
-    UID,StringEntityField,``uid``,``affiliation.uid``,No
     Network,StringEntityField,``network``,``affiliation.network``,No
+    Name,StringEntityField,``person_name``,``person.name``,Yes
     Profile URL,StringEntityField,``profile_url``,``affiliation.profile-url``,No
+    UID,StringEntityField,``uid``,``affiliation.uid``,No
 
 -------------
 
@@ -175,9 +175,9 @@ Document
 .. csv-table::
     :header: Display Name,Type,Canari Property,Maltego Property,Main Property
 
-    URL,StringEntityField,``url``,``url``,Yes
-    Title,StringEntityField,``title``,``title``,No
     Meta-Data,StringEntityField,``metadata``,``document.metadata``,No
+    Title,StringEntityField,``title``,``title``,No
+    URL,StringEntityField,``url``,``url``,Yes
 
 -------------
 
@@ -267,8 +267,8 @@ File
 .. csv-table::
     :header: Display Name,Type,Canari Property,Maltego Property,Main Property
 
-    Source,StringEntityField,``source``,``source``,No
     Description,StringEntityField,``description``,``description``,No
+    Source,StringEntityField,``source``,``source``,No
 
 -------------
 
@@ -321,8 +321,8 @@ IPv4Address
 .. csv-table::
     :header: Display Name,Type,Canari Property,Maltego Property,Main Property
 
-    IP Address,StringEntityField,``ipv4address``,``ipv4-address``,Yes
     Internal,BooleanEntityField,``internal``,``ipaddress.internal``,No
+    IP Address,StringEntityField,``ipv4address``,``ipv4-address``,Yes
 
 -------------
 
@@ -374,15 +374,15 @@ Location
 .. csv-table::
     :header: Display Name,Type,Canari Property,Maltego Property,Main Property
 
-    Name,StringEntityField,``name``,``location.name``,Yes
-    City,StringEntityField,``city``,``city``,No
-    Country Code,StringEntityField,``countrycode``,``countrycode``,No
     Area,StringEntityField,``area``,``location.area``,No
-    Country,StringEntityField,``country``,``country``,No
-    Longitude,FloatEntityField,``longitude``,``longitude``,No
-    Latitude,FloatEntityField,``latitude``,``latitude``,No
-    Street Address,StringEntityField,``streetaddress``,``streetaddress``,No
     Area Code,StringEntityField,``areacode``,``location.areacode``,No
+    City,StringEntityField,``city``,``city``,No
+    Country,StringEntityField,``country``,``country``,No
+    Country Code,StringEntityField,``countrycode``,``countrycode``,No
+    Latitude,FloatEntityField,``latitude``,``latitude``,No
+    Longitude,FloatEntityField,``longitude``,``longitude``,No
+    Name,StringEntityField,``name``,``location.name``,Yes
+    Street Address,StringEntityField,``streetaddress``,``streetaddress``,No
 
 -------------
 
@@ -497,9 +497,9 @@ Person
 .. csv-table::
     :header: Display Name,Type,Canari Property,Maltego Property,Main Property
 
+    First Names,StringEntityField,``firstnames``,``person.firstnames``,No
     Full Name,StringEntityField,``fullname``,``person.fullname``,Yes
     Surname,StringEntityField,``lastname``,``person.lastname``,No
-    First Names,StringEntityField,``firstnames``,``person.firstnames``,No
 
 -------------
 
@@ -518,11 +518,11 @@ PhoneNumber
 .. csv-table::
     :header: Display Name,Type,Canari Property,Maltego Property,Main Property
 
-    Phone Number,StringEntityField,``phonenumber``,``phonenumber``,Yes
     Area Code,StringEntityField,``areacode``,``phonenumber.areacode``,No
-    Last Digits,StringEntityField,``lastnumbers``,``phonenumber.lastnumbers``,No
     City Code,StringEntityField,``citycode``,``phonenumber.citycode``,No
     Country Code,StringEntityField,``countrycode``,``phonenumber.countrycode``,No
+    Last Digits,StringEntityField,``lastnumbers``,``phonenumber.lastnumbers``,No
+    Phone Number,StringEntityField,``phonenumber``,``phonenumber``,Yes
 
 -------------
 
@@ -579,8 +579,8 @@ Service
 .. csv-table::
     :header: Display Name,Type,Canari Property,Maltego Property,Main Property
 
-    Description,StringEntityField,``name``,``service.name``,Yes
     Service Banner,StringEntityField,``banner``,``banner.text``,No
+    Description,StringEntityField,``name``,``service.name``,Yes
     Ports,StringEntityField,``ports``,``port.number``,No
 
 -------------
@@ -619,14 +619,14 @@ Twit
 .. csv-table::
     :header: Display Name,Type,Canari Property,Maltego Property,Main Property
 
-    Twit,StringEntityField,``name``,``twit.name``,Yes
-    Content,StringEntityField,``content``,``content``,No
-    Date published,StringEntityField,``pubdate``,``pubdate``,No
-    Image Link,StringEntityField,``img_link``,``img_link``,No
     Author,StringEntityField,``author``,``author``,No
-    Title,StringEntityField,``title``,``title``,No
     Author URI,StringEntityField,``author_uri``,``author_uri``,No
+    Content,StringEntityField,``content``,``content``,No
     Twit ID,StringEntityField,``id``,``id``,No
+    Image Link,StringEntityField,``img_link``,``img_link``,No
+    Twit,StringEntityField,``name``,``twit.name``,Yes
+    Date published,StringEntityField,``pubdate``,``pubdate``,No
+    Title,StringEntityField,``title``,``title``,No
 
 -------------
 
@@ -645,10 +645,10 @@ Twitter
 .. csv-table::
     :header: Display Name,Type,Canari Property,Maltego Property,Main Property
 
-    Twitter Number,IntegerEntityField,``number``,``twitter.number``,No
-    Screen Name,StringEntityField,``screenname``,``twitter.screen-name``,No
     Friend Count,IntegerEntityField,``friendcount``,``twitter.friendcount``,No
     Real Name,StringEntityField,``fullname``,``person.fullname``,No
+    Twitter Number,IntegerEntityField,``number``,``twitter.number``,No
+    Screen Name,StringEntityField,``screenname``,``twitter.screen-name``,No
 
 -------------
 
@@ -668,21 +668,8 @@ URL
     :header: Display Name,Type,Canari Property,Maltego Property,Main Property
 
     Short title,StringEntityField,``short_title``,``short-title``,Yes
-    URL,StringEntityField,``url``,``url``,No
     Title,StringEntityField,``title``,``title``,No
-
--------------
-
-
-
-
-Unknown
--------
-
-* Class: ``Unknown``
-* Inherits from: ``Entity``
-* Class alias: ``-``
-
+    URL,StringEntityField,``url``,``url``,No
 
 -------------
 
@@ -702,6 +689,25 @@ Vulnerability
     :header: Display Name,Type,Canari Property,Maltego Property,Main Property
 
     ID,StringEntityField,``id``,``vulnerability.id``,Yes
+
+-------------
+
+
+
+
+WebTitle
+--------
+
+* Class: ``WebTitle``
+* Inherits from: ``Entity``
+* Class alias: ``-``
+
+**Parameters**
+
+.. csv-table::
+    :header: Display Name,Type,Canari Property,Maltego Property,Main Property
+
+    Title,StringEntityField,``title``,``title``,Yes
 
 -------------
 
@@ -740,8 +746,8 @@ Website
     :header: Display Name,Type,Canari Property,Maltego Property,Main Property
 
     Website,StringEntityField,``fqdn``,``fqdn``,Yes
-    SSL Enabled,BooleanEntityField,``ssl_enabled``,``website.ssl-enabled``,No
     Ports,IntegerEntityField,``ports``,``ports``,No
+    SSL Enabled,BooleanEntityField,``ssl_enabled``,``website.ssl-enabled``,No
 
 -------------
 
