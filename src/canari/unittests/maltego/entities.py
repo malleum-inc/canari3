@@ -1,7 +1,7 @@
 from datetime import date, datetime, timedelta
 from canari.maltego.message import Entity, Field, StringEntityField, IntegerEntityField, FloatEntityField, \
     BooleanEntityField, EnumEntityField, LongEntityField, DateTimeEntityField, DateEntityField, TimeSpan, \
-    TimeSpanEntityField, RegexEntityField, ColorEntityField
+    TimeSpanEntityField, RegexEntityField, ColorEntityField, ValidationError
 from unittest import TestCase
 
 __author__ = 'Nadeem Douba'
@@ -99,40 +99,40 @@ class EntityTests(TestCase):
 
         def assign_bad_integer():
             t.int = 'str'
-        self.assertRaises(TypeError, assign_bad_integer)
+        self.assertRaises(ValidationError, assign_bad_integer)
         self.assertEqual(t.int, 1)
 
         def assign_bad_float():
             t.float = 'str'
-        self.assertRaises(TypeError, assign_bad_float)
+        self.assertRaises(ValidationError, assign_bad_float)
         self.assertEqual(t.float, 1.0)
 
         def assign_bad_bool():
             t.bool = 'str'
-        self.assertRaises(TypeError, assign_bad_bool)
+        self.assertRaises(ValidationError, assign_bad_bool)
         self.assertEqual(t.bool, True)
 
         def assign_bad_enum():
             t.enum = 3
-        self.assertRaises(ValueError, assign_bad_enum)
+        self.assertRaises(ValidationError, assign_bad_enum)
         self.assertEqual(t.enum, '2')
 
         def assign_bad_date():
             t.date = '24-01-01'
-        self.assertRaises(TypeError, assign_bad_date)
+        self.assertRaises(ValidationError, assign_bad_date)
         self.assertEqual(t.date, date(1900, 01, 01))
 
         def assign_bad_datetime():
             t.date = '24-01-01'
-        self.assertRaises(TypeError, assign_bad_datetime)
+        self.assertRaises(ValidationError, assign_bad_datetime)
         self.assertEqual(t.datetime, datetime(1900, 01, 01))
 
         def assign_bad_timespan():
             t.date = '24-01-01'
-        self.assertRaises(TypeError, assign_bad_timespan)
+        self.assertRaises(ValidationError, assign_bad_timespan)
         self.assertEqual(t.timespan, timedelta(days=2, minutes=1, seconds=60))
 
         def assign_bad_color():
             t.date = '24-01-01'
-        self.assertRaises(TypeError, assign_bad_color)
+        self.assertRaises(ValidationError, assign_bad_color)
         self.assertEqual(t.color, '#ffffff')
