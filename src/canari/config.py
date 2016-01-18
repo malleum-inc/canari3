@@ -82,13 +82,13 @@ class CanariConfigParser(SafeConfigParser):
 
     def _render_value(self, value):
         if isinstance(value, str):
+            if value.strip().startswith('object://'):
+                raise ValueError('Cannot set object option.')
             value = value.replace(',', '\\,')
         elif isinstance(value, list):
             value = ','.join([self._render_value(v) for v in value])
-        elif value.strip().startswith('object://'):
+        elif callable(value):
             raise ValueError('Cannot set object option.')
-        # elif callable(value):
-        #     value = urlunparse(('python', value.__module__, value.__name__, '', '', ''))
         else:
             value = str(value)
         return value
