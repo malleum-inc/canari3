@@ -17,7 +17,7 @@ __status__ = 'Development'
 
 __all__ = [
     'external_resource',
-    'image_resource',
+    'image_resources',
     'icon_resource',
     'global_config'
 ]
