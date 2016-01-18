@@ -20,11 +20,6 @@ class ResourceTests(TestCase):
         self.assertTrue(resource.endswith('canari/unittests/resources/wordlist.txt'))
         self.assertTrue(os.path.lexists(resource))
 
-    def test_image_resource(self):
-        icon = image_resource('0.png', 'canari.unittests.resources.images')
-        self.assertTrue(icon.startswith('/') and icon.endswith('canari/unittests/resources/images/0.png'))
-        self.assertTrue(os.path.lexists(icon))
-
     def test_icon_resource(self):
         icon = icon_resource('0.png', 'canari.unittests.resources.images')
         self.assertTrue(icon.startswith('file:///') and icon.endswith('canari/unittests/resources/images/0.png'))
@@ -39,6 +34,6 @@ class ResourceTests(TestCase):
             self.assertTrue(os.path.lexists(j))
 
     def test_conf(self):
-        self.assertTrue(conf, 'Configuration file path could not be determined.')
-        self.assertTrue(conf.endswith('canari/resources/etc/canari.conf'))
-        self.assertTrue(os.path.lexists(conf))
+        self.assertTrue(global_config, 'Configuration file path could not be determined.')
+        self.assertTrue(global_config.endswith('canari/resources/etc/canari.conf'))
+        self.assertTrue(os.path.lexists(global_config))
