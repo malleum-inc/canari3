@@ -28,10 +28,7 @@ class ModeTests(TestCase):
             is_local_unknown_exec_mode=is_local_unknown_exec_mode,
             is_remote_plume_debug_exec_mode=is_remote_plume_debug_exec_mode,
             is_remote_plume_dispatch_exec_mode=is_remote_plume_dispatch_exec_mode,
-            is_remote_runner_debug_exec_mode=is_remote_runner_debug_exec_mode,
-            is_remote_runner_dispatch_exec_mode=is_remote_runner_dispatch_exec_mode,
             is_remote_unknown_exec_mode=is_remote_unknown_exec_mode,
-            is_runner_exec_mode=is_runner_exec_mode
         )
 
     def test_initial_load(self):
@@ -115,41 +112,11 @@ class ModeTests(TestCase):
              'is_dispatch_exec_mode', 'is_remote_plume_dispatch_exec_mode'}
         )
 
-    def test_set_remote_runner_dispatch_exec_mode(self):
-        self.set_canari_mode(
-            CanariMode.RemoteRunnerDispatch,
-            {'is_runner_exec_mode', 'is_remote_exec_mode',
-             'is_dispatch_exec_mode', 'is_remote_runner_dispatch_exec_mode'}
-        )
-
-    def test_set_remote_runner_debug_exec_mode(self):
-        self.set_canari_mode(
-            CanariMode.RemoteRunnerDebug,
-            {'is_runner_exec_mode', 'is_remote_exec_mode',
-             'is_debug_exec_mode', 'is_remote_runner_debug_exec_mode'}
-        )
-
     def test_set_remote_unknown_exec_mode(self):
         self.set_canari_mode(
             CanariMode.RemoteUnknown,
             {'is_remote_exec_mode', 'is_unknown_exec_mode', 'is_remote_unknown_exec_mode'}
         )
-
-    def test_set_runner_exec_mode(self):
-        self.set_canari_mode(
-            CanariMode.Runner,
-            {'is_runner_exec_mode'}
-        )
-
-    def test_mutable_import_local(self):
-        self.set_canari_mode(CanariMode.Local, {'is_local_exec_mode'})
-        import canari.config
-        self.assertTrue(hasattr(canari.config, 'config'))
-
-    def test_mutable_import_remote(self):
-        self.set_canari_mode(CanariMode.Remote, {'is_remote_exec_mode'})
-        import canari.config
-        self.assertRaises(RuntimeError, canari.config.config.__getitem__, 'foo')
 
     def tearDown(self):
         sys.modules.pop('canari.config', None)
