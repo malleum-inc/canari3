@@ -1,6 +1,7 @@
 from unittest import TestCase
 from canari.framework import *
 from canari.maltego.entities import *
+from canari.maltego.transform import Transform
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2015, Canari Project'
@@ -15,450 +16,43 @@ __status__ = 'Development'
 
 class FrameworkTests(TestCase):
 
-    def create_transform_function(self, uuids, inputs, is_superuser=False, is_deprecated=False, **kwargs):
-        if is_superuser:
-            if is_deprecated:
-                @deprecated
-                @superuser
-                @configure(
-                    label='To Foo',
-                    description='This is a test transform',
-                    uuids=uuids,
-                    inputs=inputs,
-                    **kwargs
-                )
-                def dotransform(*args):
-                    pass
-                return dotransform
-            else:
-                @superuser
-                @configure(
-                    label='To Foo',
-                    description='This is a test transform',
-                    uuids=uuids,
-                    inputs=inputs,
-                    **kwargs
-                )
-                def dotransform(*args):
-                    pass
-                return dotransform
-        elif is_deprecated:
-            @deprecated
-            @configure(
-                label='To Foo',
-                description='This is a test transform',
-                uuids=uuids,
-                inputs=inputs,
-                **kwargs
-            )
-            def dotransform(*args):
-                pass
-            return dotransform
-        @configure(
-            label='To Foo',
-            description='This is a test transform',
-            uuids=uuids,
-            inputs=inputs,
-            **kwargs
-        )
-        def dotransform(*args):
+    def create_and_test_transform_function(self, is_superuser=False, is_deprecated=False, is_debug=False,
+                                           is_remote=False, is_external=False, **kwargs):
+        class TestTransform(Transform):
             pass
-        return dotransform
 
-    def assertConfigure(self, f, uuids, input_sets, is_debug=False, is_superuser=False, is_deprecated=False):
-        self.assertListEqual(uuids, f.uuids)
-        self.assertListEqual(input_sets, f.inputs)
-        self.assertEqual(is_debug, f.debug)
+        for k, v in kwargs.iteritems():
+            setattr(TestTransform, k, v)
+
         if is_superuser:
-            self.assertEqual(is_superuser, f.privileged)
-        else:
-            self.assertFalse(hasattr(f, 'privileged'))
+            RequireSuperUser(TestTransform)
         if is_deprecated:
-            self.assertEqual(is_deprecated, f.deprecated)
-        else:
-            self.assertFalse(hasattr(f, 'deprecated'))
-        self.assertEqual('This is a test transform', f.description)
+            Deprecated(TestTransform)
+        if is_debug:
+            EnableDebugWindow(TestTransform)
+        if is_remote:
+            EnableRemoteExecution(TestTransform)
+        # if is_external:
+        #     ExternalCommand(TestTransform)
 
-    def test_create_dotransform_with_one_input(self):
-        f = self.create_transform_function(
-            [
-                'unittest.v2.BarToFoo'
-            ],
-            [
-                ('Input Set', Domain)
-            ]
-        )
-        self.assertConfigure(
-            f,
-            [
-                'unittest.v2.BarToFoo'
-            ],
-            [
-                ('Input Set', Domain)
-            ]
-        )
+        return self.assertConfigure(TestTransform(), is_superuser, is_deprecated, is_debug, is_remote,
+                                    is_external, **kwargs)
 
-    def test_create_privileged_dotransform_with_one_input(self):
-        f = self.create_transform_function(
-            [
-                'unittest.v2.BarToFoo'
-            ],
-            [
-                ('Input Set', Domain)
-            ],
-            is_superuser=True
-        )
-        self.assertConfigure(
-            f,
-            [
-                'unittest.v2.BarToFoo'
-            ],
-            [
-                ('Input Set', Domain)
-            ],
-            is_superuser=True
-        )
+    def assertConfigure(self, transform, is_superuser=False, is_deprecated=False, is_debug=False, is_remote=False,
+                        is_external=False, **kwargs):
+        self.assertEqual(transform.superuser, is_superuser)
+        self.assertEqual(transform.deprecated, is_deprecated)
+        self.assertEqual(transform.debug, is_debug)
+        self.assertEqual(transform.remote, is_remote)
 
-    def test_create_deprecated_dotransform_with_one_input(self):
-        f = self.create_transform_function(
-            [
-                'unittest.v2.BarToFoo'
-            ],
-            [
-                ('Input Set', Domain)
-            ],
-            is_deprecated=True
-        )
-        self.assertConfigure(
-            f,
-            [
-                'unittest.v2.BarToFoo'
-            ],
-            [
-                ('Input Set', Domain)
-            ],
-            is_deprecated=True
-        )
+    def test_deprecated_transform(self):
+        self.create_and_test_transform_function(is_deprecated=True)
 
-    def test_create_debugged_dotransform_with_one_input(self):
-        f = self.create_transform_function(
-            [
-                'unittest.v2.BarToFoo'
-            ],
-            [
-                ('Input Set', Domain)
-            ],
-            debug=True
-        )
-        self.assertConfigure(
-            f,
-            [
-                'unittest.v2.BarToFoo'
-            ],
-            [
-                ('Input Set', Domain)
-            ],
-            is_debug=True
-        )
+    def test_superuser_transform(self):
+        self.create_and_test_transform_function(is_superuser=True)
 
-    def test_create_privileged_deprecated_dotransform_with_one_input(self):
-        f = self.create_transform_function(
-            [
-                'unittest.v2.BarToFoo'
-            ],
-            [
-                ('Input Set', Domain)
-            ],
-            is_deprecated=True,
-            is_superuser=True
-        )
-        self.assertConfigure(
-            f,
-            [
-                'unittest.v2.BarToFoo'
-            ],
-            [
-                ('Input Set', Domain)
-            ],
-            is_deprecated=True,
-            is_superuser=True
-        )
+    def test_debug_transform(self):
+        self.create_and_test_transform_function(is_debug=True)
 
-    def test_create_debugged_deprecated_dotransform_with_one_input(self):
-        f = self.create_transform_function(
-            [
-                'unittest.v2.BarToFoo'
-            ],
-            [
-                ('Input Set', Domain)
-            ],
-            debug=True,
-            is_deprecated=True
-        )
-        self.assertConfigure(
-            f,
-            [
-                'unittest.v2.BarToFoo'
-            ],
-            [
-                ('Input Set', Domain)
-            ],
-            is_debug=True,
-            is_deprecated=True
-        )
-
-    def test_create_debugged_privileged_dotransform_with_one_input(self):
-        f = self.create_transform_function(
-            [
-                'unittest.v2.BarToFoo'
-            ],
-            [
-                ('Input Set', Domain)
-            ],
-            debug=True,
-            is_superuser=True
-        )
-        self.assertConfigure(
-            f,
-            [
-                'unittest.v2.BarToFoo'
-            ],
-            [
-                ('Input Set', Domain)
-            ],
-            is_debug=True,
-            is_superuser=True
-        )
-
-    def test_create_debugged_deprecated_privileged_dotransform_with_one_input(self):
-        f = self.create_transform_function(
-            [
-                'unittest.v2.BarToFoo'
-            ],
-            [
-                ('Input Set', Domain)
-            ],
-            debug=True,
-            is_deprecated=True,
-            is_superuser=True
-        )
-        self.assertConfigure(
-            f,
-            [
-                'unittest.v2.BarToFoo'
-            ],
-            [
-                ('Input Set', Domain)
-            ],
-            is_debug=True,
-            is_deprecated=True,
-            is_superuser=True
-        )
-
-    def test_create_dotransform_with_two_inputs(self):
-        f = self.create_transform_function(
-            [
-                'unittest.v2.BarToFoo_1'
-                'unittest.v2.BarToFoo_2'
-            ],
-            [
-                ('Input Set 1', Domain),
-                ('Input Set 2', IPv4Address)
-            ]
-        )
-        self.assertConfigure(
-            f,
-            [
-                'unittest.v2.BarToFoo_1'
-                'unittest.v2.BarToFoo_2'
-            ],
-            [
-                ('Input Set 1', Domain),
-                ('Input Set 2', IPv4Address)
-            ]
-        )
-
-    def test_create_privileged_dotransform_with_two_inputs(self):
-        f = self.create_transform_function(
-            [
-                'unittest.v2.BarToFoo_1'
-                'unittest.v2.BarToFoo_2'
-            ],
-            [
-                ('Input Set 1', Domain),
-                ('Input Set 2', IPv4Address)
-            ],
-            is_superuser=True
-        )
-        self.assertConfigure(
-            f,
-            [
-                'unittest.v2.BarToFoo_1'
-                'unittest.v2.BarToFoo_2'
-            ],
-            [
-                ('Input Set 1', Domain),
-                ('Input Set 2', IPv4Address)
-            ],
-            is_superuser=True
-        )
-
-    def test_create_deprecated_dotransform_with_two_inputs(self):
-        f = self.create_transform_function(
-            [
-                'unittest.v2.BarToFoo_1'
-                'unittest.v2.BarToFoo_2'
-            ],
-            [
-                ('Input Set 1', Domain),
-                ('Input Set 2', IPv4Address)
-            ],
-            is_deprecated=True
-        )
-        self.assertConfigure(
-            f,
-            [
-                'unittest.v2.BarToFoo_1'
-                'unittest.v2.BarToFoo_2'
-            ],
-            [
-                ('Input Set 1', Domain),
-                ('Input Set 2', IPv4Address)
-            ],
-            is_deprecated=True
-        )
-
-    def test_create_debugged_dotransform_with_two_inputs(self):
-        f = self.create_transform_function(
-            [
-                'unittest.v2.BarToFoo_1'
-                'unittest.v2.BarToFoo_2'
-            ],
-            [
-                ('Input Set 1', Domain),
-                ('Input Set 2', IPv4Address)
-            ],
-            debug=True
-        )
-        self.assertConfigure(
-            f,
-            [
-                'unittest.v2.BarToFoo_1'
-                'unittest.v2.BarToFoo_2'
-            ],
-            [
-                ('Input Set 1', Domain),
-                ('Input Set 2', IPv4Address)
-            ],
-            is_debug=True
-        )
-
-    def test_create_privileged_deprecated_dotransform_with_two_input(self):
-        f = self.create_transform_function(
-            [
-                'unittest.v2.BarToFoo_1'
-                'unittest.v2.BarToFoo_2'
-            ],
-            [
-                ('Input Set 1', Domain),
-                ('Input Set 2', IPv4Address)
-            ],
-            is_deprecated=True,
-            is_superuser=True
-        )
-        self.assertConfigure(
-            f,
-            [
-                'unittest.v2.BarToFoo_1'
-                'unittest.v2.BarToFoo_2'
-            ],
-            [
-                ('Input Set 1', Domain),
-                ('Input Set 2', IPv4Address)
-            ],
-            is_deprecated=True,
-            is_superuser=True
-        )
-
-    def test_create_debugged_deprecated_dotransform_with_two_input(self):
-        f = self.create_transform_function(
-            [
-                'unittest.v2.BarToFoo_1'
-                'unittest.v2.BarToFoo_2'
-            ],
-            [
-                ('Input Set 1', Domain),
-                ('Input Set 2', IPv4Address)
-            ],
-            debug=True,
-            is_deprecated=True
-        )
-        self.assertConfigure(
-            f,
-            [
-                'unittest.v2.BarToFoo_1'
-                'unittest.v2.BarToFoo_2'
-            ],
-            [
-                ('Input Set 1', Domain),
-                ('Input Set 2', IPv4Address)
-            ],
-            is_debug=True,
-            is_deprecated=True
-        )
-
-    def test_create_debugged_privileged_dotransform_with_two_input(self):
-        f = self.create_transform_function(
-            [
-                'unittest.v2.BarToFoo_1'
-                'unittest.v2.BarToFoo_2'
-            ],
-            [
-                ('Input Set 1', Domain),
-                ('Input Set 2', IPv4Address)
-            ],
-            debug=True,
-            is_superuser=True
-        )
-        self.assertConfigure(
-            f,
-            [
-                'unittest.v2.BarToFoo_1'
-                'unittest.v2.BarToFoo_2'
-            ],
-            [
-                ('Input Set 1', Domain),
-                ('Input Set 2', IPv4Address)
-            ],
-            is_debug=True,
-            is_superuser=True
-        )
-
-    def test_create_debugged_deprecated_privileged_dotransform_with_two_input(self):
-        f = self.create_transform_function(
-            [
-                'unittest.v2.BarToFoo_1'
-                'unittest.v2.BarToFoo_2'
-            ],
-            [
-                ('Input Set 1', Domain),
-                ('Input Set 2', IPv4Address)
-            ],
-            debug=True,
-            is_deprecated=True,
-            is_superuser=True
-        )
-        self.assertConfigure(
-            f,
-            [
-                'unittest.v2.BarToFoo_1'
-                'unittest.v2.BarToFoo_2'
-            ],
-            [
-                ('Input Set 1', Domain),
-                ('Input Set 2', IPv4Address)
-            ],
-            is_debug=True,
-            is_deprecated=True,
-            is_superuser=True
-        )
+    def test_remote_transform(self):
+        self.create_and_test_transform_function(is_remote=True)
