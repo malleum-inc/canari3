@@ -123,10 +123,10 @@ If your transform package was successfully created, you should now see a ``hello
 
 **Directory and Files Structure of the Package:**
 
-Inside `hello` folder you can find the following files and directory structure:
+Inside ``hello`` folder you can find the following files and directory structure:
 
-* ``.canari`` - canari internal config to help you using the canari framework
-* ``.mrbob.ini`` - **FIXME**
+* ``.canari`` - anchor file which supports canari framework when commands like ``canari create-transform`` it is being run within a project
+* ``.mrbob.ini`` - templating file which includes the defaults values to be used by canari engine to create the transform project
 * ``README`` - file where you can write the transform documentation
 * ``setup.py`` - installation script which is already configured
 * ``src/hello`` - directory is where all your stuff goes in terms of code
