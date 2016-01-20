@@ -20,7 +20,7 @@ __all__ = [
     'debug_transform',
     'framework',
     'generate_entities',
-    'generate_entities_documentation',
+    'generate_entity_docs',
     'help',
     'install_plume',
     'list_transforms',
