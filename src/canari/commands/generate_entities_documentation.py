@@ -21,6 +21,7 @@ __maintainer__ = 'Nadeem Douba'
 __email__ = 'ndouba@gmail.com'
 __status__ = 'Development'
 
+
 def parse_args(args):
     if not args.entities_filepath:
         try:
@@ -33,10 +34,12 @@ def parse_args(args):
 
     return args
 
+
 def load_entities_module(filepath):
     module_name, _ = os.path.splitext(os.path.split(filepath)[-1])
     entities_module = imp.load_source(module_name, filepath)
     return entities_module
+
 
 @SubCommand(
     canari_main,
@@ -59,7 +62,7 @@ def load_entities_module(filepath):
 )
 def generate_entities_documentation(args):
     opts = parse_args(args)
-    
+
     entities_module = load_entities_module(opts.entities_filepath)
 
     entities = collect_entities_information(entities_module)
@@ -70,6 +73,7 @@ def generate_entities_documentation(args):
         fp.write(rst_content)
 
     print "Documentatio file completed: %s" % opts.doc_filepath
+
 
 def collect_entities_information(entities_module):
     entities = list()
@@ -123,7 +127,6 @@ def collect_entities_information(entities_module):
     return entities
 
 
-
 TEMPLATE_HEADER = '''
 Maltego Entities
 ===============================================================
@@ -163,7 +166,7 @@ def generate_doc(entities):
         entity_superclass = entity['superclass'] if 'superclass' in entity else '-'
         entity_aliasclass = entity['alias'] if 'alias' in entity else '-'
 
-        rst_content += TEMPLATE_ENTITY_TITLE % entity_class + "\n" + "-" * len(entity_class) 
+        rst_content += TEMPLATE_ENTITY_TITLE % entity_class + "\n" + "-" * len(entity_class)
 
         rst_content += TEMPLATE_ENTITY_DATA % (entity_class, entity_superclass, entity_aliasclass)
 
@@ -178,7 +181,7 @@ def generate_doc(entities):
                 p_isvalue = "Yes" if parameter['is_value'] else "No"
 
                 rst_content += TEMPLATE_ENTITY_TABLE_DATA % (
-                                p_dname, p_type, p_canari, p_maltego, p_isvalue)
+                    p_dname, p_type, p_canari, p_maltego, p_isvalue)
 
     return rst_content
 
