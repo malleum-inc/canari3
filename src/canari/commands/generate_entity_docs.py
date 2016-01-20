@@ -34,6 +34,7 @@ __status__ = 'Development'
     '-e',
     metavar='<entities.py>',
     help='A entities.py file containing the Canari python classes.',
+    default='entities.py',
     required=False
 )
 @Argument(
@@ -43,6 +44,13 @@ __status__ = 'Development'
     help='A filename (.rst) where documentation will be written.',
     default='entities.rst',
     required=True
+)
+@Argument(
+    '--transform-package',
+    '-t',
+    metavar='<sploitego>',
+    help='A transform package name already installed on system.',
+    required=False
 )
 def generate_entity_docs(args):
     opts = parse_args(args)
@@ -56,11 +64,14 @@ def generate_entity_docs(args):
     with open(opts.doc_filepath, 'w') as fp:
         fp.write(rst_content)
 
-    print "Documentatio file completed: %s" % opts.doc_filepath
+    print "Documentation file completed: %s" % opts.doc_filepath
 
 
 def parse_args(args):
-    if not args.entities_filepath:
+    if args.transform_package:
+        module_path = imp.find_module(args.transform_package)[1]
+        args.entities_filepath = os.path.join(module_path, 'transforms', 'common', 'entities.py')
+    elif not args.entities_filepath:
         try:
             args.entities_filepath = os.path.join(project_tree()['transforms'], 'common', 'entities.py')
         except ValueError:
