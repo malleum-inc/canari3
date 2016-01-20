@@ -24,22 +24,6 @@ __email__ = 'ndouba@gmail.com'
 __status__ = 'Development'
 
 
-def parse_args(args):
-    if not args.entities_filepath:
-        try:
-            args.entities_filepath = os.path.join(project_tree()['transforms'], 'common', 'entities.py')
-        except ValueError:
-            args.entities_filepath = 'entities.py'
-
-    return args
-
-
-def load_entities_module(filepath):
-    module_name, _ = os.path.splitext(os.path.split(filepath)[-1])
-    entities_module = imp.load_source(module_name, filepath)
-    return entities_module
-
-
 @SubCommand(
     canari_main,
     help='Create entities documentation from Canari python classes file.',
@@ -60,7 +44,7 @@ def load_entities_module(filepath):
     default='entities.rst',
     required=True
 )
-def generate_entities_documentation(args):
+def generate_entity_docs(args):
     opts = parse_args(args)
 
     entities_module = load_entities_module(opts.entities_filepath)
@@ -73,6 +57,22 @@ def generate_entities_documentation(args):
         fp.write(rst_content)
 
     print "Documentatio file completed: %s" % opts.doc_filepath
+
+
+def parse_args(args):
+    if not args.entities_filepath:
+        try:
+            args.entities_filepath = os.path.join(project_tree()['transforms'], 'common', 'entities.py')
+        except ValueError:
+            args.entities_filepath = 'entities.py'
+
+    return args
+
+
+def load_entities_module(filepath):
+    module_name, _ = os.path.splitext(os.path.split(filepath)[-1])
+    entities_module = imp.load_source(module_name, filepath)
+    return entities_module
 
 
 def sanitize(raw_str):
