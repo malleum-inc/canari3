@@ -3,6 +3,8 @@
 import os
 import imp
 import inspect
+import tokenize
+import StringIO
 
 from canari.maltego.configuration import MaltegoEntity
 from canari.pkgutils.maltego import MtzDistribution
@@ -28,9 +30,6 @@ def parse_args(args):
             args.entities_filepath = os.path.join(project_tree()['transforms'], 'common', 'entities.py')
         except ValueError:
             args.entities_filepath = 'entities.py'
-
-    if not args.doc_filepath:
-        args.doc_filepath = 'entities.rst'
 
     return args
 
@@ -58,6 +57,7 @@ def load_entities_module(filepath):
     '-d',
     metavar='<entities.rst>',
     help='A filename (.rst) where documentation will be written.',
+    default='entities.rst',
     required=True
 )
 def generate_entities_documentation(args):
@@ -73,6 +73,12 @@ def generate_entities_documentation(args):
         fp.write(rst_content)
 
     print "Documentatio file completed: %s" % opts.doc_filepath
+
+
+def sanitize(raw_str):
+    strio = StringIO.StringIO(raw_str)
+    tokens = tokenize.generate_tokens(strio.readline)
+    return tokenize.untokenize(tokens)
 
 
 def collect_entities_information(entities_module):
@@ -91,13 +97,13 @@ def collect_entities_information(entities_module):
             continue
 
         entity = dict()
-        entity['class'] = entity_name
-        entity['superclass'] = str(inspect.getmro(entity_object)[1]).split('.')[-1][:-2]
+        entity['class'] = sanitize(entity_name)
+        entity['superclass'] = sanitize(str(inspect.getmro(entity_object)[1]).split('.')[-1][:-2])
         entity['parameters'] = list()
 
         if '_alias_' in entity_object.__dict__:
             if entity_object.__dict__['_alias_'] != entity_name:
-                entity['alias'] = entity_object.__dict__['_alias_']
+                entity['alias'] = sanitize(entity_object.__dict__['_alias_'])
 
         for param_key, param_value in entity_object.__dict__.iteritems():
             if param_key.startswith('_'):
@@ -108,15 +114,15 @@ def collect_entities_information(entities_module):
 
             parameter = dict()
             # Display Name
-            parameter['display_name'] = param_value.display_name
+            parameter['display_name'] = sanitize(param_value.display_name)
             # Type
-            parameter['type'] = str(param_value.__class__).split('.')[-1][:-2]
+            parameter['type'] = sanitize(str(param_value.__class__).split('.')[-1][:-2])
             # Canary Property
-            parameter['canari'] = param_key
+            parameter['canari'] = sanitize(param_key)
             # Maltego Property
-            parameter['maltego'] = param_value.name
+            parameter['maltego'] = sanitize(param_value.name)
             # Main Property
-            parameter['is_value'] = param_value.is_value
+            parameter['is_value'] = sanitize(param_value.is_value)
 
             entity['parameters'].append(parameter)
 
@@ -178,10 +184,9 @@ def generate_doc(entities):
                 p_type = parameter['type'] if 'type' in parameter else '-'
                 p_canari = parameter['canari'] if 'canari' in parameter else '-'
                 p_maltego = parameter['maltego'] if 'maltego' in parameter else '-'
-                p_isvalue = "Yes" if parameter['is_value'] else "No"
+                p_isvalue = "Yes" if parameter['is_value'] == "True" else "No"
 
                 rst_content += TEMPLATE_ENTITY_TABLE_DATA % (
                     p_dname, p_type, p_canari, p_maltego, p_isvalue)
 
     return rst_content
-
