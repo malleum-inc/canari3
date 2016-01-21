@@ -6,6 +6,9 @@ import inspect
 import tokenize
 import StringIO
 
+from mrbob.configurator import Configurator
+
+import canari
 from canari.maltego.configuration import MaltegoEntity
 from canari.pkgutils.maltego import MtzDistribution
 from canari.maltego.message import Entity
@@ -59,10 +62,11 @@ def generate_entity_docs(args):
 
     entities = collect_entities_information(entities_module)
 
-    rst_content = generate_doc(entities)
+    #rst_content = generate_doc(entities)
+    new_generate_doc(entities, opts.doc_filepath)
 
-    with open(opts.doc_filepath, 'w') as fp:
-        fp.write(rst_content)
+    #with open(opts.doc_filepath, 'w') as fp:
+    #    fp.write(rst_content)
 
     print "Documentation file completed: %s" % opts.doc_filepath
 
@@ -144,48 +148,35 @@ def collect_entities_information(entities_module):
     return entities
 
 
-TEMPLATE_HEADER = '''
-Maltego Entities
-===============================================================
+def new_generate_doc(entities, output_file):
 
-.. moduleauthor:: xxx xxx <xxx@xxx.com>
-.. sectionauthor:: xxx xxx <xxx@xxx.com>
+    TEMPLATE_ENTITY_DATA = '''\n\n-------------\n\n\n\n\n%s\n
+    * Class: ``%s``
+    * Inherits from: ``%s``
+    * Class alias: ``%s``
+    '''
 
-.. versionadded:: 3.0
+    TEMPLATE_ENTITY_TABLE_HEADER = '''
+    **Parameters**\n
+    .. csv-table::
+    \t:header: Display Name,Type,Canari Property,Maltego Property,Main Property
+    '''
 
-'''
+    TEMPLATE_ENTITY_TABLE_DATA = '''\n\t%s,%s,``%s``,``%s``,%s'''
 
-TEMPLATE_ENTITY_TITLE = '''\n\n-------------\n\n\n\n\n%s'''
-
-TEMPLATE_ENTITY_DATA = '''
-
-* Class: ``%s``
-* Inherits from: ``%s``
-* Class alias: ``%s``
-'''
-
-TEMPLATE_ENTITY_TABLE_HEADER = '''
-**Parameters**
-
-.. csv-table::
-    :header: Display Name,Type,Canari Property,Maltego Property,Main Property
-'''
-
-TEMPLATE_ENTITY_TABLE_DATA = '''\n    %s,%s,``%s``,``%s``,%s'''
-
-
-def generate_doc(entities):
-
-    rst_content = TEMPLATE_HEADER
+    rst_content = ""
     for entity in entities:
 
         entity_class = entity['class'] if 'class' in entity else '-'
         entity_superclass = entity['superclass'] if 'superclass' in entity else '-'
         entity_aliasclass = entity['alias'] if 'alias' in entity else '-'
 
-        rst_content += TEMPLATE_ENTITY_TITLE % entity_class + "\n" + "-" * len(entity_class)
-
-        rst_content += TEMPLATE_ENTITY_DATA % (entity_class, entity_superclass, entity_aliasclass)
+        rst_content += TEMPLATE_ENTITY_DATA % (
+                    entity_class + "\n" + "-" * len(entity_class),
+                    entity_class,
+                    entity_superclass,
+                    entity_aliasclass
+                   )
 
         if entity['parameters']:
             rst_content += TEMPLATE_ENTITY_TABLE_HEADER
@@ -199,5 +190,33 @@ def generate_doc(entities):
 
                 rst_content += TEMPLATE_ENTITY_TABLE_DATA % (
                     p_dname, p_type, p_canari, p_maltego, p_isvalue)
+
+    variables = {
+        'doc.author.name': canari.__author__,
+        'doc.author.name': canari.__author__,
+        'doc.author.email': canari.__email__,
+        'doc.version': canari.__version__,
+        'doc.title': 'Maltego Entities (FIXME)',
+        'entities.content': rst_content
+    }
+
+    if os.path.exists(output_file):
+        print('A file with the name %s already exists... exiting' % output_file)
+        exit(-1)
+
+    print('Creating documentation in %s' % output_file)
+    configurator = Configurator(template='canari.resources.templates:generate_entity_docs',
+                                target_directory=output_file,
+                                bobconfig={'non_interactive': False, 'remember_answers': True},
+                                variables=variables
+                               )
+
+    configurator.ask_questions()
+    configurator.render()
+
+
+def generate_doc(entities):
+
+
 
     return rst_content
