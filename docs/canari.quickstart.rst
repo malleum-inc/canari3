@@ -1,21 +1,18 @@
-Canari Quick Start
-==================
+Canari Quickstart
+#################
 
 .. moduleauthor:: Nadeem Douba <ndouba@redcanari.com>
 .. sectionauthor:: Nadeem Douba <ndouba@redcanari.com>
 
-------------
-
-Welcome to the Canari Framework - the world's most advanced rapid transform development framework for Maltego. In this
-quickstart tutorial we'll go over how you can take advantage of Canari's powerful feature set to create your own Maltego
-transform package. We'll start by developing a local transform package and then migrate that over to a remote transform
-package which you can distributed via the `Paterva TDS <https://cetas.paterva.com/TDS/>`_. Enough jibber jabber and
-let's get this show on the road.
-
 .. _installation:
 
 Installation
-------------
+************
+
+Welcome to the Canari Framework - the world's most advanced rapid transform development framework for Maltego. In this quickstart tutorial we'll go over how you can take advantage of Canari's powerful feature set to create your own Maltego transform package. We'll start by developing a local transform package and then migrate that over to a remote transform package which you can distributed via the `Paterva TDS <https://cetas.paterva.com/TDS/>`_. Enough jibber jabber and let's get this show on the road.
+
+
+
 Canari requires the following dependencies to get started:
 
     #. Python 2.7 or later (prior to Python 3) - `Download <https://www.python.org/downloads/>`_
@@ -27,14 +24,17 @@ Canari requires the following dependencies to get started:
     Canari does not support Python version 3.
 
 Installing Dependencies
-^^^^^^^^^^^^^^^^^^^^^^^
-**Linux Debian-based**
+=======================
+
+Linux Debian-based
+------------------
 
 On Debian-based (Ubuntu, Kali, etc.) systems, all these dependencies can be installed using :program:`apt-get`::
 
     $ sudo apt-get install python2.7 python-virtualenv python-setuptools
 
-**Linux - Fedora-based**
+Linux - Fedora-based
+--------------------
 
 On Fedora-based (Fedora, RedHat, CentOS, etc.) systems, all these dependencies can be installed using :program:`yum`::
 
@@ -43,7 +43,8 @@ On Fedora-based (Fedora, RedHat, CentOS, etc.) systems, all these dependencies c
          readline-devel tk-devel gdbm-devel db4-devel libpcap-devel xz-devel python-devel
     $ sudo easy_install virtualenv
 
-**Mac OS/X**
+Mac OS/X
+--------
 
 On Mac OS/X, make sure to install `Xcode <https://itunes.apple.com/ca/app/xcode/id497799835?mt=12>`_ from the App Store,
 first. Then install the command-line tools like so::
@@ -55,7 +56,7 @@ first. Then install the command-line tools like so::
     $ sudo easy_install virtualenv
 
 Installing Canari
-^^^^^^^^^^^^^^^^^
+=================
 Once you have all your dependencies installed, you can now install Canari. We recommend creating a virtual environment
 to reduce clutter in your default Python site-package directory. Virtual environments can be created easily like so::
 
@@ -90,13 +91,13 @@ Once you've activated your virtual environment, it is now time to install Canari
 Now you're all set to get started developing your first transform package!
 
 
-Initiate Transform Package
---------------------------
+Transform Package
+*****************
 Let's start by creating our first transform package. This will include an example "Hello World!" transform for your convenience.
 
 
 Creating a Transform Package
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+============================
 
 To create a transform package we use the :program:`canari` commander like so::
 
@@ -124,7 +125,7 @@ If your transform package was successfully created, you should now see a ``hello
 
 
 Directories and Files Structure
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+===============================
 
 Inside ``hello`` folder you can find the following files and directory structure:
 
@@ -145,8 +146,8 @@ Inside ``hello`` folder you can find the following files and directory structure
 * ``src/hello/resources/maltego`` - directory is where your `entities.mtz` and `*.machine` files can be stored for auto install and uninstall.
 
 
-Overview of Example Transform
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Overview of Transform Example
+=============================
 
 Let's drop into that directory and run our default transform. As mentioned earlier, each time you create a new transform package, a "Hello World!" transform gets created for your reference. We'll execute this transform using the :program:`canari debug-transform` transform runner::
 
@@ -200,11 +201,11 @@ In our example, the :class:`HelloWorld` transform expects an input type of :clas
 
 Now that we've run our first transform successfully and understand the use of transform fields, let's create our first custom transform.
 
-Transform Development
----------------------
+Transform Development (basic)
+*****************************
 
 Developing a Transform (``canari create-transform``)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+====================================================
 
 Using the same package above, in our ``hello`` directory, let's start off by creating a transform using the :program:`canari create-transform` commandlet, like so::
 
@@ -264,8 +265,8 @@ Let's see if our transform is operating correctly::
 
 Great! Let's try this out in Maltego.
 
-Generate Maltego Transform Package (.mtz) (``canari create-profile``)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Generate Maltego Package (.mtz) (``canari create-profile``)
+===========================================================
 
 First we need to create a profile that can be imported by Maltego to configure the transforms in the GUI::
 
@@ -301,8 +302,8 @@ First we need to create a profile that can be imported by Maltego to configure t
 This should have created a ``hello.mtz`` file in the directory where you ran the command.
 
 
-Import Maltego Transform Package (.mtz) to Maltego
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Import Maltego Package (.mtz)
+=============================
 
 Let's import this profile into Maltego:
 
@@ -319,7 +320,7 @@ Let's import this profile into Maltego:
 
 
 Run Transform in Maltego
-^^^^^^^^^^^^^^^^^^^^^^^^^
+========================
 
 Once you've successfully imported your profile, create a new graph and drag a ``Location`` entity onto the graph. Then right click on the newly created ``Location`` entity, look for the ``Hello`` transform set, and click ``Whatismyip``.
 
@@ -337,20 +338,22 @@ If all went well you should now see your IP address magically appear on the grap
 
 
 
-Advanced Transform Development
-------------------------------
+Transform Development (advanced)
+********************************
 
 Visual Customization
-^^^^^^^^^^^^^^^^^^^^
+====================
 
-**Transform name in Maltego interface**
+Transform name
+--------------
 
 Let's say you wanted to change the name of the transform as it appears in Maltego. There are two ways of doing this:
 
     #. You can adjust the transform class' name into camel case (i.e. ``Whatismyip`` to ``WhatIsMyIP``). This will tell Canari to insert a space between each uppercase letter in the transform's name in Maltego.
     #. You can set the transform class' ``display_name`` property to the label of your choice.
 
-**Link and Entity decorations**
+Link and Entity decorations
+---------------------------
 
 Let's say we wanted to add a little more information or color to our graphs. Maltego supports both link and entity decorations. Labels, colors, thicknesses and styles can be applied to the links or edges connecting the output entities to their parent input entities. Entities can be bookmarked (or starred) and comments can be attached. Let's add a link label and bookmark the ``Location`` entity returned in our previous example::
 
@@ -382,7 +385,8 @@ Let's take a look at the before and after difference:
 
         Entity with link label and bookmark (left) versus undecorated entity (right)
 
-**Entity Icon decoration**
+Entity Icon decoration
+----------------------
 
 Finally, let's add an icon to our output entity. Since we're working with locations, we'll set the output entity's icon to the flag that corresponds with the country code::
 
@@ -411,7 +415,7 @@ Finally, let's add an icon to our output entity. Since we're working with locati
 
 
 Custom Entities
-^^^^^^^^^^^^^^^
+===============
 
 Now that we know how to return entities to Maltego, let's take a look at how to receive input. In this example we'll use the `FreeGeoIP <https://freegeoip.net>`_ JSON API to get the country, city, and region associated with an IP address. The transform will be designed with the following design principles:
 
@@ -504,7 +508,7 @@ refactor the code in the :meth:`IPToLocation.do_transform` method to demonstrate
 Now that we've covered the ``request`` and ``response`` parameters, let's take a look at the ``config`` parameter and how we can use it to make our transforms configurable.
 
 Configuration Files
-^^^^^^^^^^^^^^^^^^^
+===================
 
 Now that you're familiar with the request and response architecture in Canari, let's make our transforms configurable. Let's assume we want to store the URL to our GeoIP API endpoint for our ``IPToLocation`` in a configuration file. First,
 let's open the ``src/hello/resources/etc/hello.conf`` file in a text editor. You'll notice a bunch of default values in
@@ -562,7 +566,7 @@ but what if we wanted to make our transforms remotely accessible?
 
 
 Subclassing
-^^^^^^^^^^^
+===========
 
 Let's try it out by subclassing the :class:`Whatismyip` and adding the following lines to the end of the
 ``src/hello/transforms/whatismyip.py`` file::
@@ -592,7 +596,7 @@ Finally, you may have noticed that we completely ignored the value of the input 
 
 
 Remote Transform
-----------------
+****************
 
 If you're using Maltego Chlorine or later, you will probably be familiar with the Transform Hub (figure below) that appears as soon as Maltego is opened in the "Home" tab. The transform hub provides access to transforms provided by several providers. These providers operate transform application servers that host remotely accessible transforms or remote transforms.
 
@@ -705,16 +709,11 @@ the defaults (in square brackets) by pressing enter. Here's an example of a succ
     Writing canari.conf to '/var/plume'...
     done!
 
-The Plume root directory (`/var/plume`) is where you will be running the :program:`canari load-plume-package` or
-:program:`canari unload-plume-package` commands. It's also where the `canari.conf` file for Plume will be stored as well
-as any static resources your transform package may rely on. Make note of the path you used for the Plume root directory
-as we'll be using it later::
+The Plume root directory (`/var/plume`) is where you will be running the :program:`canari load-plume-package` or :program:`canari unload-plume-package` commands. It's also where the `canari.conf` file for Plume will be stored as well as any static resources your transform package may rely on. Make note of the path you used for the Plume root directory as we'll be using it later::
 
     server$ export PLUME_ROOT=/var/plume
 
-Next, decompress your ``hello-1.0.tar.gz`` archive and run :program:`python setup.py install` from within the ``hello/``
-directory. At this point all our dependencies have been installed and all we need to do is configure Plume to load the
-Canari transform package::
+Next, decompress your ``hello-1.0.tar.gz`` archive and run :program:`python setup.py install` from within the ``hello/`` directory. At this point all our dependencies have been installed and all we need to do is configure Plume to load the Canari transform package::
 
     server$ cd $PLUME_ROOT
     server$ canari load-plume-package hello
@@ -723,8 +722,7 @@ Canari transform package::
     /var/plume/canari.conf already exists. Would you like to overwrite it? [y/N]:
     Please restart plume for changes to take effect.
 
-At this point, we are ready to go and all we have to do is run our init script (i.e. :program:`/etc/init.d/plume start`)
-from the init script directory::
+At this point, we are ready to go and all we have to do is run our init script (i.e. :program:`/etc/init.d/plume start`) from the init script directory::
 
     server$ /etc/init.d/plume start
     Starting plume: non-SSL server
@@ -750,8 +748,7 @@ At this point what need to do is add our transform to our seed on the Paterva co
 
     #. Finally, click `Add Transform` to add your transform to the seed.
 
-Now for the moment of truth, copy the seed URL from the `Paterva TDS console <https://cetas.paterva.com/TDS/seeds>`_ and
-add it to Maltego.
+Now for the moment of truth, copy the seed URL from the `Paterva TDS console <https://cetas.paterva.com/TDS/seeds>`_ and add it to Maltego.
 
 
 .. _bottom:

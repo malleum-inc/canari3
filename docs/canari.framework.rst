@@ -1,17 +1,8 @@
-:mod:`canari.framework` - Canari Framework Annotations & Extras
-===============================================================
-
-.. module:: canari.framework
-    :synopsis: Canari framework transform annotations and extras
-.. moduleauthor:: Nadeem Douba <ndouba@redcanari.com>
-.. sectionauthor:: Nadeem Douba <ndouba@redcanari.com>
-
-.. versionadded:: 3.0
-
--------------
+Canari Framework - Annotations & Extras (``canari.framework``)
+**************************************************************
 
 Annotations
------------
+===========
 The Canari framework provides a few easy to use transform annotations and extras. Annotations are used to set transform
 class attributes. Although you can set these attributes without the use of annotations, a good reason for using them is
 to "pin" the presence of an important setting to the top of the class definition. For example, ``@RequireSuperUser``
@@ -42,7 +33,7 @@ debug window and have our user enter their superuser credentials, we would defin
         pass
 
 ``@RequireSuperUser`` Behavior
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------
 As stated above, the ``@RequireSuperUser`` marks the transform as a privileged transform which requires ``root``
 privileges in order to execute. The behavior of the different Canari transform runners differs when they come across a
 transform that has this attribute set. When using :program:`canari run-transform`, :program:`canari debug-transform`,
@@ -71,7 +62,7 @@ what the sample output would look like::
     >>>
 
 ``@EnableDebugWindow`` Behavior
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------------
 The ``@EnableDebugWindow`` annotation instructs the :program:`canari create-profile` to create a transform profile that
 forces Maltego to display the "Debug" output pane each time the transform is executed. This is useful for debugging the
 response XML or viewing debug or diagnostic messages being written to ``stderr``.
@@ -88,7 +79,7 @@ response XML or viewing debug or diagnostic messages being written to ``stderr``
     Remote transforms do not transmit this information.
 
 Request Filtering with ``@RequestFilter``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------------------
 Canari also supports the concept of transform request filtering by applying the ``@RequestFilter`` annotation to a
 transform. This is especially useful for use-cases where a license or authorization check needs to be performed prior
 to transform execution. For example, let's assume that you want to check whether a user is submitting a valid license
@@ -154,7 +145,7 @@ void of any request filtering checks, by setting the `remote_only` keyword argum
 In the example above, :func:`check_api_key` will only be called if :class:`MyTransform` is running in Plume.
 
 Foreign Language Support
-------------------------
+========================
 If you've already developed your cool Maltego transforms in another language, such as Perl, Ruby, or Java, you can still
 take advantage of Canari's powerful transform packaging and distribution features. By setting
 :attr:`Transform.do_transform` to an instance of :class:`ExternalCommand` and placing your transform code in the
