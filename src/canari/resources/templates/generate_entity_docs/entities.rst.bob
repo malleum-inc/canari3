@@ -1,0 +1,11 @@
+{{{ doc.title }}}
+===============================================================
+
+.. moduleauthor:: {{{ doc.author.name }}} {{{ doc.author.email }}}
+.. sectionauthor:: {{{ doc.author.name }}} {{{ doc.author.email }}}
+
+.. versionadded:: {{{ doc.version }}}
+
+
+
+{{{ entities.content }}}
