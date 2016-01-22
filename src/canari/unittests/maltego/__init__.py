@@ -7,7 +7,3 @@ __version__ = '0.1'
 __maintainer__ = 'Nadeem Douba'
 __email__ = 'ndouba@gmail.com'
 __status__ = 'Development'
-
-__all__ = [
-    'transform'
-]
