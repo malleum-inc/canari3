@@ -1,25 +1,10 @@
-:mod:`canari.maltego.message` - Maltego Messaging Objects
-=========================================================
+Maltego Messaging Objects (``canari.maltego.message``)
+******************************************************
 
-.. module:: canari.maltego.message
-    :synopsis: Maltego transform messaging objects.
-.. moduleauthor:: Nadeem Douba <ndouba@redcanari.com>
-.. sectionauthor:: Nadeem Douba <ndouba@redcanari.com>
+The :mod:`canari.maltego.message` module provides the complete implementation of all the Maltego transform messaging objects. These objects are used to deserialize Maltego transform requests and serialize Canari transform responses for both local and remote transforms. For example, the ``request`` and ``response`` objects that gets passed into the :meth:`Transform.do_transform` method are instances of
+:class:`~canari.maltego.message.MaltegoTransformRequest` and :class:`~canari.maltego.message.MaltegoTransformResponse`, respectively.
 
-
-.. versionadded:: 3.0
-
-----
-
-The :mod:`canari.maltego.message` module provides the complete implementation of all the Maltego transform messaging
-objects. These objects are used to deserialize Maltego transform requests and serialize Canari transform responses for
-both local and remote transforms. For example, the ``request`` and ``response`` objects that gets passed into the
-:meth:`Transform.do_transform` method are instances of
-:class:`~canari.maltego.message.MaltegoTransformRequest` and :class:`~canari.maltego.message.MaltegoTransformResponse`,
-respectively.
-
-All Maltego messaging objects are subclasses of the :class:`~canari.maltego.xml.MaltegoElement` super class, which adds
-support for two arithmetic operations:
+All Maltego messaging objects are subclasses of the :class:`~canari.maltego.xml.MaltegoElement` super class, which adds support for two arithmetic operations:
 
 +------------+------------------------------------------------------------------------------+
 | Operations | Meaning                                                                      |
@@ -69,7 +54,7 @@ as they are primarily used by the :program:`dispatcher`, :program:`canari debug-
 transform runners.
 
 Maltego Request and Response Objects
-------------------------------------
+====================================
 The :class:`MaltegoTransformRequestMessage` and :class:`MaltegoTransformResponseMessage` represent the parent container
 for Maltego request and response messages, respectively. When a transform is executed, Canari automatically deserializes
 a request into a :class:`MaltegoTransformRequestMessage` object and creates an empty
@@ -193,7 +178,7 @@ string whose root element is the ``<MaltegoTransformRequestMessage>`` tag, or by
 
 
 Communicating Exceptions
-------------------------
+========================
 Using :class:`MaltegoExceptionResponseMessage` objects, a transform can communicate an error state back to the Maltego
 user. Canari generates a Maltego exception object if an exception is raised during transform execution. There are two
 different behaviours when it comes to reporting exceptions. If a transform raises a :exc:`MaltegoException` then the
@@ -233,7 +218,7 @@ Results in the following dialog box:
     generic error messaging will appear in Canari v3.1.
 
 Communicating Diagnostic Information
-------------------------------------
+====================================
 A second form of communicating status or diagnostic information is via the use of :class:`UIMessage` objects. UI
 messages either appear in the "Transform Output" pane (usually at the bottom) or as dialog message boxes depending on
 the message type assigned to them. For your convenience, Canari has defined all the different UI message types as class
@@ -295,7 +280,7 @@ Local transforms also support real-time diagnostic messaging. See :func:`~canari
 
 
 Using and Defining Maltego Entities
------------------------------------
+===================================
 An entity in Maltego is comprised of several elements:
 
 #. **A default entity value:** the default property which appears under the Maltego entity on the graph.
@@ -613,7 +598,7 @@ attribute's name.
 
 
 Defining Entity Fields
-^^^^^^^^^^^^^^^^^^^^^^
+----------------------
 Entity fields can be added to an entity in two ways, dynamically and statically. The dynamic approach is recommended in
 cases where an entity field is not part of the standard entity's definition. For example, if we wanted to attach an
 additional field, "Tracking Code", to Maltego's built-in :class:`WebSite` entity, we can do so like this::
@@ -839,7 +824,7 @@ constructors in addition to the arguments accepted by the :class:`StringEntityFi
 
 
 Customizing :exc:`ValidationError` Error Messages
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------------------------------
 You may have noticed that the error messages above are generic in nature. The good news is that you can specify a more
 user-friendly error message for :exc:`ValidationError` exceptions by specifying the ``error_msg`` keyword argument in
 your entity field definition. Error messages are formatted using the :func:`str.format` method and ``'{var}'`` string
@@ -884,7 +869,7 @@ Then our error message would look like this when we encounter a :exc:`Validation
     Python documentation.
 
 Creating Custom Entity Field Types
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+----------------------------------
 Entity field types are glorified `Python property objects <https://docs.python.org/2/library/functions.html#property>`_
 and subclasses of the :class:`StringEntityField` type. You can either subclass :class:`StringEntityField` directly, or
 leverage one of the many other entity field types available to you and augment their constructors, getters, and setters
@@ -935,7 +920,7 @@ implement something a bit more complex for field value validation::
 
 
 Adding Additional Information to Entities
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------------------
 Sometimes you want to display additional information to users. Either because it doesn't fall into one of the entity's
 predefined fields or it's just informational data that isn't required for subsequent transform requests. For these use-
 cases, Canari provides two classes, :class:`Field` and :class:`Label`, that can be used to define dynamic entity fields
@@ -1022,7 +1007,7 @@ setting ``type`` to ``'text/html'`` and ``value`` to an HTML fragment, like so::
 .. _matching_rules:
 
 Matching Rules and Maltego
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------
 Maltego supports the concept of matching rules for entity fields. A matching rule defines how an output entity (returned
 by a transform) is merged with other pre-existing entities, of the same type, that share the same entity value.
 Maltego currently supports two matching rules, loose and strict matching, which are represented in Canari with the
@@ -1042,7 +1027,7 @@ these two matching rules differ when used to compare two entities (``x`` and ``y
     to revert to strict matching.
 
 Automatically Generating Canari Entity Definitions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------------------------
 Entity definitions can be automatically generated using the :program:`canari generate-entities` command. In order to
 automatically generate entity definitions, you will have to perform the following steps:
 

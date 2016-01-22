@@ -1,34 +1,13 @@
-:mod:`canari.config` - Canari Configuration Files
-=================================================
+Canari Configuration Files (``canari.config``)
+**********************************************
 
-.. module:: canari.config
-    :synopsis: Canari configuration files
-.. moduleauthor:: Nadeem Douba <ndouba@redcanari.com>
-.. sectionauthor:: Nadeem Douba <ndouba@redcanari.com>
+Every Canari transform is provided with access to the Canari configuration files via the ``config`` parameter in :meth:`Transform.do_transform`. The Canari configuration object gets its data from the ``canari.conf`` file and any additional child configuration files specified in the ``canari.local.configs`` option. These files are usually located in the ``.canari/`` directory in your home directory (i.e ``~/.canari/`` in Mac/Linux or ``%HOMEPATH%\.canari\`` in Windows). Canari configuration files are loaded in the following manner:
 
-.. versionadded:: 3.0
+1. Canari checks to see whether or not the transform package being loaded is in the global Python site-package directory. If it is, the ``canari.conf`` file in the global ``.canari`` directory is loaded. Otherwise, the ``canari.conf`` file in the current working directory is used, if present.
+2. Once the main configuration file is loaded, Canari will inspect the ``canari.local.configs`` option to determine whether there are any additional configuration files to be loaded. Typically this option is populated with a list of configuration files belonging to all the transform packages that have been installed (via :program:`canari create-profile`) using Canari.
+3. Canari will then iterate over each configuration filename entry in ``canari.local.configs`` and load the configuration files in the same order as they appear in the configuration file. If a configuration option in one configuration file shares the same name and section as one from another, the latest configuration value will be used.
 
--------------
-Every Canari transform is provided with access to the Canari configuration files via the ``config`` parameter in
-:meth:`Transform.do_transform`. The Canari configuration object gets its data from the ``canari.conf`` file and any
-additional child configuration files specified in the ``canari.local.configs`` option. These files are usually located
-in the ``.canari/`` directory in your home directory (i.e ``~/.canari/`` in Mac/Linux or ``%HOMEPATH%\.canari\``
-in Windows). Canari configuration files are loaded in the following manner:
-
-1. Canari checks to see whether or not the transform package being loaded is in the global Python site-package
-   directory. If it is, the ``canari.conf`` file in the global ``.canari`` directory is loaded. Otherwise, the
-   ``canari.conf`` file in the current working directory is used, if present.
-2. Once the main configuration file is loaded, Canari will inspect the ``canari.local.configs`` option to determine
-   whether there are any additional configuration files to be loaded. Typically this option is populated with a list of
-   configuration files belonging to all the transform packages that have been installed (via
-   :program:`canari create-profile`) using Canari.
-3. Canari will then iterate over each configuration filename entry in ``canari.local.configs`` and load the
-   configuration files in the same order as they appear in the configuration file. If a configuration option in one
-   configuration file shares the same name and section as one from another, the latest configuration value will be used.
-
-Common use-cases for using the configuration file is to retrieve information such as backend API keys or credentials
-that you may use to connect to third-party services. Here's an example of how to use the configuration object in your
-transforms::
+Common use-cases for using the configuration file is to retrieve information such as backend API keys or credentials that you may use to connect to third-party services. Here's an example of how to use the configuration object in your transforms::
 
     class MyTransform(Transform):
         def do_transform(request, response, config):
@@ -85,7 +64,7 @@ Configuration objects have two additional features over and above regular config
 type marshalling, and advanced string interpolation.
 
 Automatic Type Marshalling
---------------------------
+==========================
 One of the biggest advantages in using the :class:`CanariConfigParser` over other configuration parsers in Python is its
 ability to automatically marshal options to the appropriate type. For example, say you had the following configuration
 file::
@@ -116,7 +95,7 @@ These options would translate to the following when retrieve from your transform
     Options starting with ``object://`` will return the option as a string in remote transform execution mode.
 
 Option String Interpolation
----------------------------
+===========================
 In addition to automatic type marshalling, :class:`CanariConfigParser` objects support additional string interpolation
 features. This allows you to reference other options within your configuration file as well as system environment
 variables. For example, querying options from the following configuration file::

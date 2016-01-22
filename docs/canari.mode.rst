@@ -1,20 +1,7 @@
-:mod:`canari.mode` - Canari Execution Modes
-===========================================
+Execution Modes (``canari.mode``)
+*********************************
 
-.. module:: canari.mode
-    :synopsis: Canari execution modes
-.. moduleauthor:: Nadeem Douba <ndouba@redcanari.com>
-.. sectionauthor:: Nadeem Douba <ndouba@redcanari.com>
-
-.. versionadded:: 3.0
-
-------------
-
-Canari now supports the concept of execution modes. Execution modes allow transform developers to detect what
-context a transform is operating in (i.e. local or remote, production or debug, etc.) and alter the behaviour of their
-transforms accordingly. Execution modes also globally enable or disable high-risk functionality or modules that you
-would normally allow in local transform mode. Here's an example of how a transform can check if it's running as a local
-or transform::
+Canari now supports the concept of execution modes. Execution modes allow transform developers to detect what context a transform is operating in (i.e. local or remote, production or debug, etc.) and alter the behaviour of their transforms accordingly. Execution modes also globally enable or disable high-risk functionality or modules that you would normally allow in local transform mode. Here's an example of how a transform can check if it's running as a local or transform::
 
     from canari.maltego.entities import Phrase,WebSite
     from canari.mode import is_local_exec_mode
