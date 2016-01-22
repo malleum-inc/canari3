@@ -18,12 +18,15 @@ class TransformTests(TestCase):
     TODO: Test cases for ExternalCommand decorator.
     """
 
+    def get_transform_name(self, t):
+        return '.'.join([t.__module__.split('.', 1)[0], t.__name__])
+
     def test_create_default_transform(self):
         class MyTransform(Transform):
             """This is a test."""
             pass
         transform = MyTransform()
-        self.assertEqual(transform.name, 'test_transform.MyTransform')
+        self.assertEqual(transform.name, self.get_transform_name(MyTransform))
         self.assertEqual(transform.display_name, 'My Transform')
         self.assertEqual(transform.author, __author__)
         self.assertEqual(transform.description, 'This is a test.')
@@ -40,7 +43,7 @@ class TransformTests(TestCase):
             """This is a test."""
             pass
         transform = MyTransform()
-        self.assertEqual(transform.name, 'test_transform.MyTransform')
+        self.assertEqual(transform.name, self.get_transform_name(MyTransform))
         self.assertEqual(transform.display_name, 'My Transform')
         self.assertEqual(transform.author, __author__)
         self.assertEqual(transform.description, 'This is a test.')
@@ -58,7 +61,7 @@ class TransformTests(TestCase):
             """This is a test."""
             pass
         transform = MyTransform()
-        self.assertEqual(transform.name, 'test_transform.MyTransform')
+        self.assertEqual(transform.name, self.get_transform_name(MyTransform))
         self.assertEqual(transform.display_name, 'My Transform')
         self.assertEqual(transform.author, __author__)
         self.assertEqual(transform.description, 'This is a test.')
@@ -77,7 +80,7 @@ class TransformTests(TestCase):
             """This is a test."""
             pass
         transform = MyTransform()
-        self.assertEqual(transform.name, 'test_transform.MyTransform')
+        self.assertEqual(transform.name, self.get_transform_name(MyTransform))
         self.assertEqual(transform.display_name, 'My Transform')
         self.assertEqual(transform.author, __author__)
         self.assertEqual(transform.description, 'This is a test.')
@@ -97,7 +100,7 @@ class TransformTests(TestCase):
             """This is a test."""
             pass
         transform = MyTransform()
-        self.assertEqual(transform.name, '.'.join([MyTransform.__module__, MyTransform.__name__]))
+        self.assertEqual(transform.name, self.get_transform_name(MyTransform))
         self.assertEqual(transform.display_name, 'My Transform')
         self.assertEqual(transform.author, __author__)
         self.assertEqual(transform.description, 'This is a test.')
@@ -112,7 +115,7 @@ class TransformTests(TestCase):
         class MyTransform(Transform):
             pass
         transform = MyTransform()
-        self.assertEqual(transform.name, '.'.join([MyTransform.__module__, MyTransform.__name__]))
+        self.assertEqual(transform.name, self.get_transform_name(MyTransform))
         self.assertEqual(transform.display_name, 'My Transform')
         self.assertEqual(transform.author, __author__)
         self.assertEqual(transform.description, '')
@@ -142,7 +145,7 @@ class TransformTests(TestCase):
         class MyTransform(Transform):
             display_name = 'Foo'
         transform = MyTransform()
-        self.assertEqual(transform.name, '.'.join([MyTransform.__module__, MyTransform.__name__]))
+        self.assertEqual(transform.name, self.get_transform_name(MyTransform))
         self.assertEqual(transform.display_name, 'Foo')
         self.assertEqual(transform.author, __author__)
         self.assertEqual(transform.description, '')
@@ -157,7 +160,7 @@ class TransformTests(TestCase):
         class MyTransform(Transform):
             description = 'foo'
         transform = MyTransform()
-        self.assertEqual(transform.name, '.'.join([MyTransform.__module__, MyTransform.__name__]))
+        self.assertEqual(transform.name, self.get_transform_name(MyTransform))
         self.assertEqual(transform.display_name, 'My Transform')
         self.assertEqual(transform.author, __author__)
         self.assertEqual(transform.description, 'foo')
@@ -172,7 +175,7 @@ class TransformTests(TestCase):
         class MyTransform(Transform):
             help_url = 'foo'
         transform = MyTransform()
-        self.assertEqual(transform.name, '.'.join([MyTransform.__module__, MyTransform.__name__]))
+        self.assertEqual(transform.name, self.get_transform_name(MyTransform))
         self.assertEqual(transform.display_name, 'My Transform')
         self.assertEqual(transform.author, __author__)
         self.assertEqual(transform.description, '')
@@ -187,7 +190,7 @@ class TransformTests(TestCase):
         class MyTransform(Transform):
             author = 'foo'
         transform = MyTransform()
-        self.assertEqual(transform.name, '.'.join([MyTransform.__module__, MyTransform.__name__]))
+        self.assertEqual(transform.name, self.get_transform_name(MyTransform))
         self.assertEqual(transform.display_name, 'My Transform')
         self.assertEqual(transform.author, 'foo')
         self.assertEqual(transform.description, '')
@@ -202,7 +205,7 @@ class TransformTests(TestCase):
         class MyTransform(Transform):
             transform_set = 'foo'
         transform = MyTransform()
-        self.assertEqual(transform.name, '.'.join([MyTransform.__module__, MyTransform.__name__]))
+        self.assertEqual(transform.name, self.get_transform_name(MyTransform))
         self.assertEqual(transform.display_name, 'My Transform')
         self.assertEqual(transform.author, __author__)
         self.assertEqual(transform.description, '')
