@@ -8,6 +8,7 @@ from pkg_resources import resource_listdir, resource_filename
 
 from canari.pkgutils.maltego import MaltegoDistribution, MtzDistribution
 from canari.maltego.transform import Transform
+from canari.maltego.message import EntityTypeFactory
 from canari.commands.common import parse_bool
 from canari.config import CanariConfigParser, OPTION_LOCAL_CONFIGS, SECTION_LOCAL, OPTION_REMOTE_PACKAGES, \
     SECTION_REMOTE, OPTION_REMOTE_CONFIGS
@@ -71,6 +72,8 @@ class TransformDistribution(object):
         self._resources = '%s.resources' % self.name
         self._package_path = os.path.abspath(self._package.__path__[0])
         self._default_prefix = os.path.join(os.path.expanduser('~'), '.canari') if self.is_site_package else os.getcwd()
+        self._entities = list({v for v in EntityTypeFactory.registry.itervalues()
+                          if v.__module__.startswith(self._package_name)})
         try:
             self._machines = [
                 m for m in resource_listdir(self.get_resource_module('maltego'), '') if m.endswith('.machine')
@@ -80,6 +83,10 @@ class TransformDistribution(object):
         if not self.has_transforms:
             raise ValueError('Error: no transforms found...')
         print('Package loaded.')
+
+    @property
+    def entities(self):
+        return self._entities
 
     @property
     def name(self):
