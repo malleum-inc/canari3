@@ -20,6 +20,7 @@ __all__ = [
     'FileSemaphore',
     'FileMutex',
     'UniqueFile',
+    'CookieFile',
     'PushDir'
 ]
 
