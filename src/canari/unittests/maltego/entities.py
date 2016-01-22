@@ -133,6 +133,28 @@ class EntityTests(TestCase):
         self.assertEqual(t.timespan, timedelta(days=2, minutes=1, seconds=60))
 
         def assign_bad_color():
-            t.date = '24-01-01'
+            t.color = '24-01-01'
         self.assertRaises(ValidationError, assign_bad_color)
         self.assertEqual(t.color, '#ffffff')
+
+    def test_property_type_retrieval(self):
+        class TestEntity(Entity):
+            str = StringEntityField('type.str')
+            int = IntegerEntityField('type.int')
+            float = FloatEntityField('type.float')
+            bool = BooleanEntityField('type.bool')
+            enum = EnumEntityField('type.enum', choices=[2, 1, 0])
+            date = DateEntityField('type.date')
+            datetime = DateTimeEntityField('type.datetime')
+            timespan = TimeSpanEntityField('type.timespan')
+            color = ColorEntityField('type.color')
+
+        self.assertEqual(TestEntity.str.name, 'type.str')
+        self.assertEqual(TestEntity.int.name, 'type.int')
+        self.assertEqual(TestEntity.float.name, 'type.float')
+        self.assertEqual(TestEntity.bool.name, 'type.bool')
+        self.assertEqual(TestEntity.enum.name, 'type.enum')
+        self.assertEqual(TestEntity.date.name, 'type.date')
+        self.assertEqual(TestEntity.datetime.name, 'type.datetime')
+        self.assertEqual(TestEntity.timespan.name, 'type.timespan')
+        self.assertEqual(TestEntity.color.name, 'type.color')

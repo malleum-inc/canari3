@@ -179,6 +179,8 @@ class StringEntityField(object):
         self.error_msg = extras.pop('error_msg', self.error_msg)
 
     def __get__(self, obj, objtype):
+        if obj is None:
+            return self
         if self.is_value:
             return obj.value
         elif self.name in obj.fields:
@@ -225,6 +227,8 @@ class EnumEntityField(StringEntityField):
         super(EnumEntityField, self).__init__(name, **extras)
 
     def __get__(self, obj, objtype):
+        if obj is None:
+            return self
         c = super(EnumEntityField, self).__get__(obj, objtype)
         if c is not None and not isinstance(c, basestring):
             c = str(c)
@@ -244,6 +248,8 @@ class IntegerEntityField(StringEntityField):
     error_msg = 'The field value ({value!r}) set for field {field!r} is not an integer.'
 
     def __get__(self, obj, objtype):
+        if obj is None:
+            return self
         i = super(IntegerEntityField, self).__get__(obj, objtype)
         try:
             return int(i) if i is not None else None
@@ -261,6 +267,8 @@ class BooleanEntityField(StringEntityField):
     error_msg = 'The field value ({value!r}) set for field {field!r} is not a boolean.'
 
     def __get__(self, obj, objtype):
+        if obj is None:
+            return self
         b = super(BooleanEntityField, self).__get__(obj, objtype)
         return b.startswith('t') or b == '1' if b is not None else None
 
@@ -275,6 +283,8 @@ class FloatEntityField(StringEntityField):
     error_msg = 'The field value ({value!r}) set for field {field!r} is not a float.'
 
     def __get__(self, obj, objtype):
+        if obj is None:
+            return self
         f = super(FloatEntityField, self).__get__(obj, objtype)
         try:
             return float(f) if f is not None else None
@@ -292,6 +302,8 @@ class LongEntityField(StringEntityField):
     error_msg = 'The field value ({value!r}) set for field {field!r} is not a long integer.'
 
     def __get__(self, obj, objtype):
+        if obj is None:
+            return self
         l = super(LongEntityField, self).__get__(obj, objtype)
         try:
             return long(l) if l is not None else None
@@ -310,6 +322,8 @@ class DateTimeEntityField(StringEntityField):
                 'have the following format: YYYY-MM-DD HH:MM:SS.MS.'
 
     def __get__(self, obj, objtype):
+        if obj is None:
+            return self
         d = super(DateTimeEntityField, self).__get__(obj, objtype)
         try:
             return datetime.strptime(d, '%Y-%m-%d %H:%M:%S.%f') if d is not None else None
@@ -328,6 +342,8 @@ class DateEntityField(StringEntityField):
                 'following format: YYYY-MM-DD.'
 
     def __get__(self, obj, objtype):
+        if obj is None:
+            return self
         d = super(DateEntityField, self).__get__(obj, objtype)
         try:
             return datetime.strptime(d, '%Y-%m-%d').date() if d is not None else None
@@ -367,6 +383,8 @@ class TimeSpanEntityField(StringEntityField):
                 'the following format: DDd HHhMMmSS.MSs.'
 
     def __get__(self, obj, objtype):
+        if obj is None:
+            return self
         d = super(TimeSpanEntityField, self).__get__(obj, objtype)
         try:
             return TimeSpan.fromstring(d) if d is not None else None
@@ -390,6 +408,8 @@ class RegexEntityField(StringEntityField):
         self.matcher = re.compile(pattern)
 
     def __get__(self, obj, objtype):
+        if obj is None:
+            return self
         v = super(RegexEntityField, self).__get__(obj, objtype)
         if v and not self.matcher.match(v):
             raise ValidationError(self.get_error_msg(self.display_name or self.name, v, pattern=self.matcher.pattern))
