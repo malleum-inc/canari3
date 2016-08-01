@@ -1,2 +1,2 @@
-# Canari 3 [![Build Status](https://travis-ci.com/allfro/canari3.svg?token=3CZQDq6ZqWLmd7ufMA41&branch=master)](https://travis-ci.com/allfro/canari3)
+# Canari 3 ![Build Status](https://circleci.com/gh/redcanari/canari3.svg?style=shield&circle-token=da787a222c75b0a739152d0aa92a9465f702bae6)
 
