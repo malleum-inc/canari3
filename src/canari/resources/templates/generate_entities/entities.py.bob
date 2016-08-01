@@ -1,0 +1,39 @@
+from canari.maltego.message import *
+
+__author__ = '{{{ author.name }}}'
+__copyright__ = 'Copyright {{{ created.year }}}, {{{ project.name }}} Project'
+__credits__ = []
+
+__license__ = 'GPLv3'
+__version__ = '0.1'
+__maintainer__ = '{{{ author.name }}}'
+__email__ = '{{{ author.email }}}'
+__status__ = 'Development'
+
+{{% for ((namespace, name), entity) in entity.definitions.iteritems() %}}
+{{% set value_prop = entity.properties.value %}}
+
+class {{{ name }}}(Entity):
+    _category_ = '{{{ entity.category }}}'
+    _namespace_ = '{{{ namespace }}}'
+
+{{% for field in entity.properties.fields.values() %}}
+{{% if value_prop == field.name %}}
+    {{{ field.name|get_property_name }}} = {{{ field.type|get_entity_field_class }}}('{{{ field.name }}}', display_name='{{{ field.displayname }}}', is_value=True)
+{{% else %}}
+    {{{ field.name|get_property_name }}} = {{{ field.type|get_entity_field_class }}}('{{{ field.name }}}', display_name='{{{ field.displayname }}}')
+{{% endif %}}
+{{% endfor %}}
+
+{{% endfor %}}
+{{% for entity in entity.classes %}}
+
+class {{{ entity.__name__ }}}(Entity):
+    _category_ = '{{{ entity._category_ }}}'
+    _namespace_ = '{{{ entity._namespace_ }}}'
+
+{{% for name, property in entity|entity_properties %}}
+    {{{ name }}} = {{{ property.__class__.__name__ }}}('{{{ property.name }}}', display_name='{{{ property.display_name }}}')
+{{% endfor %}}
+
+{{% endfor %}}

@@ -1,0 +1,35 @@
+:mod:`{{{ transform.module }}}` Maltego Entities
+================================================
+
+.. module:: {{{ transform.module }}}
+    :synopsis: Maltego Entity Classes
+
+.. moduleauthor:: {{{ transform.author }}}
+.. sectionauthor:: {{{ transform.author }}}
+
+.. versionadded:: 3.0
+
+----
+
+
+{{% for entity in transform.entities %}}
+
+-------------
+
+{{% if not entity._type_.endswith('.%s' % entity._alias_) %}}
+{{% set class = '``%s`` (alias: ``%s``)' % (entity._type_, entity._alias_) %}}
+{{% else %}}
+{{% set class = '``%s``' % entity._type_ %}}
+{{% endif %}}
+
+{{{ class }}}
+{{{ '^' * class|length }}}
+
+.. class:: {{{ entity.__name__ }}}(**kwargs)
+
+    {{% for name, property in entity|entity_properties %}}
+    :keyword {{{ property|get_property_type }}} {{{ name }}}: {{{ property.display_name }}} (``{{{ property.name }}}``)
+    {{% endfor %}}
+
+
+{{% endfor %}}
