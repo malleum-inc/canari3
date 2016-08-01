@@ -9,7 +9,7 @@ from pkg_resources import resource_listdir, resource_filename
 from canari.pkgutils.maltego import MaltegoDistribution, MtzDistribution
 from canari.maltego.transform import Transform
 from canari.maltego.message import EntityTypeFactory
-from canari.commands.common import parse_bool
+from canari.question import parse_bool
 from canari.config import CanariConfigParser, OPTION_LOCAL_CONFIGS, SECTION_LOCAL, OPTION_REMOTE_PACKAGES, \
     SECTION_REMOTE, OPTION_REMOTE_CONFIGS
 from canari.utils.fs import PushDir
@@ -51,6 +51,7 @@ INCOMPATIBLE = """
 !!!!!!!!!!!!!!!!!!!!!!!!!!! ERROR: NOT SUPPORTED !!!!!!!!!!!!!!!!!!!!!!!!!!!
 """
 
+
 class TransformDistribution(object):
     def __init__(self, package_name):
         self._package_name = package_name.replace('.transforms', '') \
@@ -73,16 +74,25 @@ class TransformDistribution(object):
         self._package_path = os.path.abspath(self._package.__path__[0])
         self._default_prefix = os.path.join(os.path.expanduser('~'), '.canari') if self.is_site_package else os.getcwd()
         self._entities = list({v for v in EntityTypeFactory.registry.itervalues()
-                          if v.__module__.startswith(self._package_name)})
+                               if v.__module__.startswith(self._package_name)})
+        self._author = getattr(self._package, '__author__', '')
+        self._email = getattr(self._package, '__email__', '')
         try:
             self._machines = [
-                m for m in resource_listdir(self.get_resource_module('maltego'), '') if m.endswith('.machine')
-            ]
+                m for m in resource_listdir(self.get_resource_module('maltego'), '') if m.endswith('.machine')]
         except ImportError:
             self._machines = []
-        if not self.has_transforms:
+        if self._package_name != 'canari' and not self.has_transforms:
             raise ValueError('Error: no transforms found...')
         print('Package loaded.')
+
+    @property
+    def author(self):
+        return self._author
+
+    @property
+    def author_email(self):
+        return self._email
 
     @property
     def entities(self):
@@ -156,28 +166,31 @@ class TransformDistribution(object):
         with file(dst, mode='wb') as w:
             if kwargs.pop('is_template', None):
                 w.write(
-                    string.Template(
-                        file(
-                            src
-                        ).read()
-                    ).substitute(**kwargs)
+                        string.Template(
+                                file(
+                                        src
+                                ).read()
+                        ).substitute(**kwargs)
                 )
             else:
                 w.write(
-                    file(
-                        src
-                    ).read()
+                        file(
+                                src
+                        ).read()
                 )
 
     @staticmethod
     def import_package(pkg):
         prefix = pkg.__name__
 
-        for importer, module_name, is_pkg in iter_modules(pkg.__path__):
-            module_name = '.'.join([prefix, module_name])
-            pkg = importer.find_module(module_name).load_module(module_name)
-            if is_pkg:
-                TransformDistribution.import_package(pkg)
+        if prefix == 'canari':
+            import canari.maltego.entities
+        else:
+            for importer, module_name, is_pkg in iter_modules(pkg.__path__):
+                module_name = '.'.join([prefix, module_name])
+                pkg = importer.find_module(module_name).load_module(module_name)
+                if is_pkg:
+                    TransformDistribution.import_package(pkg)
 
     def find_all_subclasses(self, cls):
         for subclass in cls.__subclasses__():

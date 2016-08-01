@@ -4,7 +4,8 @@ import os
 from canari.pkgutils.transform import TransformDistribution
 from canari.utils.fs import PushDir
 
-from common import canari_main, parse_bool
+from common import canari_main
+from canari.question import parse_bool
 from framework import SubCommand, Argument
 
 

@@ -5,7 +5,8 @@ from atexit import register
 
 from canari.mode import CanariMode, set_canari_mode
 from canari.pkgutils.transform import TransformDistribution
-from common import canari_main, parse_bool
+from common import canari_main
+from canari.question import parse_bool
 from canari.utils.fs import PushDir
 from framework import SubCommand, Argument
 from canari.config import load_config

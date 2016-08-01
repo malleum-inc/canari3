@@ -8,7 +8,8 @@ from stat import ST_MODE, S_ISDIR
 from mrbob.bobexceptions import ValidationError
 from mrbob.configurator import Configurator, Question
 
-from common import canari_main, parse_bool
+from common import canari_main
+from canari.question import parse_bool
 from framework import SubCommand, Argument
 
 __author__ = 'Nadeem Douba'

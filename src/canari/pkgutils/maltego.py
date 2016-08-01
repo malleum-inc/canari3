@@ -9,7 +9,7 @@ from zipfile import ZipFile, ZIP_STORED
 
 from safedexml import Model
 
-from canari.commands.common import parse_int
+from canari.question import parse_int
 from canari.maltego.configuration import (TransformSettings, CmdLineTransformPropertySetting, InputConstraint, Set,
                                           CmdParmTransformPropertySetting, CmdCwdTransformPropertySetting,
                                           CmdDbgTransformPropertySetting, MaltegoTransform,
