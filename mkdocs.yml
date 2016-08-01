@@ -1,0 +1,7 @@
+site_name: Canari 3
+site_description: Rapid Maltego Transform Development Framework
+repo_url: https://github.com/redcanari/canari3
+repo_name: GitHub
+site_author: Nadeem Douba
+copyright: Canari 3
+theme: readthedocs
