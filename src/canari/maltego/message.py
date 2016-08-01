@@ -517,15 +517,20 @@ class Entity(object):
     _namespace_ = None
     _alias_ = None
     _type_ = None
+    _category_ = None
 
-    notes = StringEntityField('notes#', matching_rule=MatchingRule.Loose)
-    bookmark = IntegerEntityField('bookmark#', choices=range(-1, 5), matchingrule=MatchingRule.Loose)
-    link_label = StringEntityField('link#maltego.link.label', matching_rule=MatchingRule.Loose)
-    link_style = EnumEntityField('link#maltego.link.style', choices=range(4), matching_rule=MatchingRule.Loose)
-    link_thickness = EnumEntityField('link#maltego.link.thickness', choices=range(6), matching_rule=MatchingRule.Loose)
-    link_show_label = EnumEntityField('link#maltego.link.show-label', choices=range(3),
+    notes = StringEntityField('notes#', display_name='Notes', matching_rule=MatchingRule.Loose)
+    bookmark = IntegerEntityField('bookmark#', display_name='Bookmark', choices=range(-1, 5),
+                                  matchingrule=MatchingRule.Loose)
+    link_label = StringEntityField('link#maltego.link.label', display_name='Link Label',
+                                   matching_rule=MatchingRule.Loose)
+    link_style = EnumEntityField('link#maltego.link.style', display_name='Link Style',
+                                 choices=range(4), matching_rule=MatchingRule.Loose)
+    link_thickness = EnumEntityField('link#maltego.link.thickness', display_name='Link Thickness',
+                                     choices=range(6), matching_rule=MatchingRule.Loose)
+    link_show_label = EnumEntityField('link#maltego.link.show-label', display_name='Link Show Label', choices=range(3),
                                       matching_rule=MatchingRule.Loose)
-    link_color = EnumEntityField('link#maltego.link.color',
+    link_color = EnumEntityField('link#maltego.link.color', display_name= 'Link Color',
                                  choices=[LinkColor.Black, LinkColor.DarkGray, LinkColor.LightGray, LinkColor.Red,
                                           LinkColor.Orange, LinkColor.DarkGreen, LinkColor.NavyBlue, LinkColor.Magenta,
                                           LinkColor.Cyan, LinkColor.Lime, LinkColor.Yellow, LinkColor.Pink],
