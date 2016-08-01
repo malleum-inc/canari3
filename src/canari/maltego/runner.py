@@ -1,13 +1,16 @@
+import subprocess
 from collections import defaultdict
 import os
 import sys
 import traceback
+from distutils.spawn import find_executable
+from importlib import import_module
 
+import re
 from defusedxml.cElementTree import fromstring
 
 from safedexml import Model
 
-from canari.commands.common import load_object, sudo
 from canari.config import load_config
 from canari.maltego.message import MaltegoTransformResponseMessage, UIMessage, MaltegoTransformRequestMessage, Field, \
     MaltegoException, EntityTypeFactory, Entity
@@ -24,6 +27,18 @@ __email__ = 'ndouba@gmail.com'
 __status__ = 'Development'
 
 __all__ = []
+
+
+def sudo(args):
+    p = subprocess.Popen([find_executable('pysudo')] + args)
+    p.communicate()
+    return p.returncode
+
+
+def load_object(classpath):
+    package, cls = re.search(r'^(.*)\.([^\.]+)$', classpath).groups()
+    module = import_module(package)
+    return module.__dict__[cls]
 
 
 def local_transform_runner(transform, value, fields, params, config, message_writer=message):

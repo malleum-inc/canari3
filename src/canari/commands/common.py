@@ -1,18 +1,12 @@
 import os
 import re
-import subprocess
 import sys
 import unicodedata
-from datetime import datetime
-from distutils.spawn import find_executable
-from importlib import import_module
-from string import Template
 
 from argparse import Action
-from pkg_resources import resource_filename
 
 from canari.commands.framework import Command
-from canari.config import CanariConfigParser, load_config, OPTION_LOCAL_PATH
+from canari.config import load_config, OPTION_LOCAL_PATH
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2015, Canari Project'
@@ -70,12 +64,6 @@ def to_utf8(s):
     return unicodedata.normalize('NFKD', unicode(s)).encode('ascii', 'ignore')
 
 
-def sudo(args):
-    p = subprocess.Popen([find_executable('pysudo')] + args)
-    p.communicate()
-    return p.returncode
-
-
 def uproot():
     if os.name == 'posix' and not os.geteuid():
         login = os.getlogin()
@@ -89,29 +77,6 @@ def uproot():
             os.setuid(user.pw_uid)
 
 
-def read_template(name, values):
-    t = Template(file(resource_filename('canari.resources.template', '%s.plate' % name)).read())
-    return t.substitute(**values)
-
-
-def write_template(dst, data):
-    print('creating file %s...' % dst)
-    with file(dst, mode='wb') as w:
-        w.write(data)
-
-
-def generate_all(*args):
-    return "\n\n__all__ = [\n    '%s'\n]" % "',\n    '".join(args)
-
-
-def build_skeleton(*args):
-    for d in args:
-        if isinstance(d, list):
-            d = os.sep.join(d)
-        print('creating directory %s' % d)
-        os.mkdir(d)
-
-
 def fix_pypath():
     if '' not in sys.path:
         sys.path.insert(0, '')
@@ -123,113 +88,5 @@ def fix_binpath(paths):
             os.environ['PATH'] = paths
         elif isinstance(paths, list):
             os.environ['PATH'] = os.pathsep.join(paths)
-
-
-def load_object(classpath):
-    package, cls = re.search(r'^(.*)\.([^\.]+)$', classpath).groups()
-    module = import_module(package)
-    return module.__dict__[cls]
-
-
-def import_package(package):
-    return __import__(package, globals(), locals(), ['*'])
-
-
-def init_pkg():
-    root = project_root()
-
-    if root is not None:
-        conf = os.path.join(root, '.canari')
-        if os.path.exists(conf):
-            c = CanariConfigParser()
-            c.read(conf)
-            return {
-                'author': c['metadata/author'],
-                'email': c['metadata/email'],
-                'maintainer': c['metadata/maintainer'],
-                'project': c['metadata/project'],
-                'year': datetime.now().year
-            }
-
-    return {
-        'author': '',
-        'email': '',
-        'maintainer': '',
-        'project': '',
-        'year': datetime.now().year
-    }
-
-
-def project_root():
-    marker = '.canari'
-    for i in range(0, 5):
-        if os.path.exists(marker) and os.path.isfile(marker):
-            return os.path.dirname(os.path.realpath(marker))
-        marker = '..%s%s' % (os.sep, marker)
-    raise ValueError('Unable to determine project root.')
-
-
-def project_tree():
-    root = project_root()
-
-    tree = dict(
-        root=root,
-        src=None,
-        pkg=None,
-        resources=None,
-        transforms=None
-    )
-
-    for base, dirs, files in os.walk(root):
-        if base.endswith('src'):
-            tree['src'] = base
-        elif 'resources' in dirs:
-            tree['pkg'] = base
-        elif base.endswith('resources'):
-            tree['resources'] = base
-        elif base.endswith('transforms'):
-            tree['transforms'] = base
-
-    return tree
-
-
-def project_package_dir():
-    working_dir = os.getcwd()
-    try:
-        working_dir = project_tree()['src']
-    except ValueError:
-        pass
-    return working_dir
-
-
-def parse_bool(question, default=True):
-    choices = 'Y/n' if default else 'y/N'
-    default = 'Y' if default else 'N'
-    while True:
-        ans = raw_input('%s [%s]: ' % (question, choices)).upper() or default
-        if ans.startswith('Y'):
-            return True
-        elif ans.startswith('N'):
-            return False
-        else:
-            print('Invalid selection (%s) must be either [y]es or [n]o.' % ans)
-
-
-def parse_int(question, choices, default=0):
-    while True:
-        for i, c in enumerate(choices):
-            print('[%d] - %s' % (i, c))
-        ans = raw_input('%s [%d]: ' % (question, default)) or default
-        try:
-            ans = int(ans)
-            if not 0 <= ans <= i:
-                raise ValueError
-            return ans
-        except ValueError:
-            print('Invalid selection (%s) must be an integer between 0 and %d.' % (ans, i))
-
-
-def parse_str(question, default):
-    return raw_input('%s [%s]: ' % (question, default)) or default
 
 
