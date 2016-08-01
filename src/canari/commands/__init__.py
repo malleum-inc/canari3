@@ -29,5 +29,6 @@ __all__ = [
     'run_transform',
     'shell',
     'unload_plume_package',
-    'version'
+    'version',
+    'generate_entities_doc'
 ]
