@@ -56,29 +56,34 @@ __all__ = [
 
 
 class Unknown(Entity):
-    pass
+    _category_ = 'Unknown'
 
 
 class GPS(Entity):
+    _category_ = 'Locations'
     gps = StringEntityField('properties.gps', display_name='GPS Co-ordinate', is_value=True)
     latitude = FloatEntityField('latitude', display_name='Latitude')
     longitude = FloatEntityField('longitude', display_name='Longitude')
 
 
 class Device(Entity):
+    _category_ = 'Devices'
     device = StringEntityField('properties.device', display_name='Device')
 
 
 class BuiltWithTechnology(Entity):
+    _category_ = 'Penetration Testing'
     builtwith = StringEntityField('properties.builtwithtechnology', display_name='BuiltWith Technology')
 
 
 class Domain(Entity):
+    _category_ = 'Infrastructure'
     fqdn = StringEntityField('fqdn', display_name='Domain Name', is_value=True)
     whois_info = StringEntityField('whois-info', display_name='WHOIS Info', alias='whois')
 
 
 class DNSName(Entity):
+    _category_ = 'Infrastructure'
     fqdn = StringEntityField('fqdn', display_name='DNS Name', is_value=True)
 
 
@@ -91,27 +96,32 @@ class NSRecord(DNSName):
 
 
 class IPv4Address(Entity):
+    _category_ = 'Infrastructure'
     _alias_ = 'IPAddress'
     ipv4address = StringEntityField('ipv4-address', display_name='IP Address', is_value=True)
     internal = BooleanEntityField('ipaddress.internal', display_name='Internal')
 
 
 class Netblock(Entity):
+    _category_ = 'Infrastructure'
     ipv4range = StringEntityField('ipv4-range', display_name='IP Range', is_value=True)
 
 
 class AS(Entity):
+    _category_ = 'Infrastructure'
     _alias_ = 'ASNumber'
     number = IntegerEntityField('as.number', display_name='AS Number', is_value=True)
 
 
 class Website(Entity):
+    _category_ = 'Infrastructure'
     fqdn = StringEntityField('fqdn', display_name='Website', is_value=True)
     ssl_enabled = BooleanEntityField('website.ssl-enabled', display_name='SSL Enabled')
     ports = IntegerEntityField('ports', display_name='Ports')
 
 
 class URL(Entity):
+    _category_ = 'Infrastructure'
     short_title = StringEntityField('short-title', display_name='Short title', is_value=True,
                                     alias='maltego.v2.value.property')
     url = StringEntityField('url', display_name='URL', alias='theurl')
@@ -119,26 +129,31 @@ class URL(Entity):
 
 
 class Phrase(Entity):
+    _category_ = 'Personal'
     text = StringEntityField('text', display_name='Text', is_value=True)
 
 
 class Document(Entity):
+    _category_ = 'Personal'
     url = StringEntityField('url', display_name='URL', alias='link', is_value=True)
     title = StringEntityField('title', display_name='Title', alias='maltego.v2.value.property')
     metadata = StringEntityField('document.metadata', display_name='Meta-Data', alias='metainfo')
 
 
 class Person(Entity):
+    _category_ = 'Personal'
     fullname = StringEntityField('person.fullname', display_name='Full Name', is_value=True)
     lastname = StringEntityField('person.lastname', display_name='Surname', alias='lastname')
     firstnames = StringEntityField('person.firstnames', display_name='First Names', alias='firstname')
 
 
 class EmailAddress(Entity):
+    _category_ = 'Personal'
     email = StringEntityField('email', display_name='Email Address', is_value=True)
 
 
 class Twit(Entity):
+    _category_ = 'Social Network'
     name = StringEntityField('twit.name', display_name='Twit', is_value=True)
     content = StringEntityField('content', display_name='Content')
     pubdate = StringEntityField('pubdate', display_name='Date published')
@@ -150,6 +165,7 @@ class Twit(Entity):
 
 
 class Affiliation(Entity):
+    _category_ = 'Social Network'
     _namespace_ = 'maltego.affiliation'
     person_name = StringEntityField('person.name', display_name='Name', is_value=True)
     uid = StringEntityField('affiliation.uid', display_name='UID', alias='uid')
@@ -203,10 +219,12 @@ class Spock(Affiliation):
 
 
 class FacebookObject(Entity):
+    _category_ = 'Social Network'
     object = StringEntityField('properties.facebookobject', display_name='Facebook Object')
 
 
 class Location(Entity):
+    _category_ = 'Locations'
     name = StringEntityField('location.name', display_name='Name', is_value=True)
     city = StringEntityField('city', display_name='City')
     countrycode = StringEntityField('countrycode', display_name='Country Code', alias='countrysc')
@@ -219,10 +237,12 @@ class Location(Entity):
 
 
 class NominatimLocation(Entity):
+    _category_ = 'Locations'
     nominatim = StringEntityField('properties.nominatimlocation', display_name='Nominatim Location', is_value=True)
 
 
 class PhoneNumber(Entity):
+    _category_ = 'Personal'
     phonenumber = StringEntityField('phonenumber', display_name='Phone Number', is_value=True)
     areacode = StringEntityField('phonenumber.areacode', display_name='Area Code', alias='areacode')
     lastnumbers = StringEntityField('phonenumber.lastnumbers', display_name='Last Digits', alias='lastnumbers')
@@ -231,41 +251,50 @@ class PhoneNumber(Entity):
 
 
 class Alias(Entity):
+    _category_ = 'Personal'
     alias = StringEntityField('properties.alias', display_name='Alias')
 
 
 class File(Entity):
+    _category_ = 'Personal'
     source = StringEntityField('source', display_name='Source')
     description = StringEntityField('description', display_name='Description')
 
 
 class Image(Entity):
+    _category_ = 'Personal'
     description = StringEntityField('properties.image', display_name='Description')
     url = StringEntityField('fullImage', display_name='URL')
 
 
 class Banner(Entity):
+    _category_ = 'Infrastructure'
     text = StringEntityField('banner.text', display_name='Banner', is_value=True)
 
 
 class Port(Entity):
+    _category_ = 'Infrastructure'
     number = StringEntityField('port.number', display_name='Ports', is_value=True)
 
 
 class Service(Entity):
+    _category_ = 'Infrastructure'
     name = StringEntityField('service.name', display_name='Description', is_value=True)
     banner = StringEntityField('banner.text', display_name='Service Banner')
     ports = StringEntityField('port.number', display_name='Ports')
 
 
 class Vulnerability(Entity):
+    _category_ = 'Penetration Testing'
     _alias_ = 'Vuln'
     id = StringEntityField('vulnerability.id', display_name='ID', is_value=True)
 
 
 class Webdir(Entity):
+    _category_ = 'Infrastructure'
     name = StringEntityField('directory.name', display_name='Name', is_value=True)
 
 
 class WebTitle(Entity):
+    _category_ = 'Infrastructure'
     title = StringEntityField('title', display_name='Title', is_value=True)
