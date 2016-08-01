@@ -1,6 +1,7 @@
 from canari.maltego.utils import highlight
 from canari.pkgutils.transform import TransformDistribution
-from common import canari_main, project_package_dir
+from canari.project import CanariProject
+from common import canari_main
 from canari.utils.fs import PushDir
 from framework import SubCommand, Argument
 
@@ -38,7 +39,7 @@ __status__ = 'Development'
 def list_transforms(opts):
 
     try:
-        with PushDir(opts.working_dir or project_package_dir()):
+        with PushDir(opts.working_dir or CanariProject().src_dir):
             transform_package = TransformDistribution(opts.package)
             for transform_class in transform_package.transforms:
                 transform = transform_class()

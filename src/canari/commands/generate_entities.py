@@ -1,14 +1,18 @@
 #!/usr/bin/env python
-
+import keyword
 import os
-import imp
 import re
 
+from mrbob.configurator import Configurator
+from mrbob.rendering import jinja2_env
+
 from canari.maltego.configuration import MaltegoEntity
+from canari.maltego.message import Entity, StringEntityField
 from canari.pkgutils.maltego import MtzDistribution
-from common import canari_main, project_tree, parse_bool
+from canari.project import CanariProject
+from canari.question import parse_bool
+from common import canari_main
 from framework import SubCommand, Argument
-from canari.maltego.message import Entity
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2012, Canari Project'
@@ -36,16 +40,31 @@ type_mapping = {
 
 
 def parse_args(args):
-    if not args.outfile:
-        try:
-            args.outfile = os.path.join(project_tree()['transforms'], 'common', 'entities.py')
-        except ValueError:
-            args.outfile = 'entities.py'
+    project = CanariProject(args.out_path)
+
+    if project.is_valid:
+        args.out_path = project.common_dir
+        args.out_file = project.entities_py
+    else:
+        args.out_path = project.root_dir
+        args.out_file = os.path.join(args.out_path, 'entities.py')
+
+    if os.path.exists(args.out_file) and not args.append and not \
+            parse_bool('%r already exists. Are you sure you want to overwrite it?' % args.out_file, default=False):
+        exit(-1)
+
     if not args.mtz_file:
-        args.mtz_file = os.path.join(project_tree()['resources'], 'maltego', 'entities.mtz')
+        if not project.is_valid or not os.path.lexists(project.entities_mtz):
+            print("Please specify a valid MTZ file.")
+            exit(-1)
+        args.mtz_file = project.entities_mtz
+
     if args.maltego_entities:
         args.namespace.extend(args.exclude_namespace)
         args.exclude_namespace = []
+
+    args.project = project
+
     return args
 
 
@@ -53,32 +72,6 @@ def normalize_fn(fn):
     # Get rid of starting underscores or numbers and bad chars for var names in python
     return re.sub(r'[^A-Za-z0-9]+', '_', re.sub(r'^[^A-Za-z]+', '', fn))
 
-
-def get_existing_entities(filename):
-    m = imp.load_source('entities', filename)
-    l = []
-    for c in dir(m):
-        try:
-            entity_class = m.__dict__[c]
-            if issubclass(entity_class, Entity):
-                l.append(entity_class)
-        except TypeError:
-            pass
-    return l
-
-
-class DirFile(object):
-    def __init__(self, path):
-        self.path = path
-
-    def namelist(self):
-        l = []
-        for base, dirs, files in os.walk(self.path):
-            l.extend([os.path.join(base, f) for f in files])
-        return l
-
-    def open(self, fname):
-        return file(fname)
 
 
 @SubCommand(
@@ -89,10 +82,10 @@ class DirFile(object):
                 'by default.'
 )
 @Argument(
-    'outfile',
-    metavar='[output file]',
-    help='Which file to write the output to.',
-    default=None,
+    'out_path',
+    metavar='[output path]',
+    help='Which path to write the output to.',
+    default=os.getcwd(),
     nargs='?'
 )
 @Argument(
@@ -146,81 +139,80 @@ class DirFile(object):
 def generate_entities(args):
     opts = parse_args(args)
 
-    if os.path.exists(opts.outfile) and not opts.append and not \
-            parse_bool('%r already exists. Are you sure you want to overwrite it?' % opts.outfile, default=False):
-        exit(-1)
+    mtz = MtzDistribution(opts.mtz_file)
+    target = opts.out_path
 
-    distribution = MtzDistribution(opts.mtz_file)
+    variables = opts.project.configuration['variables']
 
-    namespaces = dict()
+    entity_definitions = {}
 
-    excluded_entities = []
-    if opts.append:
-        existing_entities = get_existing_entities(opts.outfile)
-        for entity_class in existing_entities:
-            if entity_class is Entity:
-                continue
-            excluded_entities.append(entity_class._type_)
-            if entity_class._type_.endswith('Entity'):
-                namespaces[entity_class._namespace_] = entity_class.__name__
-        print 'Discovered %d existing entities, and %d namespaces...' % (len(excluded_entities), len(namespaces))
-        print('Appending to %r...' % opts.outfile)
-    else:
-        print('Generating %r...' % opts.outfile)
+    matcher = re.compile('(.+)\.([^\.]+)$')
 
-    data = ''
+    for entity_file in mtz.entities:
+        entity = MaltegoEntity.parse(mtz.read_file(entity_file))
+        namespace, name = matcher.match(entity.id).groups()
+        if namespace in opts.exclude_namespace:
+            continue
+        elif not opts.namespace or namespace in opts.namespace:
+            entity_definitions[(namespace, name)] = entity
+
+    entity_classes = []
 
     if opts.append:
-        with open(opts.outfile) as f:
-            data = f.read().strip('\n')
+        module = opts.project.entities_module
+        for entity_class in dir(module):
+            entity_class = getattr(module, entity_class)
+            if isinstance(entity_class, type) and issubclass(entity_class, Entity) and entity_class is not Entity \
+                    and (entity_class._namespace_, entity_class.__name__) not in entity_definitions:
+                entity_classes.append(entity_class)
 
-    outfile = open(opts.outfile, 'wb')
-
-    if data:
-        outfile.write(data + '\n\n')
-    else:
-        outfile.write('from canari.maltego.message import *\n\n')
-
-    for entity_file in distribution.entity_files:
-        print 'Parsing entity definition %s...' % entity_file
-        entity = MaltegoEntity.parse(
-            distribution.read_file(entity_file)
-        )
-
-        if (opts.entity and entity.id not in opts.entity) or entity.id in excluded_entities:
-            print 'Skipping entity generation for %s as it already exists...' % entity.id
-            continue
-
-        namespace_entity = entity.id.split('.')
-
-        base_classname = None
-        namespace = '.'.join(namespace_entity[:-1])
-        name = namespace_entity[-1]
-        classname = name
-
-        if (opts.namespace and namespace not in opts.namespace) or namespace in opts.exclude_namespace:
-            continue
-
-        print 'Generating entity definition for %s...' % entity_file
-        if namespace not in namespaces:
-            base_classname = '%sBaseEntity' % (''.join([n.title() for n in namespace_entity[:-1]]))
-            namespaces[namespace] = base_classname
-            outfile.write('class %s(Entity):\n    _namespace_ = %r\n\n' % (base_classname, namespace))
+    def get_entity_field_class(v):
+        if v == 'int':
+            return 'IntegerEntityField'
+        elif v == 'float':
+            return 'FloatEntityField'
+        elif v == 'boolean':
+            return 'BooleanEntityField'
+        elif v == 'timespan':
+            return 'TimeSpanEntityField'
+        elif v == 'datetime':
+            return 'DateTimeEntityField'
+        elif v == 'date':
+            return 'DateEntityField'
+        elif v == 'long':
+            return 'LongEntityField'
         else:
-            base_classname = namespaces[namespace]
+            return 'StringEntityField'
 
-        outfile.write('\nclass %s(%s):\n' % (classname, base_classname))
-        for field in entity.properties.fields.itervalues():
-            fields = [
-                'name=%r' % field.name,
-                'displayname=%r' % field.displayname
-            ]
-            outfile.write('    %s = %s(%s)\n' % (
-                normalize_fn(field.name),
-                type_mapping.get(field.type, 'StringEntityField'),
-                ', '.join(fields)
-            ))
-        outfile.write('\n')
+    def get_property_name(v):
+        v = v.replace('.', '_').replace('-', '_')
+        return '%s_' % v if keyword.iskeyword(v) else v
 
-    outfile.close()
-    print 'done.'
+    jinja2_env.filters['entity_properties'] = \
+        lambda v: reversed([(p, getattr(v, p)) for p in dir(v) if isinstance(getattr(v, p), StringEntityField) and
+                            not hasattr(Entity, p)])
+
+    jinja2_env.filters['get_entity_field_class'] = get_entity_field_class
+
+    jinja2_env.filters['get_property_name'] = get_property_name
+
+    variables.update({
+        'entity.definitions': entity_definitions,
+        'entity.classes': entity_classes
+    })
+
+    configurator = Configurator(
+            'canari.resources.templates:generate_entities',
+            target,
+            {'non_interactive': True},
+            variables=variables
+    )
+
+    configurator.ask_questions()
+
+    print('Generating entities for %r...' % variables['project.name'])
+    configurator.render()
+
+    print('done!')
+
+

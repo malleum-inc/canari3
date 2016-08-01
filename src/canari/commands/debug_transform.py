@@ -3,8 +3,9 @@
 import argparse
 
 from canari.mode import set_canari_mode, CanariMode
+from canari.project import CanariProject
 from canari.utils.fs import PushDir
-from common import canari_main, ParseFieldsAction, project_package_dir
+from common import canari_main, ParseFieldsAction
 from canari.maltego.runner import local_transform_runner, console_writer
 from framework import SubCommand, Argument
 from canari.config import load_config
@@ -52,5 +53,5 @@ __status__ = 'Development'
 )  # This parameter will never be consumed because we use a special parser for this transform.
 def debug_transform(opts):
     set_canari_mode(CanariMode.LocalDebug)
-    with PushDir(project_package_dir()):
+    with PushDir(CanariProject().src_dir):
         local_transform_runner(opts.transform, opts.value, opts.fields, opts.params, load_config(), console_writer)

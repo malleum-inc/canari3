@@ -5,7 +5,8 @@ import os
 from mrbob.configurator import Configurator
 from mrbob.parsing import parse_config
 
-from common import canari_main, project_tree
+from canari.project import CanariProject
+from common import canari_main
 from framework import SubCommand, Argument
 
 __author__ = 'Nadeem Douba'
@@ -39,6 +40,7 @@ def parse_args(args):
 def create_transform(args):
 
     opts = parse_args(args)
+    project = CanariProject()
 
     transform_module = (opts.transform if not opts.transform.endswith('.py') else opts.transform[:-3])
     transform_name = ''.join([i[0].upper()+i[1:] for i in transform_module.split('_')])
@@ -51,8 +53,8 @@ def create_transform(args):
         print("You must specify a valid transform name.")
         exit(-1)
 
-    target = project_tree()['root']
-    transform_directory = project_tree()['transforms']
+    target = project.root_dir
+    transform_directory = project.transforms_dir
 
     if os.path.exists(os.path.join(transform_directory, '%s.py' % transform_module)):
         print('Transform %r already exists... quitting' % transform_module)
