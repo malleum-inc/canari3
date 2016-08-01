@@ -9,13 +9,14 @@ Welcome to Canari Framework's documentation!
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 4
 
    canari.quickstart
    canari.framework
    canari.maltego.message
    canari.config
    canari.mode
+   canari.maltego.entities
 
 Indices and tables
 ==================

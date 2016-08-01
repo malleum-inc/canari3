@@ -110,7 +110,7 @@ The :class:`RequestFilter` annotation accepts the following arguments in its con
 .. class:: RequestFilter(filter_[, remote_only=False])
 
     :param callable filter_: a callable that accepts three arguments: ``request``, ``response``, and ``config``.
-    :param remote_only bool: ``True`` if the filter should only be applied when the transform is operating in remote
+    :param bool remote_only: ``True`` if the filter should only be applied when the transform is operating in remote
                              mode, otherwise ``False`` (default).
 
 Just like the :meth:`Transform.do_transform` method, request filters can also modify the contents of the ``request``,
