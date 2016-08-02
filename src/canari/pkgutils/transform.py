@@ -240,10 +240,10 @@ class TransformDistribution(object):
 
             config.write(file(canari_config, mode='wb'))
 
-    def configure(self, install_prefix, load=True, remote=False, **kwargs):
+    def configure(self, install_prefix, load=True, remote=False, defaults=False, **kwargs):
         if load:
             dst = os.path.join(install_prefix, 'canari.conf')
-            if os.path.lexists(dst) and \
+            if os.path.lexists(dst) and not defaults and \
                     parse_bool('%s already exists. Would you like to overwrite it?' % dst, default=False):
                 print 'Writing fresh copy of canari.conf to %r...' % dst
                 variables = {
