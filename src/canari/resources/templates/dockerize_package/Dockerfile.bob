@@ -1,0 +1,12 @@
+FROM redcanari/canari
+ADD . /root/sdist
+RUN cd /root/sdist && \
+    python setup.py install && \
+    cd /root && \
+    rm -rf /root/sdist && \
+    mkdir -p /var/plume && \
+    cd /var/plume && \
+    canari install-plume -y && \
+    canari load-plume-package -y {{{ project.name }}}
+EXPOSE 8080
+ENTRYPOINT /etc/init.d/plume start-docker
