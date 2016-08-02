@@ -3,6 +3,7 @@ import sys
 sys.path.insert(0, '')
 from canari.commands.run_transform import run_transform
 from canari.mode import set_canari_mode, CanariMode
+from canari.commands.common import init_ssl_verification, init_logging
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2012, Canari Project'
@@ -17,6 +18,8 @@ __status__ = 'Development'
 
 if __name__ == '__main__':
     set_canari_mode(CanariMode.LocalDispatch)
+    init_logging()
+    init_ssl_verification()
     run_transform.parser.prog = 'dispatcher'
     opts = run_transform.parser.parse_args()
     run_transform(opts)

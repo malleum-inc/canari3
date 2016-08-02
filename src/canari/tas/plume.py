@@ -13,7 +13,7 @@ from logging.handlers import RotatingFileHandler
 from flask import Flask, Response, request, safe_join, url_for
 
 import canari.resource
-from canari.commands.common import fix_binpath, fix_pypath
+from canari.commands.common import fix_binpath, fix_pypath, init_ssl_verification
 from canari.mode import set_canari_mode, CanariMode
 from canari.config import load_config, OPTION_REMOTE_PATH
 from canari.maltego.entities import Phrase, Unknown
@@ -38,6 +38,7 @@ __all__ = [
 
 # Initialize Canari modes and bin path
 set_canari_mode(CanariMode.RemotePlumeDispatch)
+init_ssl_verification()
 fix_binpath(load_config()[OPTION_REMOTE_PATH])
 fix_pypath()
 

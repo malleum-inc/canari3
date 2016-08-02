@@ -1,22 +1,30 @@
+import logging
 import os
 import re
 import sys
+import ssl
 import unicodedata
 
 from argparse import Action
 
 from canari.commands.framework import Command
 from canari.config import load_config, OPTION_LOCAL_PATH
+from canari.mode import is_local_exec_mode
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2015, Canari Project'
-__credits__ = []
+__credits__ = [
+    'https://dnaeon.github.io/disable-python-ssl-verification/'
+]
 
 __license__ = 'GPLv3'
 __version__ = '0.1'
 __maintainer__ = 'Nadeem Douba'
 __email__ = 'ndouba@gmail.com'
 __status__ = 'Development'
+
+
+logger = logging.getLogger(__name__)
 
 
 class ParseFieldsAction(Action):
@@ -47,11 +55,39 @@ class ParseFieldsAction(Action):
                 )
 
 
+def init_logging():
+    config = load_config()
+    section = 'canari.%s.logging_' % ('local' if is_local_exec_mode() else 'remote')
+    logging.basicConfig(
+            level=config['%slevel' % section],
+            format=config['%sformat' % section],
+            datefmt=config['%sdatefmt' % section])
+
+
+def init_ssl_verification():
+
+    mode = 'local' if is_local_exec_mode() else 'remote'
+    disable_ssl = not load_config()['canari.%s.verify_ssl_certs' % mode]
+
+    logger.debug("SSL certificate verification is %s for %s transforms", 'disabled' if disable_ssl else 'enabled', mode)
+    if disable_ssl:
+        try:
+            _create_unverified_https_context = ssl._create_unverified_context
+        except AttributeError:
+            # Legacy Python that doesn't verify HTTPS certificates by default
+            pass
+        else:
+            # Handle target environment that doesn't support HTTPS verification
+            ssl._create_default_https_context = _create_unverified_https_context
+
+
 @Command(description='Centralized Canari Management System')
 def canari_main(opts):
     """
     This is the main function for the Canari commander. Nothing special here.
     """
+    init_logging()
+    init_ssl_verification()
     profile_dir = os.path.join(os.path.expanduser('~'), '.canari')
     if not os.path.lexists(profile_dir):
         os.makedirs(profile_dir)
