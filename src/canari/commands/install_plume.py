@@ -144,8 +144,7 @@ def install_defaults(opts):
     print 'The log files will be at /var/log/plume.log...'
     configurator.variables['plume.log_dir'] = '/var/log'
     configurator.variables['plume.user'] = check_uid(configurator, '', 'nobody')
-    configurator.variables['plume.group'] = check_gid(configurator, '',
-                                                      'www-data' if 'linux' in sys.platform else 'nobody')
+    configurator.variables['plume.group'] = check_gid(configurator, '', 'nobody')
     print 'The Plume server will under UID/GID=%s/%s...' % (
         configurator.variables['plume.user'], configurator.variables['plume.group'])
     print 'TLS will be disabled by default...'

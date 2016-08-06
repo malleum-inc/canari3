@@ -1,12 +1,22 @@
 FROM redcanari/canari
 ADD . /root/sdist
-RUN cd /root/sdist && \
+RUN apk add --no-cache \
+        ca-certificates \
+        alpine-sdk \
+        python-dev \
+        py-lxml \
+        py-setuptools \
+        py-twisted && \
+    cd /root/sdist && \
     python setup.py install && \
     cd /root && \
     rm -rf /root/sdist && \
     mkdir -p /var/plume && \
     cd /var/plume && \
     canari install-plume -y && \
-    canari load-plume-package -y {{{ project.name }}}
+    canari load-plume-package -y {{{ project.name }}} && \
+    apk del \
+        alpine-sdk \
+        python-dev
 EXPOSE 8080
 ENTRYPOINT /etc/init.d/plume start-docker
