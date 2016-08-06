@@ -23,6 +23,13 @@ class HelloWorld(Transform):
         return response + Phrase("Hello " + request.entity.value)
 ```
 
+## Canari Docker
+
+You can now dockerize your remote transform packages using `canari dockerize-package`. This will create a Docker 
+container that runs Canari Plume fully configured with your remote transforms. You can easily distribute this container
+to your Docker swarm. Check out the documentation on Docker [website](http://docker.com) for more information on how
+containers work.
+
 ## Bug Reports & Questions
 Please use the issues page to log any bugs or questions regarding the Canari Framework. 
  
