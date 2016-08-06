@@ -38,5 +38,25 @@ def parse_int(question, choices, default=0):
             print('Invalid selection (%s) must be an integer between 0 and %d.' % (ans, i))
 
 
+def parse_int_range(question, from_, to, default=0):
+    from_ = int(from_)
+    to = int(to)
+
+    if from_ > to:
+        temp = from_
+        from_ = to
+        to = temp
+
+    while True:
+        ans = parse_str('%s. Valid values are between %d and %d' % (question, from_, to), default)
+        try:
+            ans = int(ans)
+            if not from_ <= ans <= to:
+                raise ValueError
+            return ans
+        except ValueError:
+            print('Invalid selection (%s) must be an integer between %d and %d.' % (ans, from_, to))
+
+
 def parse_str(question, default):
     return raw_input('%s [%s]: ' % (question, default)) or default

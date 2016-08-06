@@ -25,7 +25,8 @@ requires = [
     'argparse',
     'flask',
     'Twisted',
-    'safedexml'
+    'safedexml',
+    'lxml'
 ]
 
 if os.name == 'nt':

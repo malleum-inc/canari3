@@ -42,6 +42,13 @@ transforms = {}
     default=os.getcwd(),
     help='the path where Plume is installed.'
 )
+@Argument(
+        '--accept-defaults',
+        '-y',
+        help='Load Plume package with all the defaults in non-interactive mode.',
+        default=False,
+        action='store_true'
+)
 def load_plume_package(opts):
 
     with PushDir(opts.plume_dir):
@@ -59,7 +66,7 @@ def load_plume_package(opts):
 
         if transform_package.has_remote_transforms:
             try:
-                transform_package.configure(opts.plume_dir, remote=True)
+                transform_package.configure(opts.plume_dir, remote=True, defaults=opts.accept_defaults)
             except ImportError, e:
                 print 'An error occurred while trying to import %r from %s: %s' % (
                     transform_package.name, opts.plume_dir, e

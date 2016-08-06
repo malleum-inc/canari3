@@ -18,6 +18,7 @@ __all__ = [
     'create_transform',
     'csv2sheets',
     'debug_transform',
+    'dockerize_package',
     'framework',
     'generate_entities',
     'help',

@@ -35,7 +35,7 @@ cd $PLUME_DIR
 
 case $1 in
     start)
-        echo -n 'Starting plume: '
+        echo -n 'Starting Canari Plume: '
         if [ -z "$PLUME_CERTIFICATE" ]; then
             twistd \
                     --pidfile=$PID_FILE \
@@ -55,6 +55,39 @@ case $1 in
                     web \
                     --wsgi=canari.tas.plume.application \
                     --logfile=$LOG_FILE \
+                    --certificate=$PLUME_CERTIFICATE \
+                    --privkey=$PLUME_PRIVATE_KEY \
+                    --https=$PLUME_PORT \
+                    --port=0;
+        fi;
+        sleep 1
+        if [ -f $PID_FILE ]; then
+            echo 'done.';
+        else
+            echo 'failed.';
+        fi;
+        ;;
+    start-docker)
+        echo -n 'Starting Canari Plume container: '
+        if [ -z "$PLUME_CERTIFICATE" ]; then
+            twistd \
+                    --pidfile=$PID_FILE \
+                    --rundir=$PLUME_DIR \
+                    --uid=$PLUME_UID \
+                    --gid=$PLUME_GID \
+                    -n \
+                    web \
+                    --wsgi=canari.tas.plume.application \
+                    --port=$PLUME_PORT;
+        else
+            twistd \
+                    --pidfile=$PID_FILE \
+                    --rundir=$PLUME_DIR \
+                    --uid=$PLUME_UID \
+                    --gid=$PLUME_GID \
+                    -n \
+                    web \
+                    --wsgi=canari.tas.plume.application \
                     --certificate=$PLUME_CERTIFICATE \
                     --privkey=$PLUME_PRIVATE_KEY \
                     --https=$PLUME_PORT \
