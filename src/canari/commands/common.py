@@ -1,6 +1,7 @@
 import os
 import re
 import sys
+import pwd
 import unicodedata
 
 from argparse import Action
@@ -64,14 +65,19 @@ def to_utf8(s):
     return unicodedata.normalize('NFKD', unicode(s)).encode('ascii', 'ignore')
 
 
+def getlogin():
+    try:
+        return os.getlogin()
+    except:
+        return pwd.getpwuid(os.getuid())[0]
+
+
 def uproot():
     if os.name == 'posix' and not os.geteuid():
-        login = os.getlogin()
+        login = getlogin()
 
         if login != 'root':
             print 'Why are you using root to run this command? You should be using %s! Bringing you down...' % login
-            import pwd
-
             user = pwd.getpwnam(login)
             os.setgid(user.pw_gid)
             os.setuid(user.pw_uid)
