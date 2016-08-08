@@ -4,7 +4,7 @@ import subprocess
 
 import re
 
-from canari import question
+from canari import question, __version__ as version
 from mrbob.configurator import Configurator
 
 from canari.project import CanariProject
@@ -14,11 +14,11 @@ from distutils.spawn import find_executable
 from framework import SubCommand, Argument
 
 __author__ = 'Nadeem Douba'
-__copyright__ = 'Copyright 2012, Canari Project'
+__copyright__ = 'Copyright 2016, Canari Project'
 __credits__ = ['Nadeem Douba']
 
 __license__ = 'GPLv3'
-__version__ = '0.5'
+__version__ = '0.2'
 __maintainer__ = 'Nadeem Douba'
 __email__ = 'ndouba@gmail.com'
 __status__ = 'Development'
@@ -28,21 +28,28 @@ def run_command(args, **kwargs):
     print 'Running command: %s' % ' '.join(args)
     return subprocess.Popen(args, **kwargs)
 
+
 @SubCommand(
-        canari_main,
-        help='Creates a Docker build file pre-configured with Plume.',
-        description='Creates a Docker build file that can be used to run remote transforms using Plume.'
+    canari_main,
+    help='Creates a Docker build file pre-configured with Plume.',
+    description='Creates a Docker build file that can be used to run remote transforms using Plume.'
 )
 @Argument(
-        '-H',
-        '--host',
-        metavar='[host]',
-        action='append',
-        default=[],
-        help='Docker daemon socket(s) to connect to'
+    '-H',
+    '--host',
+    metavar='[host]',
+    action='append',
+    default=[],
+    help='Docker daemon socket(s) to connect to'
+)
+@Argument(
+    '-O',
+    '--os',
+    metavar='[container OS]',
+    choices=['alpine', 'ubuntu', 'kalilinux'],
+    default='alpine'
 )
 def dockerize_package(args):
-
     project = CanariProject()
 
     print('Dockerizing %s transform package...' % project.name)
@@ -51,7 +58,7 @@ def dockerize_package(args):
             'canari.resources.templates:dockerize_package',
             project.root_dir,
             {'non_interactive': True},
-            variables={'project.name': project.name}
+            variables={'project.name': project.name, 'canari.version': version}
     )
 
     print('Creating Dockerfile for %s...' % project.name)
@@ -66,7 +73,7 @@ def dockerize_package(args):
         exit(-1)
 
     docker_hosts = [j for sublist in [('-H', i) for i in args.host] for j in sublist]
-    container = '%s/%s' % (project.name, project.name)
+    container = '%s/%s:%s' % (project.name, project.name, args.os)
 
     if not args.host:
         if not find_executable('docker-machine'):
@@ -90,7 +97,7 @@ def dockerize_package(args):
         os.environ.update(re.findall(r'export ([^=]+)="([^"]+)', env))
 
     with PushDir(project.root_dir):
-        p = run_command(['docker'] + docker_hosts + ['build', '-t', container, '.'])
+        p = run_command(['docker'] + docker_hosts + ['build', '-t', container, '-f', 'Dockerfile-%s' % args.os, '.'])
         p.communicate()
         if p.returncode:
             print 'An error occurred while building the Docker container.'

@@ -1,12 +1,10 @@
-FROM redcanari/canari
+FROM redcanari/canari:{{{ canari.version }}}-kalilinux
+
 ADD . /root/sdist
+
 RUN apk add --no-cache \
-        ca-certificates \
         alpine-sdk \
-        python-dev \
-        py-lxml \
-        py-setuptools \
-        py-twisted && \
+        python-dev && \
     cd /root/sdist && \
     python setup.py install && \
     cd /root && \
@@ -18,5 +16,7 @@ RUN apk add --no-cache \
     apk del \
         alpine-sdk \
         python-dev
+
 EXPOSE 8080
+
 ENTRYPOINT /etc/init.d/plume start-docker
