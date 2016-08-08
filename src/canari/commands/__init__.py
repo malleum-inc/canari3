@@ -31,5 +31,6 @@ __all__ = [
     'shell',
     'unload_plume_package',
     'version',
-    'generate_entities_doc'
+    'generate_entities_doc',
+    'remote_transform'
 ]
