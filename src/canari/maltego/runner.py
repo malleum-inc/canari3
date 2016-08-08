@@ -5,6 +5,7 @@ import sys
 import traceback
 from distutils.spawn import find_executable
 from importlib import import_module
+from httplib import HTTPSConnection, HTTPConnection
 
 import re
 from defusedxml.cElementTree import fromstring
@@ -13,7 +14,7 @@ from safedexml import Model
 
 from canari.config import load_config
 from canari.maltego.message import MaltegoTransformResponseMessage, UIMessage, MaltegoTransformRequestMessage, Field, \
-    MaltegoException, EntityTypeFactory, Entity
+    MaltegoException, EntityTypeFactory, Entity, MaltegoMessage
 from canari.maltego.utils import message, on_terminate, to_entity, croak, highlight
 
 __author__ = 'Nadeem Douba'
@@ -39,6 +40,24 @@ def load_object(classpath):
     package, cls = re.search(r'^(.*)\.([^\.]+)$', classpath).groups()
     module = import_module(package)
     return module.__dict__[cls]
+
+
+def remote_canari_transform_runner(host, base_path, transform, entities, parameters, limits, is_ssl=False):
+    c = HTTPSConnection(host) if is_ssl else HTTPConnection(host)
+
+    m = MaltegoTransformRequestMessage()
+
+    for e in entities:
+        m += e
+
+    for p in parameters:
+        m += p
+
+    m += limits
+
+    c.request('POST', re.sub(r'/+', '/', '/'.join([base_path, transform])), MaltegoMessage(message=m).render())
+
+    return c.getresponse()
 
 
 def local_transform_runner(transform, value, fields, params, config, message_writer=message):
