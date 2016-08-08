@@ -18,6 +18,13 @@ __status__ = 'Development'
 __all__ = []
 
 
+def split_validate(value, type_):
+    if '=' not in value:
+        print 'Invalid %s ("%s") specified. Must be in "name=value" format.' % (type_, value)
+        exit(-1)
+    return value.split('=', 1)
+
+
 @SubCommand(
     canari_main,
     help='Runs Canari local transforms in a terminal-friendly fashion.',
@@ -91,40 +98,43 @@ __all__ = []
     help='Set the hard limit (default: 10000)'
 )
 def remote_transform(args):
-    entity_type, value = args.input.split('=', 1)
+    entity_type, value = split_validate(args.input, 'entity')
     fields = {}
     params = []
 
     for f in args.entity_field:
-        name, value = f.split('=', 1)
+        name, value = split_validate(f, 'entity field')
         fields[name] = Field(name=name, value=value)
 
     for p in args.transform_parameter:
-        name, value = p.split('=', 1)
+        name, value = split_validate(p, 'transform parameter')
         params += Field(name=name, value=value)
 
-    r = remote_canari_transform_runner(
-        args.host,
-        args.base_path,
-        args.transform,
-        [_Entity(type=entity_type, value=value, fields=fields)],
-        params,
-        Limits(soft=args.soft_limit, hard=args.hard_limit),
-        args.ssl
-    )
+    try:
+        r = remote_canari_transform_runner(
+            args.host,
+            args.base_path,
+            args.transform,
+            [_Entity(type=entity_type, value=value, fields=fields)],
+            params,
+            Limits(soft=args.soft_limit, hard=args.hard_limit),
+            args.ssl
+        )
 
-    if r.status == 200:
-        data = r.read()
-        if args.raw_output:
-            print data
-        else:
-            console_writer(MaltegoMessage.parse(data))
-        exit(0)
+        if r.status == 200:
+            data = r.read()
+            if args.raw_output:
+                print data
+            else:
+                console_writer(MaltegoMessage.parse(data))
+                exit(0)
 
-    print 'ERROR: Received status %d for %s://%s/%s. Are you sure you got the right server?' % (
-        r.status,
-        'https' if args.ssl else 'http',
-        args.host,
-        args.transform
-    )
+        print 'ERROR: Received status %d for %s://%s/%s. Are you sure you got the right server?' % (
+            r.status,
+            'https' if args.ssl else 'http',
+            args.host,
+            args.transform
+        )
+    except Exception, e:
+        print 'ERROR: %s' % e
     exit(-1)
