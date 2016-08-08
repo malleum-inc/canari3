@@ -38,7 +38,8 @@ __all__ = [
     'TimeSpanEntityField',
     'RegexEntityField',
     'ColorEntityField',
-    'Entity'
+    'Entity',
+    'Limits'
 ]
 
 
@@ -629,6 +630,17 @@ class MaltegoTransformRequestMessage(MaltegoElement):
     _entities = None  # This is so we can cache the transform entity object list.
     _parameters = fields_.Dict(Field, tagname='TransformFields', key='name', required=False)
     limits = fields_.Model(Limits, required=False)
+
+    def __iadd__(self, other):
+        if isinstance(other, Entity):
+            self.__entities.append(other.__entity__)
+        elif isinstance(other, _Entity):
+            self.__entities.append(other)
+        elif isinstance(other, Field):
+            self._parameters[other.name] = other
+        elif isinstance(other, Limits):
+            self.limits = other
+        return self
 
     @property
     def entity(self):
