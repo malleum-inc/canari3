@@ -41,6 +41,7 @@ __all__ = [
     'Netblock',
     'NominatimLocation',
     'NSRecord',
+    'Null',
     'Person',
     'PhoneNumber',
     'Phrase',
@@ -57,6 +58,10 @@ __all__ = [
 
 class Unknown(Entity):
     _category_ = 'Unknown'
+
+
+class Null(Entity):
+    pass
 
 
 class GPS(Entity):
