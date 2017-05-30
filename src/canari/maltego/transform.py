@@ -36,7 +36,7 @@ def camel_to_title(s):
 
 class Transform(object):
 
-    # Specifies the author of the transform. If not specified __author__ will be used.
+    # Specifies the author of the transform. If not specified __author__ will be used for the create-profile command.
     author = ''
 
     # A detailed description of the transform. The description can be read from the Maltego Transforms dialog box. If
@@ -81,8 +81,6 @@ class Transform(object):
     command = None
 
     def __init__(self):
-        if not self.author and __author__:
-            self.author = __author__
         if not self.name:
             self.name = '.'.join([self.__module__.split('.', 1)[0], self.__class__.__name__])
         if not self.display_name:

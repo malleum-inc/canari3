@@ -1,3 +1,5 @@
+from importlib import import_module
+
 import os
 import re
 import sys
@@ -276,12 +278,15 @@ class MaltegoDistribution(object):
         if not os.listdir(transform_set_dir):
             os.rmdir(transform_set_dir)
 
+    def _get_module_author(self, module_name):
+        return getattr(import_module(module_name), '__author__', '')
+
     def add_transform(self, working_dir, transform_repository, transform_class, server=None):
         transform_repository_dir = self.get_transform_repository_dir(transform_repository)
 
         transform = transform_class()
         name = '.'.join([transform_class.__module__, transform_class.__name__])
-        author = transform.author
+        author = transform.author or self._get_module_author(transform.__module__)
         transform_id = transform.name
         input_set = transform.transform_set
         input_entity = transform.input_type
