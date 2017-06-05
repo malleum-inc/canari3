@@ -40,7 +40,7 @@ On Fedora-based (Fedora, RedHat, CentOS, etc.) systems, all these dependencies c
 
     $ sudo yum groupinstall -y 'development tools'
     $ sudo yum install zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel \
-         readline-devel tk-devel gdbm-devel db4-devel libpcap-devel xz-devel
+         readline-devel tk-devel gdbm-devel db4-devel libpcap-devel xz-devel python-devel
     $ sudo easy_install virtualenv
 
 **Mac OS/X**
