@@ -194,7 +194,7 @@ class TransformDistribution(object):
 
     def find_all_subclasses(self, cls):
         for subclass in cls.__subclasses__():
-            if subclass.__module__.startswith(self._package_name):
+            if subclass.__module__.startswith(self._package_name) and subclass.input_type:
                 yield subclass
             for sub_subclass in self.find_all_subclasses(subclass):
                 yield sub_subclass
