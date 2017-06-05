@@ -51,7 +51,11 @@ __all__ = [
     'Vulnerability',
     'Webdir',
     'Website',
-    'WebTitle'
+    'WebTitle',
+    'TrackingCode',
+    'CircularArea',
+    'Hash',
+    'Hashtag'
 ]
 
 
