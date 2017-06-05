@@ -1,3 +1,4 @@
+from collections import Iterable
 from datetime import datetime, date, timedelta
 from numbers import Number
 import re
@@ -38,6 +39,7 @@ __all__ = [
     'TimeSpanEntityField',
     'RegexEntityField',
     'ColorEntityField',
+    'ArrayEntityField',
     'Entity',
     'Limits'
 ]
@@ -430,6 +432,78 @@ class ColorEntityField(RegexEntityField):
 
     def __init__(self, name, **extras):
         super(ColorEntityField, self).__init__(name, pattern='^#[0-9a-fA-F]{6}$', **extras)
+
+
+class ElementType(object):
+
+    @staticmethod
+    def int(value):
+        return None if value is None else int(value)
+
+    @staticmethod
+    def string(value):
+        return None if value is None else str(value).replace('\\,', ',')
+
+    @staticmethod
+    def boolean(value):
+        return None if value is None else value.startswith('t') or value == '1'
+
+    @staticmethod
+    def double(value):
+        return None if value is None else float(value)
+
+    @staticmethod
+    def float(value):
+        return None if value is None else float(value)
+
+    @staticmethod
+    def date(value):
+        return None if value is None else datetime.strptime(value, '%Y-%m-%d').date()
+
+    @staticmethod
+    def matches_type(type_, value):
+        return (type_ is ElementType.int and isinstance(value, int)) or \
+               (type_ is ElementType.string and isinstance(value, str)) or \
+               (type_ is ElementType.boolean and isinstance(value, bool)) or \
+               ((type_ is ElementType.float or type_ is ElementType.double) and isinstance(value, float)) or \
+               (type_ is ElementType.date and isinstance(value, date))
+
+
+class ArrayEntityField(StringEntityField):
+
+    splitter = re.compile(r'(?<!\\),')
+
+    error_msg = 'The field value ({value!r}) set for {field!r} is not an enumerable type.'
+    error_msg_element = 'Could not parse element value ({value!r}) at index {element_pos!r} ' \
+                        'as a type of {element_type!r} in field {field!r}.'
+    error_msg_array = 'Could not parse input array {value!r} as array of {element_type!r} for field {field!r}.'
+
+    def __init__(self, name, element_type=ElementType.string, **extras):
+        super(ArrayEntityField, self).__init__(name, **extras)
+        self.element_type = element_type
+
+    def _iter_and_validate(self, val):
+        for i, e in enumerate(val):
+            if not ElementType.matches_type(self.element_type, e):
+                raise ValidationError(self.error_msg_element.format(
+                    field=self.display_name or self.name, value=e,
+                    element_type=self.element_type.__name__, element_pos=i))
+            yield e.replace(',', '\\,') if self.element_type is ElementType.string else str(e)
+
+    def __get__(self, obj, objtype):
+        if obj is None:
+            return self
+        a = super(ArrayEntityField, self).__get__(obj, objtype)
+        try:
+            return [self.element_type(e) for e in self.splitter.split(a)] if a is not None else None
+        except ValueError:
+            raise ValidationError(self.error_msg_array.format(
+                field=self.display_name or self.name, value=a, element_type=self.element_type.__name__))
+
+    def __set__(self, obj, val):
+        if not isinstance(val, Iterable):
+            raise ValidationError(self.get_error_msg(self.display_name or self.name, val))
+        super(ArrayEntityField, self).__set__(obj, ','.join(self._iter_and_validate(val)))
 
 
 class EntityTypeFactory(type):
