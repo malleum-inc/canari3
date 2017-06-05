@@ -17,7 +17,7 @@ class ResourceTests(TestCase):
 
     def test_external_resource(self):
         resource = external_resource('wordlist.txt', 'canari.unittests.resources')
-        self.assertTrue(resource.endswith('canari/unittests/resources/wordlist.txt'))
+        self.assertTrue(resource.endswith(os.path.join('canari', 'unittests', 'resources', 'wordlist.txt')))
         self.assertTrue(os.path.lexists(resource))
 
     def test_icon_resource(self):
@@ -29,8 +29,8 @@ class ResourceTests(TestCase):
         images = image_resources('canari.unittests')
         self.assertTrue(images)
         self.assertTrue(len(images) == 4)
-        for i, j in enumerate(images):
-            self.assertTrue(j.endswith('canari/unittests/resources/images/%d.png' % i))
+        for i, j in enumerate(sorted(images)):
+            self.assertTrue(j.endswith(os.path.join('canari', 'unittests', 'resources', 'images', '%d.png' % i)))
             self.assertTrue(os.path.lexists(j))
 
     def test_conf(self):
