@@ -34,12 +34,12 @@ class {{{ entity.example_name }}}({{{ entity.base_name }}}):
     fields. Take a look below for examples of the different built-in field types provided from the
     'canari.maltego.message' package.
     """
-    str = StringEntityField('type.str', displayname='Foo String')
-    int = IntegerEntityField('type.int', displayname='Foo Integer')
-    float = FloatEntityField('type.float', displayname='Foo Float')
-    bool = BooleanEntityField('type.bool', displayname='Foo Boolean')
-    enum = EnumEntityField('type.enum', choices=[2, 1, 0], displayname='Foo Enum')
-    date = DateEntityField('type.date', displayname='Foo Date')
-    datetime = DateTimeEntityField('type.datetime', displayname='Foo Datetime')
-    timespan = TimeSpanEntityField('type.timespan', displayname='Foo Timespan')
-    color = ColorEntityField('type.color', displayname='Foo Color')
+    str = StringEntityField('type.str', display_name='Foo String')
+    int = IntegerEntityField('type.int', display_name='Foo Integer')
+    float = FloatEntityField('type.float', display_name='Foo Float')
+    bool = BooleanEntityField('type.bool', display_name='Foo Boolean')
+    enum = EnumEntityField('type.enum', choices=[2, 1, 0], display_name='Foo Enum')
+    date = DateEntityField('type.date', display_name='Foo Date')
+    datetime = DateTimeEntityField('type.datetime', display_name='Foo Datetime')
+    timespan = TimeSpanEntityField('type.timespan', display_name='Foo Timespan')
+    color = ColorEntityField('type.color', display_name='Foo Color')
