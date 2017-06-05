@@ -293,7 +293,7 @@ Maltego:
 
 .. warning::
 
-    Maltego profile files are not redistributable. This is because the path of your local transforms and Canari
+    Canari Maltego profile files are not redistributable. This is because the path of your local transforms and Canari
     framework files will vary across systems. Instead, developers of local transforms should always include the Canari
     ``create-profile`` instructions as part of the transform package's installation steps.
 
