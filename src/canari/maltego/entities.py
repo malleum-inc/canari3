@@ -1,4 +1,4 @@
-from message import Entity, StringEntityField, IntegerEntityField, FloatEntityField, BooleanEntityField
+from message import Entity, StringEntityField, IntegerEntityField, FloatEntityField, BooleanEntityField, DateEntityField
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2015, Canari Project'
@@ -298,3 +298,34 @@ class Webdir(Entity):
 class WebTitle(Entity):
     _category_ = 'Infrastructure'
     title = StringEntityField('title', display_name='Title', is_value=True)
+
+
+class TrackingCode(Entity):
+    _alias_ = 'maltego.UniqueIdentifier'
+    _category_ = 'Infrastructure'
+    unique_identifier = StringEntityField('properties.uniqueidentifier', display_name='Uniqueidentifier', is_value=True)
+    identifier_type = StringEntityField('identifierType', display_name='Identifier Type')
+
+
+class CircularArea(Entity):
+    _category_ = 'Locations'
+    area_circular = StringEntityField('area.circular', display_name='Circular Area', is_value=True)
+    latitude = FloatEntityField('latitude', display_name='Latitude')
+    longitude = FloatEntityField('longitude', display_name='Longitude')
+    radius = IntegerEntityField('radius', display_name='Radius (m)')
+
+
+class Hash(Entity):
+    _category_ = 'Malware'
+    hash = StringEntityField('properties.hash', display_name='Hash', is_value=True)
+    type = StringEntityField('type', display_name='Hash Type')
+    owner = StringEntityField('owner', display_name='Owner')
+    before = DateEntityField('before', display_name='Before')
+    after = DateEntityField('after', display_name='After')
+    included_media_types = StringEntityField('includeMediaType', display_name='Included Media Types')
+    excluded_media_types = StringEntityField('excludeMediaType', display_name='Excluded Media Types')
+
+
+class Hashtag(Entity):
+    _category_ = 'Social'
+    hashtag = StringEntityField('twitter.hashtag', display_name='Hashtag', is_value=True)
