@@ -1,6 +1,6 @@
 FROM ubuntu:14.04
 
-ENV DOCKER=ubuntu
+ENV BASE_OS_IMAGE=ubuntu
 
 COPY . /root/sdist
 
@@ -11,8 +11,11 @@ RUN apt-get update && \
         build-essential \
         python-lxml \
         python-dev \
-        python-setuptools && \
-    cd /root/sdist && \
+        python-setuptools \
+        python-pip
+
+RUN cd /root/sdist && \
+    pip install -U pip setuptools && \
     python setup.py install && \
     cd /root && \
     rm -rf sdist && \

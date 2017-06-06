@@ -1,6 +1,6 @@
 FROM alpine
 
-ENV DOCKER=alpine
+ENV BASE_OS_IMAGE=alpine
 
 COPY . /root/sdist
 
@@ -10,8 +10,11 @@ RUN apk add --no-cache \
         python-dev \
         py-lxml \
         py-setuptools \
-        py-twisted && \
-    cd /root/sdist && \
+        py-twisted \
+        py-pip
+
+RUN cd /root/sdist && \
+    pip install -U pip setuptools && \
     python setup.py install && \
     cd /root && \
     rm -rf sdist && \

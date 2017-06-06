@@ -1,6 +1,6 @@
 FROM kalilinux/kali-linux-docker
 
-ENV DOCKER=kali
+ENV BASE_OS_IMAGE=kali
 
 COPY . /root/sdist
 
@@ -11,8 +11,11 @@ RUN apt-get update && \
         build-essential \
         python-lxml \
         python-dev \
-        python-setuptools && \
-    cd /root/sdist && \
+        python-setuptools \
+        python-pip
+
+RUN cd /root/sdist && \
+    pip install -U pip setuptools && \
     python setup.py install && \
     cd /root && \
     rm -rf sdist && \
