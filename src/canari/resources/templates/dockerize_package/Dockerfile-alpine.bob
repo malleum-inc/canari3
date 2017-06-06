@@ -4,8 +4,11 @@ ADD . /root/sdist
 
 RUN apk add --no-cache \
         alpine-sdk \
-        python-dev && \
+        python-dev \
+        openssl-dev \
+        py-cffi && \
     cd /root/sdist && \
+    pip install pyopenssl service_identity && \
     python setup.py install && \
     cd /root && \
     rm -rf /root/sdist && \
