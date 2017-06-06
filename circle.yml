@@ -1,8 +1,18 @@
 machine:
   python:
     version: 2.7.6
-# command to install dependencies
-#install:
-#  - pip install .
-# command to run tests
-#script: python -m canari.unittests.__init__
+  services:
+    - docker
+
+dependencies:
+  override:
+    - docker info
+    - ./build_dockers.sh
+
+deployment:
+  release:
+    tag: /v[0-9]+(\.[0-9]+)*/
+    owner: redcanari
+    commands:
+      - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
+      - docker push redcanari/canari
