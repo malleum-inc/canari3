@@ -2,20 +2,34 @@ FROM redcanari/canari:{{{ canari.version }}}-kalilinux
 
 ADD . /root/sdist
 
-RUN apk add --no-cache \
-        alpine-sdk \
-        python-dev && \
-    cd /root/sdist && \
+RUN apt-get update && \
+    apt-get -y dist-upgrade && \
+    apt-get install -y \
+        ca-certificates \
+        build-essential \
+        python-lxml \
+        python-dev \
+        python-setuptools \
+        python-pip \
+        libffi-dev \
+        libssl-dev
+
+RUN cd /root/sdist && \
+    pip install pyopenssl service_identity && \
     python setup.py install && \
     cd /root && \
+    groupadd --non-unique --gid 65534 nobody && \
     rm -rf /root/sdist && \
     mkdir -p /var/plume && \
     cd /var/plume && \
     canari install-plume -y && \
     canari load-plume-package -y {{{ project.name }}} && \
-    apk del \
-        alpine-sdk \
-        python-dev
+    cd /root && \
+    rm -rf sdist && \
+    apt-get purge --auto-remove -y \
+        build-essential \
+        python-dev && \
+    apt-get clean
 
 EXPOSE 8080
 
