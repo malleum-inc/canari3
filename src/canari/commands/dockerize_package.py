@@ -69,8 +69,10 @@ def dockerize_package(args):
         print """Could not find 'docker' in your system path. Please download and install Docker from http://docker.com
         and rerun this command again.
         """
-
         exit(-1)
+
+    if not args.host and os.path.exists('/var/run/docker.sock'):
+        args.host = ['unix:///var/run/docker.sock']
 
     docker_hosts = [j for sublist in [('-H', i) for i in args.host] for j in sublist]
     container = '%s/%s:%s' % (project.name, project.name, args.os)
@@ -105,7 +107,7 @@ def dockerize_package(args):
 
     if question.parse_bool('Would you like to run this container now?'):
         port = question.parse_int_range('Which port would you like Plume to listen on externally?', 0, 65535, 8080)
-        print 'Plume will be listening on http://%s:%s' % (re.findall('://([^:]+)', os.environ['DOCKER_HOST'])[0], port)
+        print 'Plume will be listening on http://%s:%s' % (re.findall('://([^:]+)', os.environ.get('DOCKER_HOST', 'http://0.0.0.0'))[0], port)
         run_command(['docker'] + docker_hosts + ['run', '-it', '-p', '8080:%s' % port, container]).communicate()
 
     print 'done!'
