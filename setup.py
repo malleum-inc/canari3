@@ -5,7 +5,7 @@ import os
 from setuptools import setup, find_packages
 
 long_description = """
-Canari Framework 3 
+Canari Framework 3
 ==================
 
 |Build Status| |Doc Status|
@@ -30,7 +30,7 @@ transform in Canari 3:
 
     class HelloWorld(Transform):
         \"\"\"This transform says hello to a person entity.\"\"\"
-        
+
         # The transform input entity type.
         input_type = Person
 
@@ -103,7 +103,7 @@ if os.name == 'nt':
 setup(
     name='canari',
     author='Nadeem Douba',
-    version='3.1.2',
+    version='3.1.3',
     author_email='ndouba@gmail.com',
     description='Canari Framework - Maltego rapid transform development and execution framework.',
     long_description=long_description,
