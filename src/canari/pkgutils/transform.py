@@ -1,3 +1,4 @@
+import importlib
 from pkgutil import iter_modules
 import string
 import sys
@@ -61,7 +62,7 @@ class TransformDistribution(object):
 
         print('Looking for transforms in %s...' % self.name)
         try:
-            TransformDistribution.import_package(self._package)
+            self.import_package(self._package)
         except ImportError, e:
             raise ImportError("Does not appear to be a valid canari package. "
                               "Couldn't import the '%s.transforms' package in '%s'. Error message: %s" %
@@ -179,16 +180,23 @@ class TransformDistribution(object):
                         ).read()
                 )
 
-    @staticmethod
-    def import_package(pkg):
+    @classmethod
+    def _is_package_loaded(cls, pkg):
+        return pkg in sys.modules
+
+    @classmethod
+    def import_package(cls, pkg):
         prefix = pkg.__name__
 
-        if prefix == 'canari':
+        if prefix == 'canari' and not cls._is_package_loaded('canari.maltego.entities'):
             import canari.maltego.entities
         else:
-            for importer, module_name, is_pkg in iter_modules(pkg.__path__):
+            for _, module_name, is_pkg in iter_modules(pkg.__path__):
                 module_name = '.'.join([prefix, module_name])
-                pkg = importer.find_module(module_name).load_module(module_name)
+                if not cls._is_package_loaded(module_name):
+                    pkg = importlib.import_module(module_name)
+                else:
+                    pkg = sys.modules[module_name]
                 if is_pkg:
                     TransformDistribution.import_package(pkg)
 
