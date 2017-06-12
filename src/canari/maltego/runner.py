@@ -4,6 +4,7 @@ import os
 import sys
 import traceback
 from distutils.spawn import find_executable
+from canari.mode import is_debug_exec_mode
 from importlib import import_module
 from httplib import HTTPSConnection, HTTPConnection
 
@@ -55,7 +56,13 @@ def remote_canari_transform_runner(host, base_path, transform, entities, paramet
 
     m += limits
 
-    c.request('POST', re.sub(r'/+', '/', '/'.join([base_path, transform])), MaltegoMessage(message=m).render())
+    message = MaltegoMessage(message=m).render()
+    path = re.sub(r'/+', '/', '/'.join([base_path, transform]))
+
+    if is_debug_exec_mode():
+        sys.stderr.write("Sending following message to {}{}:\n{}\n\n".format(host, path, message))
+
+    c.request('POST', path, message)
 
     return c.getresponse()
 
