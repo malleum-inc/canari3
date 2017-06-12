@@ -10,16 +10,16 @@ from ConfigParser import NoSectionError
 from hashlib import md5
 from logging.handlers import RotatingFileHandler
 
-from flask import Flask, Response, request, safe_join, url_for
+from flask import Flask, Response, request, safe_join
 
 import canari.resource
 from canari.commands.common import fix_binpath, fix_pypath
-from canari.mode import set_canari_mode, CanariMode
 from canari.config import load_config, OPTION_REMOTE_PATH
 from canari.maltego.entities import Phrase, Unknown
 from canari.maltego.message import (MaltegoMessage, MaltegoTransformResponseMessage, MaltegoTransformExceptionMessage,
                                     MaltegoException)
 from canari.maltego.transform import Transform
+from canari.mode import set_canari_mode, CanariMode
 from canari.pkgutils.transform import TransformDistribution
 
 __author__ = 'Nadeem Douba'
@@ -107,7 +107,7 @@ class Plume(Flask):
         # Is packages not blank
         if not packages:
             sys.stderr.write(
-                    'Exiting... You did not specify any transform packages to load in your canari.conf file!\n')
+                'Exiting... You did not specify any transform packages to load in your canari.conf file!\n')
             exit(-1)
         elif isinstance(packages, basestring):
             packages = [packages]
@@ -153,11 +153,11 @@ def croak(cause):
     :param cause: a string containing the issue description.
     """
     return MaltegoMessage(
-            message=MaltegoTransformExceptionMessage(
-                    exceptions=[
-                        MaltegoException(cause)
-                    ]
-            )
+        message=MaltegoTransformExceptionMessage(
+            exceptions=[
+                MaltegoException(cause)
+            ]
+        )
     ).render()
 
 
@@ -180,9 +180,9 @@ def do_transform(transform):
 
         # Execute it!
         msg = transform().do_transform(
-                req,
-                MaltegoTransformResponseMessage(),
-                load_config()
+            req,
+            MaltegoTransformResponseMessage(),
+            load_config()
         )
 
         # Let's serialize the return response and clean up whatever mess was left behind
