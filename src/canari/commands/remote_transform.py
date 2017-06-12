@@ -4,6 +4,7 @@ from canari.commands.common import canari_main
 from canari.commands.framework import SubCommand, Argument
 from canari.maltego.message import _Entity, Field, Limits, MaltegoMessage
 from canari.maltego.runner import remote_canari_transform_runner, console_writer
+from canari.mode import set_canari_mode, CanariMode
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2016, Canari Project'
@@ -97,8 +98,18 @@ def split_validate(value, type_):
     default=10000,
     help='Set the hard limit (default: 10000)'
 )
+@Argument(
+    '-v',
+    '--verbose',
+    help='Enable verbose debug mode.',
+    action='store_true',
+    default=False
+)
 def remote_transform(args):
-    entity_type, value = split_validate(args.input, 'entity')
+    if args.verbose:
+        set_canari_mode(CanariMode.LocalDebug)
+
+    entity_type, entity_value = split_validate(args.input, 'entity')
     fields = {}
     params = []
 
@@ -108,14 +119,14 @@ def remote_transform(args):
 
     for p in args.transform_parameter:
         name, value = split_validate(p, 'transform parameter')
-        params += Field(name=name, value=value)
+        params.append(Field(name=name, value=value))
 
     try:
         r = remote_canari_transform_runner(
             args.host,
             args.base_path,
             args.transform,
-            [_Entity(type=entity_type, value=value, fields=fields)],
+            [_Entity(type=entity_type, value=entity_value, fields=fields)],
             params,
             Limits(soft=args.soft_limit, hard=args.hard_limit),
             args.ssl
@@ -125,6 +136,7 @@ def remote_transform(args):
             data = r.read()
             if args.raw_output:
                 print data
+                exit(0)
             else:
                 console_writer(MaltegoMessage.parse(data))
                 exit(0)
