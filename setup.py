@@ -30,7 +30,7 @@ transform in Canari 3:
 
     class HelloWorld(Transform):
         \"\"\"This transform says hello to a person entity.\"\"\"
-
+        
         # The transform input entity type.
         input_type = Person
 
