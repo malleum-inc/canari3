@@ -14,7 +14,7 @@ from safedexml import Model
 
 from canari.config import load_config
 from canari.maltego.message import MaltegoTransformResponseMessage, UIMessage, MaltegoTransformRequestMessage, Field, \
-    MaltegoException, EntityTypeFactory, Entity, MaltegoMessage
+    MaltegoException, EntityTypeFactory, Entity, MaltegoMessage, Limits
 from canari.maltego.utils import message, on_terminate, to_entity, croak, highlight
 
 __author__ = 'Nadeem Douba'
@@ -99,6 +99,7 @@ def local_transform_runner(transform, value, fields, params, config, message_wri
         )
 
         request._entities = [to_entity(transform.input_type, value, fields)]
+        request.limits = Limits(soft=10000)
 
         msg = transform.do_transform(
             request,
@@ -167,6 +168,7 @@ def scriptable_transform_runner(transform, value, fields, params, config):
     )
 
     request._entities = [to_entity(transform.input_type, value, fields)]
+    request.limits = Limits(soft=10000)
 
     msg = transform.do_transform(
         request,
@@ -189,7 +191,7 @@ def console_writer(msg, tab=-1):
     tab += 1
 
     if isinstance(msg, Model):
-        msg = fromstring(msg.render(fragment=True))
+        msg = fromstring(msg.render(fragment=True).encode('utf-8'))
 
     print('%s`- %s: %s %s' % (
         '  ' * tab,

@@ -103,7 +103,7 @@ if os.name == 'nt':
 setup(
     name='canari',
     author='Nadeem Douba',
-    version='3.1.1',
+    version='3.1.2',
     author_email='ndouba@gmail.com',
     description='Canari Framework - Maltego rapid transform development and execution framework.',
     long_description=long_description,

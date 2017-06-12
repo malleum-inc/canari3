@@ -463,7 +463,7 @@ class ElementType(object):
     @staticmethod
     def matches_type(type_, value):
         return (type_ is ElementType.int and isinstance(value, int)) or \
-               (type_ is ElementType.string and isinstance(value, str)) or \
+               (type_ is ElementType.string and isinstance(value, basestring)) or \
                (type_ is ElementType.boolean and isinstance(value, bool)) or \
                ((type_ is ElementType.float or type_ is ElementType.double) and isinstance(value, float)) or \
                (type_ is ElementType.date and isinstance(value, date))
