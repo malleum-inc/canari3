@@ -93,6 +93,7 @@ requires = [
     'Twisted',
     'pyopenssl',
     'service_identity',
+    'pyasn1',
     'safedexml',
     'lxml',
     'six',
