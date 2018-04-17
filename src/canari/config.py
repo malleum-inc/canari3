@@ -9,7 +9,7 @@ import re
 import string
 
 if sys.version_info[0] > 2:
-    from configparser import SafeConfigParser, NoOptionError, NoSectionError, BasicInterpolation
+    from configparser import ConfigParser, NoOptionError, NoSectionError, BasicInterpolation
 else:
     # noinspection PyUnresolvedReferences
     from ConfigParser import SafeConfigParser, NoOptionError, NoSectionError
@@ -64,104 +64,192 @@ if sys.version_info[0] > 2:
             return super().before_get(parser, section, option, _interpolate_environment_variables(value), defaults)
 
 
-class CanariConfigParser(SafeConfigParser):
+    class CanariConfigParser(ConfigParser):
 
-    if sys.version_info[0] > 2:
         def __init__(self, *args, **kwargs):
             super(CanariConfigParser, self).__init__(*args, interpolation=CustomInterpolation(), **kwargs)
 
-    def __iadd__(self, other):
-        self.add_section(other)
-        return self
+        def __iadd__(self, other):
+            self.add_section(other)
+            return self
 
-    def __isub__(self, other):
-        self.remove_section(other)
-        return self
+        def __isub__(self, other):
+            self.remove_section(other)
+            return self
 
-    def _interpolate(self, section, option, value, d):
-        return SafeConfigParser._interpolate(self, section, option, _interpolate_environment_variables(value), d)
+        def _interpolate(self, section, option, value, d):
+            return SafeConfigParser._interpolate(self, section, option, _interpolate_environment_variables(value), d)
 
-    def _parse_value(self, value):
-        if value.startswith('object://') and is_local_exec_mode():
-            r = urlparse(value)
-            try:
-                v = r.path.lstrip('/')
-                m = __import__(r.netloc, globals(), locals(), [v])
-                value = m.__dict__[v]
-            except ImportError:
-                pass
-        elif re.match(r'^\d+$', value):
-            value = int(value)
-        elif re.match(r'^\d+\.\d+$', value):
-            value = float(value)
-        elif re.search(r'\s*(?<=[^\\]),+\s*', value):
-            l = re.split(r'\s*(?<=[^\\]),+\s*', value)
-            value = []
-            for v in l:
-                value.append(self._parse_value(v))
-        else:
-            value = value.replace(r'\,', ',')
-        return value
+        def _parse_value(self, value):
+            if value.startswith('object://') and is_local_exec_mode():
+                r = urlparse(value)
+                try:
+                    v = r.path.lstrip('/')
+                    m = __import__(r.netloc, globals(), locals(), [v])
+                    value = m.__dict__[v]
+                except ImportError:
+                    pass
+            elif re.match(r'^\d+$', value):
+                value = int(value)
+            elif re.match(r'^\d+\.\d+$', value):
+                value = float(value)
+            elif re.search(r'\s*(?<=[^\\]),+\s*', value):
+                l = re.split(r'\s*(?<=[^\\]),+\s*', value)
+                value = []
+                for v in l:
+                    value.append(self._parse_value(v))
+            else:
+                value = value.replace(r'\,', ',')
+            return value
 
-    def _render_value(self, value):
-        if isinstance(value, str):
-            if value.strip().startswith('object://'):
+        def _render_value(self, value):
+            if isinstance(value, str):
+                if value.strip().startswith('object://'):
+                    raise ValueError('Cannot set object option.')
+                value = value.replace(',', '\\,')
+            elif isinstance(value, list):
+                value = ','.join([self._render_value(v) for v in value])
+            elif callable(value):
                 raise ValueError('Cannot set object option.')
-            value = value.replace(',', '\\,')
-        elif isinstance(value, list):
-            value = ','.join([self._render_value(v) for v in value])
-        elif callable(value):
-            raise ValueError('Cannot set object option.')
-        else:
-            value = str(value)
-        return value
+            else:
+                value = str(value)
+            return value
 
-    def _get_option_value(self, key, raise_on_empty_option=False):
-        if not key and raise_on_empty_option:
-            raise KeyError("Invalid key %r, must be in '<section>.<option>'" % key)
-        if self.has_section(key):
-            return key, ''
-        return key.rsplit('.', 1) if '.' in key else (key, '')
+        def _get_option_value(self, key, raise_on_empty_option=False):
+            if not key and raise_on_empty_option:
+                raise KeyError("Invalid key %r, must be in '<section>.<option>'" % key)
+            if self.has_section(key):
+                return key, ''
+            return key.rsplit('.', 1) if '.' in key else (key, '')
 
-    def __getitem__(self, key):
-        section, option = self._get_option_value(key, True)
-        value = self.get(section, option)
-        value = self._parse_value(value)
-        if option == 'wordlist':
-            value = wordlist(value)
-        return value
+        def __getitem__(self, key):
+            section, option = self._get_option_value(key, True)
+            value = self.get(section, option)
+            value = self._parse_value(value)
+            if option == 'wordlist':
+                value = wordlist(value)
+            return value
 
-    def __setitem__(self, key, value):
-        section, option = self._get_option_value(key, True)
-        if not self.has_section(section):
-            self.add_section(section)
-        self.set(section, option, self._render_value(value))
+        def __setitem__(self, key, value):
+            section, option = self._get_option_value(key, True)
+            if not self.has_section(section):
+                self.add_section(section)
+            self.set(section, option, self._render_value(value))
 
-    def __delitem__(self, key):
-        section, option = self._get_option_value(key)
-        if option:
-            self.remove_option(section, option)
-        else:
-            self.remove_section(section)
+        def __delitem__(self, key):
+            section, option = self._get_option_value(key)
+            if option:
+                self.remove_option(section, option)
+            else:
+                self.remove_section(section)
 
-    def __contains__(self, key):
-        section, option = self._get_option_value(key)
-        if option:
-            return self.has_option(section, option)
-        return self.has_section(section)
+        def __contains__(self, key):
+            section, option = self._get_option_value(key)
+            if option:
+                return self.has_option(section, option)
+            return self.has_section(section)
 
-    def get_as_list(self, key):
-        opt = self.__getitem__(key)
-        if isinstance(opt, basestring):
-            opt = [opt] if opt else []
-        return opt
+        def get_as_list(self, key):
+            opt = self.__getitem__(key)
+            if isinstance(opt, basestring):
+                opt = [opt] if opt else []
+            return opt
 
-    if sys.version_info[0] > 2:
         def update(self, other, **kwargs):
             if not isinstance(other, CanariConfigParser):
                 raise ValueError('Expected a CanariConfigParser, got %r instead' % type(other).__name__)
             self._sections.update(other._sections, **kwargs)
-    else:
+
+
+else:
+    class CanariConfigParser(SafeConfigParser):
+
+        def __iadd__(self, other):
+            self.add_section(other)
+            return self
+
+        def __isub__(self, other):
+            self.remove_section(other)
+            return self
+
+        def _interpolate(self, section, option, value, d):
+            return SafeConfigParser._interpolate(self, section, option, _interpolate_environment_variables(value), d)
+
+        def _parse_value(self, value):
+            if value.startswith('object://') and is_local_exec_mode():
+                r = urlparse(value)
+                try:
+                    v = r.path.lstrip('/')
+                    m = __import__(r.netloc, globals(), locals(), [v])
+                    value = m.__dict__[v]
+                except ImportError:
+                    pass
+            elif re.match(r'^\d+$', value):
+                value = int(value)
+            elif re.match(r'^\d+\.\d+$', value):
+                value = float(value)
+            elif re.search(r'\s*(?<=[^\\]),+\s*', value):
+                l = re.split(r'\s*(?<=[^\\]),+\s*', value)
+                value = []
+                for v in l:
+                    value.append(self._parse_value(v))
+            else:
+                value = value.replace(r'\,', ',')
+            return value
+
+        def _render_value(self, value):
+            if isinstance(value, str):
+                if value.strip().startswith('object://'):
+                    raise ValueError('Cannot set object option.')
+                value = value.replace(',', '\\,')
+            elif isinstance(value, list):
+                value = ','.join([self._render_value(v) for v in value])
+            elif callable(value):
+                raise ValueError('Cannot set object option.')
+            else:
+                value = str(value)
+            return value
+
+        def _get_option_value(self, key, raise_on_empty_option=False):
+            if not key and raise_on_empty_option:
+                raise KeyError("Invalid key %r, must be in '<section>.<option>'" % key)
+            if self.has_section(key):
+                return key, ''
+            return key.rsplit('.', 1) if '.' in key else (key, '')
+
+        def __getitem__(self, key):
+            section, option = self._get_option_value(key, True)
+            value = self.get(section, option)
+            value = self._parse_value(value)
+            if option == 'wordlist':
+                value = wordlist(value)
+            return value
+
+        def __setitem__(self, key, value):
+            section, option = self._get_option_value(key, True)
+            if not self.has_section(section):
+                self.add_section(section)
+            self.set(section, option, self._render_value(value))
+
+        def __delitem__(self, key):
+            section, option = self._get_option_value(key)
+            if option:
+                self.remove_option(section, option)
+            else:
+                self.remove_section(section)
+
+        def __contains__(self, key):
+            section, option = self._get_option_value(key)
+            if option:
+                return self.has_option(section, option)
+            return self.has_section(section)
+
+        def get_as_list(self, key):
+            opt = self.__getitem__(key)
+            if isinstance(opt, basestring):
+                opt = [opt] if opt else []
+            return opt
+
         def update(self, other):
             if not isinstance(other, CanariConfigParser):
                 raise ValueError('Expected a CanariConfigParser, got %r instead' % type(other).__name__)
