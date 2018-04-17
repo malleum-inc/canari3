@@ -1,4 +1,4 @@
-FROM alpine
+FROM alpine:3.7
 
 ENV BASE_OS_IMAGE=alpine
 
@@ -11,7 +11,9 @@ RUN apk add --no-cache \
         py-lxml \
         py-setuptools \
         py-twisted \
-        py-pip
+        py-pip \
+        openssl-dev \
+        libffi-dev
 
 RUN cd /root/sdist && \
     pip install -U pip setuptools && \
