@@ -22,8 +22,8 @@ __all__ = [
 
 class CanariConfigParserTest(TestCase):
     def setUp(self):
-        self.root_config_file = resource_filename('canari.unittests.resources', 'root.conf')
-        self.canari_test_resource_dir = resource_filename('canari.unittests.resources', '')
+        self.root_config_file = resource_filename('resources', 'root.conf')
+        self.canari_test_resource_dir = resource_filename('resources', '')
         self.config_parser = load_config(self.root_config_file)
         self.path_environ = os.environ['PATH']
         os.environ['CANARI_TEST_RESOURCE_DIR'] = self.canari_test_resource_dir

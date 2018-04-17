@@ -16,21 +16,21 @@ __status__ = 'Development'
 class ResourceTests(TestCase):
 
     def test_external_resource(self):
-        resource = external_resource('wordlist.txt', 'canari.unittests.resources')
-        self.assertTrue(resource.endswith(os.path.join('canari', 'unittests', 'resources', 'wordlist.txt')))
+        resource = external_resource('wordlist.txt', 'resources')
+        self.assertTrue(resource.endswith(os.path.join('resources', 'wordlist.txt')))
         self.assertTrue(os.path.lexists(resource))
 
     def test_icon_resource(self):
-        icon = icon_resource('0.png', 'canari.unittests.resources.images')
-        self.assertTrue(icon.startswith('file:///') and icon.endswith('canari/unittests/resources/images/0.png'))
+        icon = icon_resource('0.png', 'resources.images')
+        self.assertTrue(icon.startswith('file:///') and icon.endswith('resources/images/0.png'))
         self.assertTrue(os.path.lexists(icon.replace('file://', '')))
 
     def test_image_resources(self):
-        images = image_resources('canari.unittests')
+        images = image_resources('')
         self.assertTrue(images)
         self.assertTrue(len(images) == 4)
         for i, j in enumerate(sorted(images)):
-            self.assertTrue(j.endswith(os.path.join('canari', 'unittests', 'resources', 'images', '%d.png' % i)))
+            self.assertTrue(j.endswith(os.path.join('resources', 'images', '%d.png' % i)))
             self.assertTrue(os.path.lexists(j))
 
     def test_conf(self):
