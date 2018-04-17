@@ -167,6 +167,8 @@ def install_wizard(opts):
             "--> Canari has detected that you're running this install script from within a virtualenv.\n"
             "--> Would you like to run Plume from this virtualenv (%r) as well?" % os.environ['VIRTUAL_ENV'], True)
         configurator.variables['plume.venv'] = os.environ['VIRTUAL_ENV'] if run_venv else False
+    else:
+        configurator.variables['plume.venv'] = None
 
     configurator.render()
     finish(configurator)
