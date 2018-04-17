@@ -1,10 +1,13 @@
+from __future__ import print_function
+
 import os
+import pwd
 import re
 import sys
-import pwd
 import unicodedata
-
 from argparse import Action
+
+from past.builtins import basestring, unicode
 
 from canari.commands.framework import Command
 from canari.config import load_config, OPTION_LOCAL_PATH
@@ -58,7 +61,10 @@ def canari_main(opts):
         os.makedirs(profile_dir)
     fix_pypath()
     fix_binpath(load_config()[OPTION_LOCAL_PATH])
-    opts.command_function(opts)
+    if not hasattr(opts, 'command_function'):
+        canari_main.parser.print_help()
+    else:
+        opts.command_function(opts)
 
 
 def to_utf8(s):
@@ -77,7 +83,8 @@ def uproot():
         login = getlogin()
 
         if login != 'root':
-            print 'Why are you using root to run this command? You should be using %s! Bringing you down...' % login
+            print('Why are you using root to run this command? You should be using %s! Bringing you down...' % login,
+                  file=sys.stderr)
             user = pwd.getpwnam(login)
             os.setgid(user.pw_gid)
             os.setuid(user.pw_uid)

@@ -1,9 +1,13 @@
+from future.standard_library import install_aliases
+
+install_aliases()
+
 import os
 import sys
+from io import FileIO
 
 from tempfile import NamedTemporaryFile, gettempdir
 from time import time
-
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2015, Canari Project'
@@ -24,7 +28,6 @@ __all__ = [
     'PushDir'
 ]
 
-
 if os.name == 'nt':
     import msvcrt
     from ctypes import *
@@ -34,6 +37,7 @@ if os.name == 'nt':
     LOCK_NB = 0x1  # LOCKFILE_FAIL_IMMEDIATELY
     LOCK_EX = 0x2  # LOCKFILE_EXCLUSIVE_LOCK
     LOCK_UN = 0x4  # Unlock file. Not in NT API, just needs to be there.
+
 
     # --- the code is taken from pyserial project ---
     #
@@ -47,6 +51,7 @@ if os.name == 'nt':
     else:
         ULONG_PTR = c_ulong
     PVOID = c_void_p
+
 
     # --- Union inside Structure by stackoverflow:3480240 ---
     class _OFFSET(Structure):
@@ -96,9 +101,9 @@ else:
     from fcntl import flock, LOCK_EX, LOCK_NB, LOCK_SH, LOCK_UN
 
 
-class FileSemaphore(file):
+class FileSemaphore(FileIO):
 
-    def __init__(self, name, mode='rb', buffering=-1):
+    def __init__(self, name, mode='rb', buffering=True):
         self.locked = False
         super(FileSemaphore, self).__init__(name, mode, buffering)
 
@@ -149,7 +154,7 @@ def UniqueFile(self, name, delete=False):
     n, e = os.path.splitext(name)
     f = NamedTemporaryFile(suffix=e, prefix='%s_' % n, delete=delete)
     if os.name == 'posix':
-        os.chmod(f.name, 0644)
+        os.chmod(f.name, 0o644)
     return f
 
 
@@ -183,10 +188,10 @@ class CookieFile(FileSemaphore):
     def expired(self):
         return self.age > self.max_age
 
-    def __init__(self, name, mode='rb', buffering=-1, max_age=86400):
+    def __init__(self, name, mode='rb', buffering=True, max_age=86400):
         name = os.path.join(gettempdir(), name)
         self.max_age = max_age
-        super(CookieFile, self).__init__(name, mode, buffering=-1)
+        super(CookieFile, self).__init__(name, mode, buffering=buffering)
 
         if 'w' in self.mode:
             self.lockex()

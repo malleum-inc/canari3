@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+from __future__ import print_function
+
 import sys
 
 from mrbob.rendering import jinja2_env
@@ -8,8 +9,8 @@ from canari.maltego.message import StringEntityField, IntegerEntityField, FloatE
     BooleanEntityField, TimeSpanEntityField, DateTimeEntityField, DateEntityField, LongEntityField
 from canari.pkgutils.transform import TransformDistribution
 from canari.project import CanariProject
-from common import canari_main
-from framework import SubCommand, Argument
+from canari.commands.common import canari_main
+from canari.commands.framework import SubCommand, Argument
 
 __author__ = 'Tomas Lima'
 __copyright__ = 'Copyright 2015, Canari Project'
@@ -93,7 +94,7 @@ def generate_entities_doc(args):
 
     configurator.ask_questions()
 
-    print('Creating entities.rst documentation for %r...' % args.package)
+    print('Creating entities.rst documentation for %r...' % args.package, file=sys.stderr)
     configurator.render()
 
-    print('done!')
+    print('done!', file=sys.stderr)

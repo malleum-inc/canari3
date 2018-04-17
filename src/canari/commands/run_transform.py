@@ -6,8 +6,8 @@ from canari.maltego.runner import local_transform_runner
 from canari.mode import set_canari_mode, CanariMode
 from canari.project import CanariProject
 from canari.utils.fs import PushDir
-from common import canari_main, ParseFieldsAction
-from framework import SubCommand, Argument
+from canari.commands.common import canari_main, ParseFieldsAction
+from canari.commands.framework import SubCommand, Argument
 
 
 __author__ = 'Nadeem Douba'

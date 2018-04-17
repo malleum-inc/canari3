@@ -37,7 +37,7 @@ class ModeTests(TestCase):
     def set_canari_mode(self, mode, truth_table):
         set_canari_mode(mode)
         self.assertEqual(mode, get_canari_mode())
-        for name, func in self.tests.iteritems():
+        for name, func in self.tests.items():
             expected_result = truth_table.issuperset([name])
             self.assertEqual(
                 expected_result, bool(func()),

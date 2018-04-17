@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+from __future__ import print_function
+
 import grp
 import os
 import sys
@@ -8,9 +9,9 @@ from stat import ST_MODE, S_ISDIR
 from mrbob.bobexceptions import ValidationError
 from mrbob.configurator import Configurator, Question
 
-from common import canari_main
+from canari.commands.common import canari_main
 from canari.question import parse_bool
-from framework import SubCommand, Argument
+from canari.commands.framework import SubCommand, Argument
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2012, Canari Project'
@@ -28,21 +29,21 @@ def check_port(configurator, question, answer):
         if 1 < int(answer) <= 65535:
             return answer
         raise ValueError("Port number needs to be between 1 and 65535.")
-    except ValueError, e:
+    except ValueError as e:
         raise ValidationError(e)
 
 
 def check_gid(configurator, question, answer):
     try:
         return grp.getgrnam(answer).gr_gid
-    except KeyError, e:
+    except KeyError as e:
         raise ValidationError(e)
 
 
 def check_uid(configurator, question, answer):
     try:
         return pwd.getpwnam(answer).pw_uid
-    except KeyError, e:
+    except KeyError as e:
         raise ValidationError(e)
 
 
@@ -59,7 +60,7 @@ def check_mkdir(configurator, question, answer):
         elif not S_ISDIR(os.stat(answer)[ST_MODE]):
             raise ValidationError("Invalid path (%s): path must point to a directory not a file." % answer)
         return os.path.realpath(answer)
-    except OSError, e:
+    except OSError as e:
         raise ValidationError(e)
 
 
@@ -70,13 +71,13 @@ def check_init_script(configurator, question, answer):
         elif not S_ISDIR(os.stat(answer)[ST_MODE]):
             raise ValidationError("Invalid path (%s): path must point to a directory not a file." % answer)
 
-        with file(os.path.join(answer, 'plume'), 'w'):
+        with open(os.path.join(answer, 'plume'), 'w'):
             answer = os.path.realpath(answer)
             configurator.target_directory = answer
             return answer
-    except OSError, e:
+    except OSError as e:
         raise ValidationError(e)
-    except IOError, e:
+    except IOError as e:
         raise ValidationError(e)
 
 
@@ -133,21 +134,21 @@ def install_defaults(opts):
 
     configurator.variables['plume.venv'] = os.environ.get('VIRTUAL_ENV')
     if configurator.variables['plume.venv']:
-        print 'Will use the virtual environment in %r to run Plume...' % configurator.variables['plume.venv']
+        print('Will use the virtual environment in %r to run Plume...' % configurator.variables['plume.venv'], file=sys.stderr)
     configurator.variables['plume.enable_ssl'] = 'n'
-    print 'Installing init script to /etc/init.d...'
+    print('Installing init script to /etc/init.d...', file=sys.stderr)
     configurator.variables['plume.init'] = check_init_script(configurator, '', '/etc/init.d')
-    print 'Creating Plume root directory at /var/plume...'
+    print('Creating Plume root directory at /var/plume...', file=sys.stderr)
     configurator.variables['plume.dir'] = check_mkdir(configurator, '', '/var/plume')
-    print 'The PID file will be at /var/run/plume.pid...'
+    print('The PID file will be at /var/run/plume.pid...', file=sys.stderr)
     configurator.variables['plume.run_dir'] = '/var/run'
-    print 'The log files will be at /var/log/plume.log...'
+    print('The log files will be at /var/log/plume.log...', file=sys.stderr)
     configurator.variables['plume.log_dir'] = '/var/log'
     configurator.variables['plume.user'] = check_uid(configurator, '', 'nobody')
     configurator.variables['plume.group'] = check_gid(configurator, '', 'nobody')
-    print 'The Plume server will under UID/GID=%s/%s...' % (
-        configurator.variables['plume.user'], configurator.variables['plume.group'])
-    print 'TLS will be disabled by default...'
+    print('The Plume server will under UID/GID=%s/%s...' % (
+        configurator.variables['plume.user'], configurator.variables['plume.group']), file=sys.stderr)
+    print('TLS will be disabled by default...', file=sys.stderr)
     configurator.variables['plume.certificate'] = ''
     configurator.variables['plume.private_key'] = ''
 
@@ -172,18 +173,18 @@ def install_wizard(opts):
 
 
 def finish(configurator):
-    print 'Writing canari.conf to %r...' % configurator.variables['plume.dir']
+    print('Writing canari.conf to %r...' % configurator.variables['plume.dir'], file=sys.stderr)
 
     # move the canari.conf file from the init.d directory to the plume content directory
     src_file = os.path.join(configurator.variables['plume.init'], 'canari.conf')
     dst_file = os.path.join(configurator.variables['plume.dir'], 'canari.conf')
 
     if src_file != dst_file:
-        with file(src_file) as src:
-            with file(dst_file, 'w') as dst:
+        with open(src_file) as src:
+            with open(dst_file, 'w') as dst:
                 dst.write(src.read())
         os.unlink(src_file)
 
-    os.chmod(os.path.join(configurator.variables['plume.init'], 'plume'), 0755)
+    os.chmod(os.path.join(configurator.variables['plume.init'], 'plume'), 0o755)
 
-    print 'done!'
+    print('done!', file=sys.stderr)

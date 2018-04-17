@@ -1,11 +1,14 @@
+from __future__ import print_function
+
+import sys
 from datetime import datetime
 from getpass import getuser
 from os import path
 
 from mrbob.configurator import Configurator
 
-from common import canari_main
-from framework import SubCommand, Argument
+from canari.commands.common import canari_main
+from canari.commands.framework import SubCommand, Argument
 import canari
 
 
@@ -49,7 +52,7 @@ def create_package(opts):
     }
 
     if not path.exists(package_name):
-        print('creating skeleton in %s' % package_name)
+        print('creating skeleton in %s' % package_name, file=sys.stderr)
         configurator = Configurator('canari.resources.templates:create_package',
                                     package_name,
                                     {'non_interactive': False, 'remember_answers': True},
@@ -58,7 +61,7 @@ def create_package(opts):
         configurator.ask_questions()
         configurator.render()
     else:
-        print('A directory with the name %s already exists... exiting' % package_name)
+        print('A directory with the name %s already exists... exiting' % package_name, file=sys.stderr)
         exit(-1)
 
-    print('done!')
+    print('done!', file=sys.stderr)

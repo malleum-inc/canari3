@@ -1,3 +1,13 @@
+from past.builtins import basestring
+
+import sys
+
+if sys.version_info[0] > 2:
+    from http.client import HTTPSConnection, HTTPConnection
+else:
+    # noinspection PyUnresolvedReferences
+    from httplib import HTTPSConnection, HTTPConnection
+
 import subprocess
 from collections import defaultdict
 import os
@@ -6,7 +16,6 @@ import traceback
 from distutils.spawn import find_executable
 from canari.mode import is_debug_exec_mode
 from importlib import import_module
-from httplib import HTTPSConnection, HTTPConnection
 
 import re
 from defusedxml.cElementTree import fromstring
@@ -38,7 +47,7 @@ def sudo(args):
 
 
 def load_object(classpath):
-    package, cls = re.search(r'^(.*)\.([^\.]+)$', classpath).groups()
+    package, cls = re.search(r'^(.*)\.([^.]+)$', classpath).groups()
     module = import_module(package)
     return module.__dict__[cls]
 
@@ -119,7 +128,7 @@ def local_transform_runner(transform, value, fields, params, config, message_wri
             raise MaltegoException(msg)
         else:
             raise MaltegoException('Could not resolve message type returned by transform.')
-    except MaltegoException, me:
+    except MaltegoException as me:
         croak(me, message_writer)
     except KeyboardInterrupt:
         # Ensure that the keyboard interrupt handler does not execute twice if a transform is sudo'd

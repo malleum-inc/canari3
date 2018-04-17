@@ -1,3 +1,6 @@
+from past.builtins import basestring, long
+from future.utils import with_metaclass
+
 from collections import Iterable
 from datetime import datetime, date, timedelta
 from numbers import Number
@@ -587,8 +590,8 @@ class LinkColor:
     Pink = '#FEAFCA'
 
 
-class Entity(object):
-    __metaclass__ = EntityTypeFactory
+class Entity(with_metaclass(EntityTypeFactory, object)):
+
     _namespace_ = None
     _alias_ = None
     _type_ = None

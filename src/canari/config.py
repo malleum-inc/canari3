@@ -1,13 +1,25 @@
+from future.standard_library import install_aliases
+from past.builtins import basestring
+
+install_aliases()
+
+import sys
 import os
 import re
 import string
-from ConfigParser import SafeConfigParser, NoOptionError, NoSectionError
-from urlparse import urlparse
+
+if sys.version_info[0] > 2:
+    from configparser import SafeConfigParser, NoOptionError, NoSectionError, BasicInterpolation
+else:
+    # noinspection PyUnresolvedReferences
+    from ConfigParser import SafeConfigParser, NoOptionError, NoSectionError
+
+from urllib.parse import urlparse
 
 from canari.mode import is_local_exec_mode, is_remote_exec_mode
 from canari.utils.fs import PushDir
-from resource import global_config
-from utils.wordlist import wordlist
+from canari.resource import global_config
+from canari.utils.wordlist import wordlist
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2015, Canari Project'
@@ -39,16 +51,24 @@ OPTION_REMOTE_PATH = 'canari.remote.path'
 OPTION_REMOTE_PACKAGES = 'canari.remote.packages'
 
 
+def _interpolate_environment_variables(value):
+    if isinstance(value, str):
+        value = string.Template(value).safe_substitute(os.environ)
+    return value
+
+
+if sys.version_info[0] > 2:
+    class CustomInterpolation(BasicInterpolation):
+
+        def before_get(self, parser, section, option, value, defaults):
+            return super().before_get(parser, section, option, _interpolate_environment_variables(value), defaults)
+
+
 class CanariConfigParser(SafeConfigParser):
 
-    @staticmethod
-    def _interpolate_environment_variables(value):
-        if isinstance(value, str):
-            value = string.Template(value).safe_substitute(os.environ)
-        return value
-
-    def _interpolate(self, section, option, value, d):
-        return SafeConfigParser._interpolate(self, section, option, self._interpolate_environment_variables(value), d)
+    if sys.version_info[0] > 2:
+        def __init__(self, *args, **kwargs):
+            super(CanariConfigParser, self).__init__(*args, interpolation=CustomInterpolation(), **kwargs)
 
     def __iadd__(self, other):
         self.add_section(other)
@@ -57,6 +77,9 @@ class CanariConfigParser(SafeConfigParser):
     def __isub__(self, other):
         self.remove_section(other)
         return self
+
+    def _interpolate(self, section, option, value, d):
+        return SafeConfigParser._interpolate(self, section, option, _interpolate_environment_variables(value), d)
 
     def _parse_value(self, value):
         if value.startswith('object://') and is_local_exec_mode():
@@ -133,10 +156,16 @@ class CanariConfigParser(SafeConfigParser):
             opt = [opt] if opt else []
         return opt
 
-    def update(self, other):
-        if not isinstance(other, CanariConfigParser):
-            raise ValueError('Expected a CanariConfigParser, got %r instead' % type(other).__name__)
-        self._sections.update(other._sections)
+    if sys.version_info[0] > 2:
+        def update(self, other, **kwargs):
+            if not isinstance(other, CanariConfigParser):
+                raise ValueError('Expected a CanariConfigParser, got %r instead' % type(other).__name__)
+            self._sections.update(other._sections, **kwargs)
+    else:
+        def update(self, other):
+            if not isinstance(other, CanariConfigParser):
+                raise ValueError('Expected a CanariConfigParser, got %r instead' % type(other).__name__)
+            self._sections.update(other._sections)
 
 
 def load_config(config_file=None, recursive_load=True):

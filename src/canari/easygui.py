@@ -1,3 +1,5 @@
+from past.builtins import cmp
+
 """
 @version: 0.96(2010-08-29)
 

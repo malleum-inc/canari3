@@ -1,9 +1,9 @@
 from imghdr import what
-from utils.stack import calling_package
-from pkg_resources import resource_filename, resource_listdir, resource_isdir
 from os.path import abspath
 
-from canari.mode import is_plume_exec_mode
+from pkg_resources import resource_filename, resource_listdir, resource_isdir
+
+from canari.utils.stack import calling_package
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2015, Canari Project'

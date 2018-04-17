@@ -1,12 +1,14 @@
-#!/usr/bin/env python
+from __future__ import print_function
 
 import os
+import sys
+
 from canari.mode import CanariMode, set_canari_mode
 
 from canari.pkgutils.transform import TransformDistribution
-from common import canari_main, uproot
+from canari.commands.common import canari_main, uproot
+from canari.commands.framework import SubCommand, Argument
 from canari.utils.fs import PushDir
-from framework import SubCommand, Argument
 
 
 __author__ = 'Nadeem Douba'
@@ -56,6 +58,6 @@ def create_profile(args):
         with PushDir(opts.working_dir or current_dir):
             transform_package = TransformDistribution(opts.package)
             transform_package.create_profile(opts.working_dir, current_dir)
-    except ValueError, e:
-        print(str(e))
+    except ValueError as e:
+        print(str(e), file=sys.stderr)
         exit(-1)

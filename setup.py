@@ -94,7 +94,9 @@ requires = [
     'pyopenssl',
     'service_identity',
     'safedexml',
-    'lxml'
+    'lxml',
+    'six',
+    'future'
 ]
 
 if os.name == 'nt':

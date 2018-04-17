@@ -1,11 +1,12 @@
+from __future__ import print_function
+
 import inspect
 import signal
 import sys
 import os
 
 from canari.maltego.entities import Unknown
-from message import MaltegoMessage, MaltegoTransformExceptionMessage, MaltegoException, \
-    Field
+from canari.maltego.message import MaltegoMessage, MaltegoTransformExceptionMessage, MaltegoException, Field
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2015, Canari Project'
@@ -18,7 +19,7 @@ __email__ = 'ndouba@gmail.com'
 __status__ = 'Development'
 
 __all__ = [
-    'onterminate',
+    'on_terminate',
     'message',
     'highlight',
     'croak',
@@ -40,7 +41,7 @@ def on_terminate(func):
 
 def message(m, fd=sys.stdout):
     """Write a MaltegoMessage to stdout and exit successfully"""
-    print MaltegoMessage(message=m).render(fragment=True).encode('utf-8')
+    print(MaltegoMessage(message=m).render(fragment=True).encode('utf-8'), file=fd)
     sys.exit(0)
 
 
@@ -106,7 +107,7 @@ def to_entity(entity_type, value, fields):
     dict). This is only used by the local transform runner as a helper function.
     """
     e = entity_type(value)
-    for k, v in fields.iteritems():
+    for k, v in fields.items():
         e.fields[k] = Field(k, v)
     return e
 

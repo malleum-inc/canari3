@@ -1,3 +1,6 @@
+from __future__ import print_function
+from past.builtins import basestring
+
 from importlib import import_module
 
 import os
@@ -70,7 +73,7 @@ class MaltegoDistribution(object):
             path = os.path.join(dir_name, subdir_name)
         if not os.path.lexists(path):
             if create:
-                os.makedirs(path, 0755)
+                os.makedirs(path, 0o755)
             else:
                 raise OSError('Path does not exist: %r' % path)
         return path
@@ -250,11 +253,11 @@ class MaltegoDistribution(object):
         if len(vs) == 1:
             return os.path.join(maltego_base_dir, vs[0])
         elif vs:
-            print('Multiple versions of Maltego detected: ')
+            print('Multiple versions of Maltego detected: ', file=sys.stderr)
             r = parse_int('Please select which version you wish to use', ['Maltego %s' % i for i in vs])
             return os.path.join(maltego_base_dir, vs[int(r)])
         print('Could not automatically find Maltego\'s settings directory. '
-              'Use the -w parameter to specify its location, instead.')
+              'Use the -w parameter to specify its location, instead.', file=sys.stderr)
 
     def _detect_settings_dir(self):
         if sys.platform.startswith('linux'):
@@ -292,9 +295,10 @@ class MaltegoDistribution(object):
         input_entity = transform.input_type
 
         if transform.name in self.transform_uuids:
-            print('WARNING: Previous declaration of %s in transform %s. Overwriting...' % (transform_id, name))
+            print('WARNING: Previous declaration of %s in transform %s. Overwriting...' % (transform_id, name),
+                  file=sys.stderr)
         else:
-            print('Installing transform %s from %s...' % (transform_id, name))
+            print('Installing transform %s from %s...' % (transform_id, name), file=sys.stderr)
 
         sets = None
         if input_set:
@@ -326,7 +330,8 @@ class MaltegoDistribution(object):
         )
 
         if not transform_def.sets:
-            print('WARNING: Transform does not appear to be part of any Transform Sets (Perhaps an error?).')
+            print('WARNING: Transform does not appear to be part of any Transform Sets (Perhaps an error?).',
+                  file=sys.stderr)
 
         transform_settings_def = TransformSettings(properties=[
             CmdLineTransformPropertySetting(
@@ -349,7 +354,7 @@ class MaltegoDistribution(object):
         transform_repository_dir = self.get_transform_repository_dir(transform_repository)
 
         for transform_id, (input_set, input_entity) in zip(spec.uuids, spec.inputs):
-            print 'Removing %s from %s...' % (transform_id, transform_repository_dir)
+            print('Removing %s from %s...' % (transform_id, transform_repository_dir), file=sys.stderr)
             self.remove_file(self.path_join(transform_repository_dir, '%s.transform' % transform_id))
             self.remove_file(self.path_join(transform_repository_dir, '%s.transformsettings' % transform_id))
             self.remove_transform_from_set(transform_id, input_set)
@@ -362,13 +367,13 @@ class MaltegoDistribution(object):
             return nbattr
         f = self.path_join(self.machines_dir, '.nbattrs')
         if os.path.exists(f):
-            data = file(f).read()
+            data = open(f).read()
             if data:
                 nbattr = nbattr.parse(data)
         return nbattr
 
     def _parse_machine_script(self, contents):
-        machine_sig = re.search('machine\s*\n*\((.+)\)\s*\n*\{\s*\n*start\s*\n*\{', contents, re.MULTILINE| re.DOTALL)
+        machine_sig = re.search('machine\s*\n*\((.+)\)\s*\n*{\s*\n*start\s*\n*{', contents, re.MULTILINE | re.DOTALL)
         if not machine_sig:
             return
         props = dict(re.findall(r'(?:(\w+)\s*:\s*)?["\']([^"\']+)["\']', machine_sig.groups()[0]))
@@ -382,7 +387,7 @@ class MaltegoDistribution(object):
         filename = os.path.basename(filename)
         name = filename.replace('.machine', '')
 
-        print 'Uninstalling %s from %s...' % (filename, self.machines_dir)
+        print('Uninstalling %s from %s...' % (filename, self.machines_dir), file=sys.stderr)
         if name in self._machine_nbattr.fileobjects:
             del self._machine_nbattr.fileobjects[name]
 
@@ -398,13 +403,13 @@ class MaltegoDistribution(object):
         if props['name'] not in self._machine_nbattr.fileobjects:
             f = fileobject(name=props['name'])
             self._machine_nbattr += f
-            for n, v in props.iteritems():
+            for n, v in props.items():
                 f += attr(name=n, stringvalue=v)
             f += attr(name='enabled', boolvalue=True)
             f += attr(name='readonly', boolvalue=False)
 
         dst = self.path_join(self.machines_dir, os.path.basename(filename))
-        print 'Installing machine %s to %s...' % (filename, dst)
+        print('Installing machine %s to %s...' % (filename, dst), file=sys.stderr)
         self.write_file(dst, contents)
 
     def add_entity(self, entity):
@@ -414,7 +419,7 @@ class MaltegoDistribution(object):
             raise TypeError('Expected str or MaltegoEntity, not %s', type(entity).__name__)
         entity_category_dir = self.get_entity_category_dir(entity.category)
         entity_filename = '%s.entity' % self.path_join(entity_category_dir, entity.id)
-        print 'Installing entity %s to %s...' % (entity.id, entity_filename)
+        print('Installing entity %s to %s...' % (entity.id, entity_filename), file=sys.stderr)
         self.write_file(entity_filename, entity.render(fragment=True, pretty=True))
 
     def path_join(self, *args):
@@ -424,7 +429,7 @@ class MaltegoDistribution(object):
         if self.version >= MaltegoVersion.Tungsten:
             raise NotImplementedError('This version of Maltego uses encrypted files and therefore does '
                                       'not support direct management of any files within the configuration directory.')
-        with file(filename, 'w') as f:
+        with open(filename, 'w') as f:
             if isinstance(contents, Model):
                 f.write(contents.render(fragment=True, pretty=True))
             else:
@@ -486,7 +491,7 @@ class MtzZipFile(object):
         realdir = os.path.dirname(realpath)
         if not os.path.isdir(realdir):
             os.makedirs(realdir)
-        with file(realpath, mode='wb') as f:
+        with open(realpath, mode='wb') as f:
             f.write(bytes)
 
     def removefile(self, zinfo_or_arcname):
@@ -503,7 +508,7 @@ class MtzZipFile(object):
             raise RuntimeError('Attempt to read ZIP archive that was already closed')
         if self.mode == 'r':
             return self._zipfile.read(name, pwd)
-        with file(self._get_real_file(name)) as f:
+        with open(self._get_real_file(name)) as f:
             return f.read()
 
     def _get_real_file(self, name):
@@ -709,17 +714,17 @@ class MtzDistribution(MtzZipFile, MaltegoDistribution):
 
     def _write_pending(self):
         # Write pending transform sets
-        for transform_set, transform_set_def in self._transform_sets.iteritems():
+        for transform_set, transform_set_def in self._transform_sets.items():
             transform_set_xml = TransformSet(
                 name=transform_set,
                 description=transform_set_def['description'],
                 transforms=[Transform(name=transform) for transform in transform_set_def['transforms']]
             )
-            print ('Writing transform set %s to %s...' % (transform_set, self.filename))
+            print('Writing transform set %s to %s...' % (transform_set, self.filename), file=sys.stderr)
             self.write_file(transform_set_def['filename'], transform_set_xml)
 
         # Write pending server definitions
-        for s, server_def in self._servers.iteritems():
+        for s, server_def in self._servers.items():
             server = MaltegoServer(
                 name=s,
                 enabled=server_def['enabled'],
@@ -730,7 +735,7 @@ class MtzDistribution(MtzZipFile, MaltegoDistribution):
                 authentication=Authentication(type_=server_def['authentication']),
                 transforms=[Transform(name=transform) for transform in server_def['transforms']]
             )
-            print('Writing server %s to %s' % (s, self.filename))
+            print('Writing server %s to %s' % (s, self.filename), file=sys.stderr)
             self.write_file(server_def['filename'], server)
 
     def add_server(self, server_name, **kwargs):
@@ -761,12 +766,12 @@ class MtzDistribution(MtzZipFile, MaltegoDistribution):
             self._servers[server_name]['transforms'].remove(transform_id)
 
     def add_machine(self, name, contents):
-        print 'Writing machine %s to %s...' % (name, self.filename)
+        print('Writing machine %s to %s...' % (name, self.filename), file=sys.stderr)
         self.write_file(self.path_join(self.machines_dir, name), contents)
         self.write_file(self.path_join(self.machines_dir, name.replace('.machine', '.properties')), 'enabled=true')
 
     def remove_machine(self, filename):
-        print 'Removing %s from %s...' % (filename, self.machines_dir)
+        print('Removing %s from %s...' % (filename, self.machines_dir), file=sys.stderr)
         path = self.path_join(self.machines_dir, os.path.basename(filename))
         self.remove_file(path)
         self.remove_file(path.replace('.machine', '.properties'))
@@ -778,7 +783,7 @@ class MtzDistribution(MtzZipFile, MaltegoDistribution):
         if not isinstance(mtz_file, MtzDistribution):
             raise TypeError('Expected MtzDistribution object got %s instead.' % type(mtz_file).__name__)
         for f in mtz_file.namelist():
-            print 'Writing %s to %s...' % (f, mtz_file.filename)
+            print('Writing %s to %s...' % (f, mtz_file.filename), file=sys.stderr)
             if re.match(r'.*?/(.+)?\.(entity|category|transform(settings)?|mtvs|properties|machine|seed)$', f):
                 self.write_file(f, mtz_file.read_file(f))
             elif f.endswith('.tas'):
@@ -793,7 +798,7 @@ class MtzDistribution(MtzZipFile, MaltegoDistribution):
             raise TypeError('Expected str or MaltegoEntity, not %s', type(entity).__name__)
         self.add_entity_category(entity.category)
         entity_filename = '%s.entity' % self.path_join(self.entities_dir, entity.id)
-        print 'Installing entity %s to %s...' % (entity.id, entity_filename)
+        print('Installing entity %s to %s...' % (entity.id, entity_filename), file=sys.stderr)
         self.write_file(entity_filename, entity.render(fragment=True, pretty=True))
 
     def path_join(self, *args):

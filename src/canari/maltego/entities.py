@@ -1,4 +1,5 @@
-from message import Entity, StringEntityField, IntegerEntityField, FloatEntityField, BooleanEntityField, DateEntityField
+from canari.maltego.message import (Entity, StringEntityField, IntegerEntityField,
+                                    FloatEntityField, BooleanEntityField, DateEntityField)
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2015, Canari Project'

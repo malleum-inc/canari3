@@ -1,8 +1,11 @@
-#!/usr/bin/env python
+from __future__ import print_function
+
+import sys
+
 from collections import OrderedDict
 
-from framework import Argument, SubCommand
-from common import canari_main
+from canari.commands.framework import Argument, SubCommand
+from canari.commands.common import canari_main
 
 from csv import reader, DictWriter
 
@@ -37,8 +40,8 @@ __status__ = 'Development'
 def csv2sheets(opts):
 
     if not opts.graph.endswith('.csv'):
-        print "Invalid file type: %s. Please make sure you run this command against a CSV " \
-              "file generated from 'canari mtgx2csv'." % opts.graph
+        print("Invalid file type: %s. Please make sure you run this command against a CSV "
+              "file generated from 'canari mtgx2csv'." % opts.graph, file=sys.stderr)
         exit(-1)
     opts.prefix = opts.prefix or opts.graph.split('.', 1)[0]
 
@@ -46,7 +49,7 @@ def csv2sheets(opts):
     sheet_headers = {}
 
     try:
-        with file(opts.graph) as csvfile:
+        with open(opts.graph) as csvfile:
             for row in reader(csvfile):
                 fv = OrderedDict(column.split('=', 1) for column in row)
                 entity_type = fv.pop('Entity Type')
@@ -62,11 +65,11 @@ def csv2sheets(opts):
 
         for entity_type in sheets:
             filename = '%s_%s.csv' % (opts.prefix, entity_type)
-            print 'Writing %s sheet to %s...' % (entity_type, filename)
+            print('Writing %s sheet to %s...' % (entity_type, filename), file=sys.stderr)
             with open(filename, 'wb') as csvfile:
                 csv = DictWriter(csvfile, sheet_headers[entity_type])
                 csv.writeheader()
                 csv.writerows(sheets[entity_type])
-    except IOError, e:
-        print 'csv2sheets: %s' % e
+    except IOError as e:
+        print('csv2sheets: %s' % e, file=sys.stderr)
         exit(-1)

@@ -1,3 +1,5 @@
+from past.builtins import raw_input
+
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2016, canari Project'
 __credits__ = []

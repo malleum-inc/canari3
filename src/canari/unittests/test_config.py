@@ -1,8 +1,9 @@
-from unittest import TestCase
-from canari.config import *
-from pkg_resources import resource_filename
-from canari.mode import set_canari_mode, CanariMode
 import os
+from unittest import TestCase
+
+from pkg_resources import resource_filename
+
+from canari.config import *
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2015, Canari Project'
@@ -29,11 +30,11 @@ class CanariConfigParserTest(TestCase):
 
     def create_config(self, name, content):
         config_parser = CanariConfigParser()
-        for section, d in content.iteritems():
+        for section, d in content.items():
             config_parser.add_section(section)
-            for option, value in d.iteritems():
+            for option, value in d.items():
                 config_parser.set(section, option, value)
-        config_parser.write(file(name, mode='w'))
+        config_parser.write(open(name, mode='w'))
 
     def test_load_config(self):
         self.assertIsInstance(self.config_parser, CanariConfigParser)
@@ -178,7 +179,7 @@ class CanariConfigParserTest(TestCase):
         self.set_option({'a': 1}, str({'a': 1}))
 
     def test_write_config(self):
-        with file('foo.conf', 'w') as f:
+        with open('foo.conf', 'w') as f:
             self.config_parser.write(f)
         self.assertTrue(os.path.exists('foo.conf'))
         c = CanariConfigParser()
@@ -190,7 +191,7 @@ class CanariConfigParserTest(TestCase):
     def test_merge_config(self):
         c = CanariConfigParser()
         c['test.test'] = 1
-        self.config_parser.update(c)
+        self.config_parser.update(c, )
         self.assertTrue(self.config_parser.has_section('test'))
         self.assertTrue(self.config_parser.has_option('test', 'test'))
         self.assertEqual(1, self.config_parser['test.test'])

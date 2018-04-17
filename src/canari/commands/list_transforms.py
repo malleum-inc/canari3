@@ -1,9 +1,13 @@
+from __future__ import print_function
+
+import sys
+
 from canari.maltego.utils import highlight
 from canari.pkgutils.transform import TransformDistribution
 from canari.project import CanariProject
-from common import canari_main
+from canari.commands.common import canari_main
 from canari.utils.fs import PushDir
-from framework import SubCommand, Argument
+from canari.commands.framework import SubCommand, Argument
 
 
 __author__ = 'Nadeem Douba'
@@ -43,14 +47,14 @@ def list_transforms(opts):
             transform_package = TransformDistribution(opts.package)
             for transform_class in transform_package.transforms:
                 transform = transform_class()
-                print('`- %s: %s' % (highlight(transform.name, 'green', True), transform.description))
-                print(highlight('  `- Maltego identifiers:', 'black', True))
+                print('`- %s: %s' % (highlight(transform.name, 'green', True), transform.description), file=sys.stderr)
+                print(highlight('  `- Maltego identifiers:', 'black', True), file=sys.stderr)
                 print('    `- %s applies to %s in set %s' % (
                     highlight(transform.name, 'red', False),
                     highlight(transform.input_type._type_, 'red', False),
                     highlight(transform.transform_set, 'red', False)
-                ))
-                print('')
-    except ValueError, e:
-        print(e)
+                ), file=sys.stderr)
+                print('', file=sys.stderr)
+    except ValueError as e:
+        print(e, file=sys.stderr)
         exit(-1)

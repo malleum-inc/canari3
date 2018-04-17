@@ -1,13 +1,14 @@
-#!/usr/bin/env python
+from __future__ import print_function
 
 import os
+import sys
 
 from mrbob.configurator import Configurator
 from mrbob.parsing import parse_config
 
 from canari.project import CanariProject
-from common import canari_main
-from framework import SubCommand, Argument
+from canari.commands.common import canari_main
+from canari.commands.framework import SubCommand, Argument
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2012, Canari Project'
@@ -22,7 +23,7 @@ __status__ = 'Development'
 
 def parse_args(args):
     if args.transform in ['common', 'common.py']:
-        print "Error: 'common' is a reserved module. Please name your transform something else."
+        print("Error: 'common' is a reserved module. Please name your transform something else.", file=sys.stderr)
         exit(-1)
     return args
 
@@ -47,17 +48,17 @@ def create_transform(args):
     transform_module = transform_module.lower()
 
     if '.' in transform_module:
-        print("Transform name (%r) cannot have a dot ('.')." % transform_name)
+        print("Transform name (%r) cannot have a dot ('.')." % transform_name, file=sys.stderr)
         exit(-1)
     elif not transform_module:
-        print("You must specify a valid transform name.")
+        print("You must specify a valid transform name.", file=sys.stderr)
         exit(-1)
 
     target = project.root_dir
     transform_directory = project.transforms_dir
 
     if os.path.exists(os.path.join(transform_directory, '%s.py' % transform_module)):
-        print('Transform %r already exists... quitting' % transform_module)
+        print('Transform %r already exists... quitting' % transform_module, file=sys.stderr)
         exit(-1)
 
     variables = parse_config(os.path.join(target, '.mrbob.ini'))['variables']
@@ -73,7 +74,7 @@ def create_transform(args):
 
     configurator.ask_questions()
 
-    print('Creating transform %r...' % transform_module)
+    print('Creating transform %r...' % transform_module, file=sys.stderr)
     configurator.render()
 
-    print('done!')
+    print('done!', file=sys.stderr)

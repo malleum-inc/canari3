@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os
 import sys
 from code import InteractiveConsole
@@ -5,10 +7,10 @@ from atexit import register
 
 from canari.mode import CanariMode, set_canari_mode
 from canari.pkgutils.transform import TransformDistribution
-from common import canari_main
+from canari.commands.common import canari_main
 from canari.question import parse_bool
 from canari.utils.fs import PushDir
-from framework import SubCommand, Argument
+from canari.commands.framework import SubCommand, Argument
 from canari.config import load_config
 from canari.maltego.utils import highlight
 from canari.maltego.runner import scriptable_transform_runner
@@ -26,7 +28,7 @@ __status__ = 'Development'
 
 
 def sudo():
-    print highlight("Need to be root to run this transform... sudo'ing...", 'green', True)
+    print(highlight("Need to be root to run this transform... sudo'ing...", 'green', True), file=sys.stderr)
     sys.argv.insert(0, 'sudo')
     os.execvp(sys.argv[0], sys.argv)
 
@@ -116,6 +118,6 @@ def shell(opts):
         with PushDir(opts.working_dir or transform_package.default_prefix):
             mtg_console = MtgConsole(transform_package.transforms, auto_sudo=opts.sudo)
             mtg_console.interact(highlight('Welcome to Canari %s.' % canari.__version__, 'green', True))
-    except ValueError, e:
-        print str(e)
+    except ValueError as e:
+        print(str(e), file=sys.stderr)
         exit(-1)

@@ -1,5 +1,5 @@
-from common import canari_main
-from framework import SubCommand
+from canari.commands.common import canari_main
+from canari.commands.framework import SubCommand
 
 
 __author__ = 'Nadeem Douba'
@@ -19,7 +19,7 @@ __status__ = 'Development'
     description='Show banner of Canari framework that is currently active.'
 )
 def banner(args):
-    print r"""
+    print(r"""
     Your running ...
                                  _     ___ 
          _______ ____  ___ _____(_)   /_  /
@@ -27,4 +27,4 @@ def banner(args):
         \__/\_,_/_//_/\_,_/_/ /_/   /___/
 
                                             ... http://github.com/redcanari/canari3
-    """
+    """)

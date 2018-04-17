@@ -1,6 +1,12 @@
+from past.builtins import basestring
+
+from future.standard_library import install_aliases
+
+install_aliases()
+
 import zlib
 import re
-import urllib
+from urllib.request import urlopen
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2015, Canari Project'
@@ -19,20 +25,20 @@ __all__ = [
 
 def wordlist(uri, match='(.+?)\n*', ignore='^#.*', strip=None):
     if isinstance(uri, basestring):
-        l = []
+        words = []
         if not uri:
-            return l
-        data = urllib.urlopen(uri).read()
+            return words
+        data = urlopen(uri).read()
         if re.search('\.gz(ip)?$', uri) is not None:
             data = zlib.decompress(data, 16 + zlib.MAX_WBITS)
         if data:
             if callable(match):
-                l = match(data)
+                words = match(data)
             else:
-                l = re.findall(match, data)
+                words = re.findall(match, data.decode('utf-8'))
                 if ignore is not None:
-                    l = filter(lambda x: re.search(ignore, x) is None, l)
+                    words = [w for w in words if re.search(ignore, w) is None]
                 if strip is not None:
-                    l = map(lambda x: re.sub(strip, '', x), l)
-        return l
+                    words = map(lambda x: re.sub(strip, '', x), words)
+        return words
     return uri

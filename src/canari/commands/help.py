@@ -1,5 +1,5 @@
-from framework import SubCommand, Argument
-from common import canari_main
+from canari.commands.framework import SubCommand, Argument
+from canari.commands.common import canari_main
 
 
 __author__ = 'Nadeem Douba'

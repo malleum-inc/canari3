@@ -1,7 +1,9 @@
-#!/usr/bin/env python
+from __future__ import print_function
 
-from common import canari_main
-from framework import SubCommand
+import sys
+
+from canari.commands.common import canari_main
+from canari.commands.framework import SubCommand
 
 import canari
 
@@ -23,4 +25,4 @@ __status__ = 'Development'
     description='Show version of Canari framework that is currently active.'
 )
 def version(args):
-    print 'Your running *Canari Framework v%s*' % canari.__version__
+    print('Your running *Canari Framework v%s*' % canari.__version__, file=sys.stderr)

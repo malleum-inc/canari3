@@ -1,3 +1,5 @@
+from past.builtins import basestring
+
 from subprocess import Popen
 import os
 import re
@@ -159,7 +161,7 @@ class ExternalCommand(object):
             self.args.append(
                 '#'.join(
                     ['%s=%s' % (k, v.value.replace('#', '\\#').replace('=', '\\='))
-                     for k, v in request.entity.fields.iteritems()]
+                     for k, v in request.entity.fields.items()]
                 )
             )
         p = Popen(self.args)

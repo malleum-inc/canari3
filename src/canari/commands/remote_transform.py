@@ -1,4 +1,6 @@
-import argparse
+from __future__ import print_function
+
+import sys
 
 from canari.commands.common import canari_main
 from canari.commands.framework import SubCommand, Argument
@@ -21,7 +23,7 @@ __all__ = []
 
 def split_validate(value, type_):
     if '=' not in value:
-        print 'Invalid %s ("%s") specified. Must be in "name=value" format.' % (type_, value)
+        print('Invalid %s ("%s") specified. Must be in "name=value" format.' % (type_, value), file=sys.stderr)
         exit(-1)
     return value.split('=', 1)
 
@@ -135,18 +137,18 @@ def remote_transform(args):
         if r.status == 200:
             data = r.read()
             if args.raw_output:
-                print data
+                print(data, file=sys.stderr)
                 exit(0)
             else:
                 console_writer(MaltegoMessage.parse(data))
                 exit(0)
 
-        print 'ERROR: Received status %d for %s://%s/%s. Are you sure you got the right server?' % (
+        print('ERROR: Received status %d for %s://%s/%s. Are you sure you got the right server?' % (
             r.status,
             'https' if args.ssl else 'http',
             args.host,
             args.transform
-        )
-    except Exception, e:
-        print 'ERROR: %s' % e
+        ), file=sys.stderr)
+    except Exception as e:
+        print('ERROR: %s' % e, file=sys.stderr)
     exit(-1)

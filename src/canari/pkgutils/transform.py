@@ -1,4 +1,8 @@
+from __future__ import print_function
+from past.builtins import basestring
+
 import importlib
+from io import FileIO
 from pkgutil import iter_modules
 import string
 import sys
@@ -60,10 +64,10 @@ class TransformDistribution(object):
 
         self._package = import_module(self.name)
 
-        print('Looking for transforms in %s...' % self.name)
+        print('Looking for transforms in %s...' % self.name, file=sys.stderr)
         try:
             self.import_package(self._package)
-        except ImportError, e:
+        except ImportError as e:
             raise ImportError("Does not appear to be a valid canari package. "
                               "Couldn't import the '%s.transforms' package in '%s'. Error message: %s" %
                               (self.name, self.name, e))
@@ -74,7 +78,7 @@ class TransformDistribution(object):
         self._resources = '%s.resources' % self.name
         self._package_path = os.path.abspath(self._package.__path__[0])
         self._default_prefix = os.path.join(os.path.expanduser('~'), '.canari') if self.is_site_package else os.getcwd()
-        self._entities = list({v for v in EntityTypeFactory.registry.itervalues()
+        self._entities = list({v for v in EntityTypeFactory.registry.values()
                                if v.__module__.startswith(self._package_name)})
         self._author = getattr(self._package, '__author__', '')
         self._email = getattr(self._package, '__email__', '')
@@ -85,7 +89,7 @@ class TransformDistribution(object):
             self._machines = []
         if self._package_name != 'canari' and not self.has_transforms:
             raise ValueError('Error: no transforms found...')
-        print('Package loaded.')
+        print('Package loaded.', file=sys.stderr)
 
     @property
     def author(self):
@@ -163,21 +167,17 @@ class TransformDistribution(object):
                 parse_bool('%s already exists. Would you like to overwrite it?' % dst, default=False):
             return
 
-        print ('Writing %s to %s' % (src, dst))
-        with file(dst, mode='wb') as w:
+        print('Writing %s to %s' % (src, dst), file=sys.stderr)
+        with FileIO(dst, mode='wb') as w:
             if kwargs.pop('is_template', None):
                 w.write(
                         string.Template(
-                                file(
-                                        src
-                                ).read()
+                                open(src).read()
                         ).substitute(**kwargs)
                 )
             else:
                 w.write(
-                        file(
-                                src
-                        ).read()
+                        bytes(open(src).read())
                 )
 
     @classmethod
@@ -225,7 +225,7 @@ class TransformDistribution(object):
 
             if load:
                 if self.config_file not in configs:
-                    print ('Updating %s...' % canari_config)
+                    print('Updating %s...' % canari_config, file=sys.stderr)
                     configs.append(self.config_file)
                     config[configs_option] = configs
 
@@ -236,7 +236,7 @@ class TransformDistribution(object):
                         config[OPTION_REMOTE_PACKAGES] = packages
             else:
                 if self.config_file in configs:
-                    print ('Updating %s...' % canari_config)
+                    print('Updating %s...' % canari_config, file=sys.stderr)
                     configs.remove(self.config_file)
                     config[configs_option] = configs
 
@@ -246,14 +246,14 @@ class TransformDistribution(object):
                         packages.remove(self.name)
                         config[OPTION_REMOTE_PACKAGES] = packages
 
-            config.write(file(canari_config, mode='wb'))
+            config.write(open(canari_config, mode='wb'))
 
     def configure(self, install_prefix, load=True, remote=False, defaults=False, **kwargs):
         if load:
             dst = os.path.join(install_prefix, 'canari.conf')
             if os.path.lexists(dst) and not defaults and \
                     parse_bool('%s already exists. Would you like to overwrite it?' % dst, default=False):
-                print 'Writing fresh copy of canari.conf to %r...' % dst
+                print('Writing fresh copy of canari.conf to %r...' % dst, file=sys.stderr)
                 variables = {
                     'canari.command': ' '.join(sys.argv),
                     'profile.config': self.config_file if self.name != 'canari' else '',
@@ -286,7 +286,7 @@ class TransformDistribution(object):
         if not isinstance(distribution, MtzDistribution):
             if distribution.version >= '3.4.0':
                 raise ValueError(INCOMPATIBLE)
-            print 'Installing transform package %s...' % self.name
+            print('Installing transform package %s...' % self.name, file=sys.stderr)
 
         install_prefix = self._init_install_prefix(install_prefix)
 
@@ -316,7 +316,7 @@ class TransformDistribution(object):
                 for icon in mtz.get_icons_by_category(icon_category):
                     data = mtz.read_file(icon)
                     p = distribution.path_join(icon_category_dir, os.path.basename(icon))
-                    print 'Installing custom icon %s to %s...' % (icon, p)
+                    print('Installing custom icon %s to %s...' % (icon, p), file=sys.stderr)
                     distribution.write_file(p, data)
 
         except ImportError:
@@ -363,7 +363,7 @@ class TransformDistribution(object):
 
     def create_profile(self, install_prefix, current_dir, configure=True):
         mtz = os.path.join(current_dir, '%s.mtz' % self.name)
-        print('Creating profile %s...' % mtz)
+        print('Creating profile %s...' % mtz, file=sys.stderr)
         mtz = MtzDistribution(mtz, 'w')
         self.install(install_prefix, mtz, configure)
         mtz.close()

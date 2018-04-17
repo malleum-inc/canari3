@@ -1,12 +1,13 @@
-#!/usr/bin/env python
+from __future__ import print_function
 
+import sys
 from csv import writer
 import os
 from xml.etree.cElementTree import XML
 from zipfile import ZipFile
 
-from framework import SubCommand, Argument
-from common import canari_main, to_utf8
+from canari.commands.framework import SubCommand, Argument
+from canari.commands.common import canari_main, to_utf8
 
 
 __author__ = 'Nadeem Douba'
@@ -37,7 +38,7 @@ def mtgx2csv(opts):
 
     for f in graphs:
         filename = '%s_%s' % (opts.graph.replace('.', '_', 1), os.path.basename(f).replace('.graphml', '.csv', 1))
-        print 'Writing data from %s/%s to %s...' % (opts.graph, f, filename)
+        print('Writing data from %s/%s to %s...' % (opts.graph, f, filename), file=sys.stderr)
         with open(filename, 'wb') as csvfile:
             csv = writer(csvfile)
             xml = XML(zipfile.open(f).read())

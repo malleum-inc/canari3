@@ -1,7 +1,9 @@
-#!/usr/bin/env python
+from __future__ import print_function
+
 import keyword
 import os
 import re
+import sys
 
 from mrbob.configurator import Configurator
 from mrbob.rendering import jinja2_env
@@ -11,8 +13,8 @@ from canari.maltego.message import Entity, StringEntityField
 from canari.pkgutils.maltego import MtzDistribution
 from canari.project import CanariProject
 from canari.question import parse_bool
-from common import canari_main
-from framework import SubCommand, Argument
+from canari.commands.common import canari_main
+from canari.commands.framework import SubCommand, Argument
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2012, Canari Project'
@@ -55,7 +57,7 @@ def parse_args(args):
 
     if not args.mtz_file:
         if not project.is_valid or not os.path.lexists(project.entities_mtz):
-            print("Please specify a valid MTZ file.")
+            print("Please specify a valid MTZ file.", file=sys.stderr)
             exit(-1)
         args.mtz_file = project.entities_mtz
 
@@ -146,7 +148,7 @@ def generate_entities(args):
 
     entity_definitions = {}
 
-    matcher = re.compile('(.+)\.([^\.]+)$')
+    matcher = re.compile('(.+)\.([^.]+)$')
 
     for entity_file in mtz.entities:
         entity = MaltegoEntity.parse(mtz.read_file(entity_file))
@@ -199,7 +201,7 @@ def generate_entities(args):
     variables.update({
         'entity.definitions': entity_definitions,
         'entity.classes': entity_classes
-    })
+    }, )
 
     configurator = Configurator(
             'canari.resources.templates:generate_entities',
@@ -210,9 +212,9 @@ def generate_entities(args):
 
     configurator.ask_questions()
 
-    print('Generating entities for %r...' % variables['project.name'])
+    print('Generating entities for %r...' % variables['project.name'], file=sys.stderr)
     configurator.render()
 
-    print('done!')
+    print('done!', file=sys.stderr)
 
 

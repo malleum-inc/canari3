@@ -10,7 +10,7 @@ __maintainer__ = '{{{ author.name }}}'
 __email__ = '{{{ author.email }}}'
 __status__ = 'Development'
 
-{{% for ((namespace, name), entity) in entity.definitions.iteritems() %}}
+{{% for ((namespace, name), entity) in entity.definitions.items() %}}
 {{% set value_prop = entity.properties.value %}}
 
 class {{{ name }}}(Entity):

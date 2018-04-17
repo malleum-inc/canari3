@@ -1,12 +1,20 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from past.builtins import basestring
+
+import sys
+
+if sys.version_info[0] > 2:
+    from configparser import NoSectionError
+else:
+    # noinspection PyUnresolvedReferences
+    from ConfigParser import NoSectionError
 
 # Builtin imports
 import logging
 import os
-import sys
 import tempfile
 import traceback
-from ConfigParser import NoSectionError
 from hashlib import md5
 from logging.handlers import RotatingFileHandler
 
@@ -86,7 +94,7 @@ class Plume(Flask):
             img_name = get_image_path(i)
             self.resources.append(img_name)
             if not os.path.exists(img_name):
-                print 'Copying %s to %s...' % (i, img_name)
+                print('Copying %s to %s...' % (i, img_name), file=sys.stderr)
                 with open(i, mode='rb') as src:
                     with open(img_name, mode="wb") as dst:
                         dst.write(src.read())
@@ -114,7 +122,7 @@ class Plume(Flask):
 
         # Create the static directory for static file loading
         if not os.path.exists('static'):
-            os.mkdir('static', 0755)
+            os.mkdir('static', 0o755)
 
         # Iterate through the list of packages to load
         for p in packages:
@@ -192,7 +200,7 @@ def do_transform(transform):
             raise MaltegoException(str(msg))
 
     # Unless we croaked somewhere, then we need to fix things up here...
-    except MaltegoException, me:
+    except MaltegoException as me:
         return croak(str(me))
     except Exception:
         if application.debug:
@@ -213,7 +221,7 @@ def transform_checker(transform_name):
 def static_fetcher(resource_name):
     resource_name = safe_join('static', resource_name)
     if resource_name in application.resources:
-        return Response(file(resource_name, mode='rb').read(), status=200, mimetype='application/octet-stream')
+        return Response(open(resource_name, mode='rb').read(), status=200, mimetype='application/octet-stream')
     return Response(application.four_o_four, status=404)
 
 

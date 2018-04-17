@@ -1,8 +1,10 @@
-#!/usr/bin/env python
+from __future__ import print_function
 
-from common import canari_main
+import sys
+
+from canari.commands.common import canari_main
 from canari.maltego.utils import highlight
-from framework import SubCommand
+from canari.commands.framework import SubCommand
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2012, Canari Project'
@@ -22,5 +24,5 @@ __status__ = 'Development'
 )
 def list_commands(opts):
     cmds = canari_main.subparsers.choices
-    for name, cmd in sorted(cmds.iteritems()):
-        print ('%s - %s' % (highlight(name, 'green', True), cmd.description))
+    for name, cmd in sorted(cmds.items()):
+        print('%s - %s' % (highlight(name, 'green', True), cmd.description), file=sys.stderr)

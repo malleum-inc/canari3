@@ -1,5 +1,6 @@
 from unittest import TestCase
 from canari.framework import *
+# noinspection PyUnresolvedReferences
 from canari.maltego.entities import *
 from canari.maltego.transform import Transform
 
@@ -21,7 +22,7 @@ class FrameworkTests(TestCase):
         class TestTransform(Transform):
             pass
 
-        for k, v in kwargs.iteritems():
+        for k, v in kwargs.items():
             setattr(TestTransform, k, v)
 
         if is_superuser:
