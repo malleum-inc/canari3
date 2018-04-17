@@ -7,7 +7,12 @@ machine:
 dependencies:
   override:
     - docker info
-    - ./build_dockers.sh
+    - python setup.py install
+#    - ./build_dockers.sh
+
+test:
+  override:
+    - python setup.py test
 
 deployment:
   release:
