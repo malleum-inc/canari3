@@ -6,8 +6,8 @@ machine:
 
 dependencies:
   pre:
+    - export DEBIAN_FRONTEND=noninteractive
     - sudo apt-get update
-    - sudo apt-get -y upgrade
     - sudo apt-get install -y ca-certificates build-essential python-lxml python-dev python-setuptools python-pip
   override:
     - docker info
