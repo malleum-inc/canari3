@@ -84,8 +84,8 @@ class EntityTests(TestCase):
             float=1.0,
             bool=True,
             enum=2,
-            date=date(1900, 01, 01),
-            datetime=datetime(1900, 01, 01),
+            date=date(1900, 1, 1),
+            datetime=datetime(1900, 1, 1),
             timespan=timedelta(days=2, minutes=1, seconds=60),
             color='#ffffff'
         )
@@ -96,8 +96,8 @@ class EntityTests(TestCase):
         self.assertEqual(t.float, 1.0)
         self.assertEqual(t.bool, True)
         self.assertEqual(t.enum, '2')
-        self.assertEqual(t.date, date(1900, 01, 01))
-        self.assertEqual(t.datetime, datetime(1900, 01, 01))
+        self.assertEqual(t.date, date(1900, 1, 1))
+        self.assertEqual(t.datetime, datetime(1900, 1, 1))
         self.assertEqual(t.timespan, timedelta(days=2, minutes=1, seconds=60))
         self.assertEqual(t.color, '#ffffff')
 
@@ -124,12 +124,12 @@ class EntityTests(TestCase):
         def assign_bad_date():
             t.date = '24-01-01'
         self.assertRaises(ValidationError, assign_bad_date)
-        self.assertEqual(t.date, date(1900, 01, 01))
+        self.assertEqual(t.date, date(1900, 1, 1))
 
         def assign_bad_datetime():
             t.date = '24-01-01'
         self.assertRaises(ValidationError, assign_bad_datetime)
-        self.assertEqual(t.datetime, datetime(1900, 01, 01))
+        self.assertEqual(t.datetime, datetime(1900, 1, 1))
 
         def assign_bad_timespan():
             t.date = '24-01-01'
