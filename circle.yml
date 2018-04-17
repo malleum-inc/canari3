@@ -10,13 +10,13 @@ dependencies:
     - sudo apt-get update
     - sudo apt-get install -y ca-certificates build-essential python-lxml python-dev python-setuptools python-pip
   override:
-    - docker info
     - python setup.py install
-#    - ./build_dockers.sh
 
 test:
   override:
     - python setup.py test
+  post:
+    - ./build_dockers.sh
 
 deployment:
   release:
