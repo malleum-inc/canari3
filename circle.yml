@@ -11,12 +11,12 @@ dependencies:
     - sudo apt-get install -y ca-certificates build-essential python-dev python3-dev python-lxml python3-lxml python-setuptools python3-setuptools python-pip python3-pip
   override:
     - python setup.py install
-    - python3.4 setup.py install
+    - python3 setup.py install
 
 test:
   override:
     - python setup.py test
-    - python3.4 setup.py test
+    - python3 setup.py test
   post:
     - ./build_dockers.sh
 
