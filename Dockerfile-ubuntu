@@ -1,4 +1,4 @@
-FROM ubuntu:14.04
+FROM ubuntu:17.10
 
 ENV BASE_OS_IMAGE=ubuntu
 
