@@ -1,8 +1,8 @@
 machine:
-  python:
-    version: 2.7.12
   services:
     - docker
+  post:
+    - pyenv global 2.7.12 3.6.5
 
 dependencies:
   pre:
