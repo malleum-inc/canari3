@@ -23,7 +23,7 @@ echo $SOURCE_DIR
 pushd $SOURCE_DIR
 
 for i in Docker*; do
-    docker build --rm=false -t "redcanari/canari:$VERSION-${i#*-}" -f $i .
+    docker build --rm=false -t "redcanari/canari:$VERSION-${i#*-}" -f $i . || exit -1
 done
 
 
