@@ -68,6 +68,8 @@ def image_resources(package=None, directory='resources'):
     package_dir = '.'.join([package, directory])
     images = []
     for i in resource_listdir(package, directory):
+        if i.startswith('__') or i.endswith('.egg-info'):
+            continue
         fname = resource_filename(package_dir, i)
         if resource_isdir(package_dir, i):
             images.extend(image_resources(package_dir, i))
