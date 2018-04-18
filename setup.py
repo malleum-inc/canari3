@@ -101,6 +101,7 @@ requires = [
 ]
 
 if os.name == 'nt':
+    requires.append('pyreadline')
     scripts += ['%s.bat' % s for s in scripts]
 
 setup(

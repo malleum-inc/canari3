@@ -1,10 +1,7 @@
 from __future__ import print_function
 
-import grp
 import os
 import sys
-import pwd
-from stat import ST_MODE, S_ISDIR
 
 from mrbob.bobexceptions import ValidationError
 from mrbob.configurator import Configurator, Question
@@ -35,6 +32,7 @@ def check_port(configurator, question, answer):
 
 def check_gid(configurator, question, answer):
     try:
+        import grp
         return grp.getgrnam(answer).gr_gid
     except KeyError as e:
         raise ValidationError(e)
@@ -42,6 +40,7 @@ def check_gid(configurator, question, answer):
 
 def check_uid(configurator, question, answer):
     try:
+        import pwd
         return pwd.getpwnam(answer).pw_uid
     except KeyError as e:
         raise ValidationError(e)
@@ -55,6 +54,7 @@ def validate_path(configurator, question, answer):
 
 def check_mkdir(configurator, question, answer):
     try:
+        from stat import ST_MODE, S_ISDIR
         if not os.path.lexists(answer):
             os.makedirs(answer)
         elif not S_ISDIR(os.stat(answer)[ST_MODE]):
@@ -66,6 +66,7 @@ def check_mkdir(configurator, question, answer):
 
 def check_init_script(configurator, question, answer):
     try:
+        from stat import ST_MODE, S_ISDIR
         if not os.path.lexists(answer):
             os.makedirs(answer)
         elif not S_ISDIR(os.stat(answer)[ST_MODE]):
