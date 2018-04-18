@@ -106,7 +106,7 @@ if os.name == 'nt':
 setup(
     name='canari',
     author='Nadeem Douba',
-    version='3.1.3',
+    version='3.2.0',
     author_email='ndouba@gmail.com',
     description='Canari Framework - Maltego rapid transform development and execution framework.',
     long_description=long_description,
@@ -135,7 +135,8 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 2 :: Only',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Internet :: WWW/HTTP :: WSGI',
         'Topic :: Internet :: WWW/HTTP :: WSGI :: Application',
