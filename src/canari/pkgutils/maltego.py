@@ -482,17 +482,17 @@ class MtzZipFile(object):
                     namelist.append(self._get_archive_file(f_))
         return namelist
 
-    def writestr(self, zinfo_or_arcname, bytes):
+    def writestr(self, zinfo_or_arcname, bytes_):
         if self._is_closed:
             raise RuntimeError('Attempt to read ZIP archive that was already closed')
         if self.mode == 'r':
-            return self._zipfile.writestr(zinfo_or_arcname, bytes)
+            return self._zipfile.writestr(zinfo_or_arcname, bytes_)
         realpath = self._get_real_file(zinfo_or_arcname)
         realdir = os.path.dirname(realpath)
         if not os.path.isdir(realdir):
             os.makedirs(realdir)
-        with open(realpath, mode='wb') as f:
-            f.write(bytes)
+        with open(realpath, mode='w') as f:
+            f.write(bytes_)
 
     def removefile(self, zinfo_or_arcname):
         if self._is_closed:

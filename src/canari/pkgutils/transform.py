@@ -168,7 +168,7 @@ class TransformDistribution(object):
             return
 
         print('Writing %s to %s' % (src, dst), file=sys.stderr)
-        with FileIO(dst, mode='wb') as w:
+        with open(dst, mode='w') as w:
             if kwargs.pop('is_template', None):
                 w.write(
                         string.Template(
@@ -177,7 +177,7 @@ class TransformDistribution(object):
                 )
             else:
                 w.write(
-                        bytes(open(src).read())
+                        open(src).read()
                 )
 
     @classmethod
@@ -246,7 +246,7 @@ class TransformDistribution(object):
                         packages.remove(self.name)
                         config[OPTION_REMOTE_PACKAGES] = packages
 
-            config.write(open(canari_config, mode='wb'))
+            config.write(open(canari_config, mode='w'))
 
     def configure(self, install_prefix, load=True, remote=False, defaults=False, **kwargs):
         if load:

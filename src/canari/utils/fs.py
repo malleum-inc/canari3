@@ -146,7 +146,7 @@ class FileSemaphore(FileIO):
 class FileMutex(FileSemaphore):
 
     def __init__(self, name):
-        super(FileMutex, self).__init__(os.path.join(gettempdir(), name), 'wb')
+        super(FileMutex, self).__init__(os.path.join(gettempdir(), name), 'w')
         self.lockex()
 
 

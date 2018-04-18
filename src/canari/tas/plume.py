@@ -96,7 +96,7 @@ class Plume(Flask):
             if not os.path.exists(img_name):
                 print('Copying %s to %s...' % (i, img_name), file=sys.stderr)
                 with open(i, mode='rb') as src:
-                    with open(img_name, mode="wb") as dst:
+                    with open(img_name, mode='wb') as dst:
                         dst.write(src.read())
 
     def _initialize(self):

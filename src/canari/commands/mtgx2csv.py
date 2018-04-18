@@ -39,7 +39,7 @@ def mtgx2csv(opts):
     for f in graphs:
         filename = '%s_%s' % (opts.graph.replace('.', '_', 1), os.path.basename(f).replace('.graphml', '.csv', 1))
         print('Writing data from %s/%s to %s...' % (opts.graph, f, filename), file=sys.stderr)
-        with open(filename, 'wb') as csvfile:
+        with open(filename, 'w') as csvfile:
             csv = writer(csvfile)
             xml = XML(zipfile.open(f).read())
             links = {}

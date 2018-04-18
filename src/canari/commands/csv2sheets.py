@@ -66,7 +66,7 @@ def csv2sheets(opts):
         for entity_type in sheets:
             filename = '%s_%s.csv' % (opts.prefix, entity_type)
             print('Writing %s sheet to %s...' % (entity_type, filename), file=sys.stderr)
-            with open(filename, 'wb') as csvfile:
+            with open(filename, 'w') as csvfile:
                 csv = DictWriter(csvfile, sheet_headers[entity_type])
                 csv.writeheader()
                 csv.writerows(sheets[entity_type])
