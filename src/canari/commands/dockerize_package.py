@@ -31,6 +31,10 @@ def run_command(args, **kwargs):
     return subprocess.Popen(args, **kwargs)
 
 
+def get_output(process):
+    return process.communicate()[0].decode('utf-8')
+
+
 @SubCommand(
     canari_main,
     help='Creates a Docker build file pre-configured with Plume.',
@@ -76,8 +80,11 @@ def dockerize_package(args):
         """, file=sys.stderr)
         exit(-1)
 
-    if not args.host and os.path.exists('/var/run/docker.sock'):
-        args.host = ['unix:///var/run/docker.sock']
+    if not args.host:
+        if os.name == 'nt':
+            args.host = ['']
+        elif os.path.exists('/var/run/docker.sock'):
+            args.host = ['unix:///var/run/docker.sock']
 
     docker_hosts = [j for sublist in [('-H', i) for i in args.host] for j in sublist]
     container = '%s/%s:%s' % (project.name, project.name, args.os)
@@ -91,8 +98,12 @@ def dockerize_package(args):
             exit(-1)
 
         print('Attempting to discover available Docker machines.', file=sys.stderr)
-        machines = run_command(['docker-machine', 'ls', '-q'], stdout=subprocess.PIPE).communicate()[0].split('\n')
+        machines = get_output(run_command(['docker-machine', 'ls', '-q'],stdout=subprocess.PIPE)).split('\n')
         machines.remove('')
+
+        if not machines:
+            print('No machines found :(\nExiting...', file=sys.stderr)
+            exit(-1)
 
         machine = question.parse_int('More than one Docker machine was detected. Which one would you like to use to'
                                      'build and run this container?', machines) if len(machines) != 1 else 0
@@ -100,7 +111,7 @@ def dockerize_package(args):
         print('Setting up environment for Docker machine %s' % machines[machine], file=sys.stderr)
 
         # Inject docker environment variables
-        env = run_command(['docker-machine', 'env', machines[machine]], stdout=subprocess.PIPE).communicate()[0]
+        env = get_output(run_command(['docker-machine', 'env', machines[machine]], stdout=subprocess.PIPE))
         os.environ.update(re.findall(r'export ([^=]+)="([^"]+)', env))
 
     with PushDir(project.root_dir):

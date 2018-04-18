@@ -1,10 +1,10 @@
 from __future__ import print_function
 
 import os
-import pwd
 import re
 import sys
 import unicodedata
+from getpass import getuser
 from argparse import Action
 
 from past.builtins import basestring, unicode
@@ -71,18 +71,12 @@ def to_utf8(s):
     return unicodedata.normalize('NFKD', unicode(s)).encode('ascii', 'ignore')
 
 
-def getlogin():
-    try:
-        return os.getlogin()
-    except:
-        return pwd.getpwuid(os.getuid())[0]
-
-
 def uproot():
     if os.name == 'posix' and not os.geteuid():
-        login = getlogin()
+        login = getuser()
 
         if login != 'root':
+            import pwd
             print('Why are you using root to run this command? You should be using %s! Bringing you down...' % login,
                   file=sys.stderr)
             user = pwd.getpwnam(login)
