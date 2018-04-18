@@ -10,7 +10,7 @@ SOURCE_DIR=`dirname ${BASH_SOURCE[0]}`
 
 pushd src
 
-VERSION=`python -c 'import canari; print canari.__version__'`
+VERSION=`python -c 'import canari; print(canari.__version__)'`
 
 if [ -n "$CIRCLE_TAG" ]; then
     VERSION="${CIRCLE_TAG#*v}"
