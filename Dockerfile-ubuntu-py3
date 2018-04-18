@@ -1,0 +1,27 @@
+FROM ubuntu:17.10
+
+ENV BASE_OS_IMAGE=ubuntu
+
+COPY . /root/sdist
+
+RUN apt-get update && \
+    apt-get -y dist-upgrade && \
+    apt-get install -y \
+        ca-certificates \
+        build-essential \
+        python3-lxml \
+        python3-dev \
+        python3-setuptools \
+        python3-pip
+
+RUN cd /root/sdist && \
+    pip3 install -U pip setuptools && \
+    python3 setup.py install && \
+    cd /root && \
+    rm -rf sdist && \
+    apt-get purge --auto-remove -y \
+        build-essential \
+        python3-dev && \
+    apt-get clean
+
+ENTRYPOINT ["canari"]

@@ -1,0 +1,36 @@
+FROM redcanari/canari:{{{ canari.version }}}-kalilinux
+
+ADD . /root/sdist
+
+RUN apt-get update && \
+    apt-get -y dist-upgrade && \
+    apt-get install -y \
+        ca-certificates \
+        build-essential \
+        python3-lxml \
+        python3-dev \
+        python3-setuptools \
+        python3-pip \
+        libffi-dev \
+        libssl-dev
+
+RUN cd /root/sdist && \
+    pip3 install pyopenssl service_identity && \
+    python3 setup.py install && \
+    cd /root && \
+    groupadd --non-unique --gid 65534 nobody && \
+    rm -rf /root/sdist && \
+    mkdir -p /var/plume && \
+    cd /var/plume && \
+    canari install-plume -y && \
+    canari load-plume-package -y {{{ project.name }}} && \
+    cd /root && \
+    rm -rf sdist && \
+    apt-get purge --auto-remove -y \
+        build-essential \
+        python3-dev && \
+    apt-get clean
+
+EXPOSE 8080
+
+ENTRYPOINT /etc/init.d/plume start-docker

@@ -52,6 +52,9 @@ def run_command(args, **kwargs):
     default='alpine'
 )
 def dockerize_package(args):
+    if sys.version_info[0] > 2:
+        args.os += '-py3'
+
     project = CanariProject()
 
     print('Dockerizing %s transform package...' % project.name, file=sys.stderr)

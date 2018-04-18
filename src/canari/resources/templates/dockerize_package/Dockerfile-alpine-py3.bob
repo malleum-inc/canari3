@@ -1,0 +1,25 @@
+FROM redcanari/canari:{{{ canari.version }}}-alpine-py3
+
+ADD . /root/sdist
+
+RUN apk add --no-cache \
+        alpine-sdk \
+        python3-dev \
+        openssl-dev \
+        py3-cffi && \
+    cd /root/sdist && \
+    pip3 install pyopenssl service_identity && \
+    python3 setup.py install && \
+    cd /root && \
+    rm -rf /root/sdist && \
+    mkdir -p /var/plume && \
+    cd /var/plume && \
+    canari install-plume -y && \
+    canari load-plume-package -y {{{ project.name }}} && \
+    apk del \
+        alpine-sdk \
+        python3-dev
+
+EXPOSE 8080
+
+ENTRYPOINT /etc/init.d/plume start-docker
