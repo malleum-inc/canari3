@@ -28,7 +28,7 @@ deployment:
       - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
       - docker push redcanari/canari
       - echo "[server-login]" > ~/.pypirc
-      - echo "repository:https://pypi.python.org/pypi" >> ~/.pypirc
+      - echo "repository:https://upload.pypi.org/legacy/" >> ~/.pypirc
       - echo "username:$PYPI_USERNAME" >> ~/.pypirc
       - echo "password:$PYPI_PASSWORD" >> ~/.pypirc
       - python setup.py sdist upload
