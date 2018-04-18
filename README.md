@@ -37,6 +37,4 @@ Please use the issues page to log any bugs or questions regarding the Canari Fra
 
 Kudos to our user community for making this release happen. A special thanks to those of you who have supported the
 development of Canari 3 by donating money at our crowd-funding pages. If you like this project, please consider donating
-money to help accelerate development. 
- 
-<a href='https://pledgie.com/campaigns/30181'><img alt='Click here to lend your support to: Help the Canari Framework get to Version 3.0 and make a donation at pledgie.com !' src='https://pledgie.com/campaigns/30181.png?skin_name=chrome' border='0' ></a>
+money to help accelerate development.
