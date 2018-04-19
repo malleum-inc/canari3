@@ -25,4 +25,5 @@ __status__ = 'Development'
     description='Show version of Canari framework that is currently active.'
 )
 def version(args):
-    print('Your running *Canari Framework v%s*' % canari.__version__, file=sys.stderr)
+    print('Canari Framework v%s' % canari.__version__, file=sys.stderr)
+    print('Running on Python %s (%s)' % (sys.version, sys.executable))

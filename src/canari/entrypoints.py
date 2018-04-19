@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 from __future__ import print_function
-
+from past.builtins import unicode
 import sys
+import six
+
+# For some reason this function is being used in safedexml. We're going to avoid it completely.
+six.u = unicode
 
 from canari.mode import set_canari_mode, CanariMode
 from canari.commands.common import canari_main
@@ -45,7 +49,7 @@ def dispatcher():
     set_canari_mode(CanariMode.LocalDispatch)
     run_transform.run_transform.parser.prog = 'dispatcher'
     opts = run_transform.run_transform.parser.parse_args()
-    run_transform(opts)
+    run_transform.run_transform(opts)
 
 
 def sudo():
