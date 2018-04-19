@@ -71,15 +71,13 @@ if os.path.exists('README.rst'):
     long_description = open('README.rst').read()
 
 scripts = [
-    'src/scripts/canari',
-    'src/scripts/dispatcher',
+    'canari = canari.entrypoints:main',
+    'dispatcher = canari.entrypoints:dispatcher',
 ]
 
 if os.name == 'posix':
-    scripts.extend(
-        [
-            'src/scripts/pysudo'
-        ]
+    scripts.append(
+        'pysudo = canari.entrypoints:sudo'
     )
 
 extras = [
@@ -107,7 +105,7 @@ if os.name == 'nt':
 setup(
     name='canari',
     author='Nadeem Douba',
-    version='3.2.1',
+    version='3.2.2',
     author_email='ndouba@gmail.com',
     description='Canari Framework - Maltego rapid transform development and execution framework.',
     long_description=long_description,
@@ -115,11 +113,14 @@ setup(
     packages=find_packages('src'),
     package_dir={'': 'src'},
     include_package_data=True,
-    scripts=scripts,
+    # scripts=scripts,
     zip_safe=False,
     install_requires=requires,
     dependency_links=[],
     url='https://github.com/redcanari/canari',
+    entry_points={
+        'console_scripts': scripts
+    },
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Environment :: Console',
