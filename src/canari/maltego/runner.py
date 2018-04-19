@@ -2,6 +2,8 @@ from past.builtins import basestring
 
 import sys
 
+from canari.utils.common import find_pysudo
+
 if sys.version_info[0] > 2:
     from http.client import HTTPSConnection, HTTPConnection
 else:
@@ -41,7 +43,7 @@ __all__ = []
 
 
 def sudo(args):
-    p = subprocess.Popen([find_executable('pysudo')] + args)
+    p = subprocess.Popen([find_pysudo()] + args)
     p.communicate()
     return p.returncode
 

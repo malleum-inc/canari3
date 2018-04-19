@@ -26,6 +26,12 @@ __maintainer__ = 'Nadeem Douba'
 __email__ = 'ndouba@gmail.com'
 __status__ = 'Development'
 
+__all__ = [
+    'main',
+    'dispatcher',
+    'sudo'
+]
+
 
 def main():
     try:
@@ -74,13 +80,13 @@ def sudo():
 
         # Try it out with a password now!
         p = subprocess.Popen(['sudo', '-S', 'true'], stdin=subprocess.PIPE)
-        p.communicate(input='%s\n' % password)
+        p.communicate(input=bytes('%s\n' % password, 'utf-8'))
 
         # Did it work? Yes: let's do it!
         if not p.returncode:
             l.unlock()
             p = subprocess.Popen(['sudo', '-S'] + sys.argv[1:], stdin=subprocess.PIPE)
-            p.communicate(input='%s\n' % password)
+            p.communicate(input=bytes('%s\n' % password, 'utf-8'))
             exit(p.returncode)
 
     exit(2)
