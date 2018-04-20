@@ -1,5 +1,3 @@
-from past.builtins import cmp
-
 """
 @version: 0.96(2010-08-29)
 
@@ -35,14 +33,14 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
     1. Redistributions of source code must retain the above copyright notice,
-       this list of conditions and the following disclaimer. 
-    
+       this list of conditions and the following disclaimer.
+
     2. Redistributions in binary form must reproduce the above copyright notice,
        this list of conditions and the following disclaimer in the documentation and/or
-       other materials provided with the distribution. 
-    
+       other materials provided with the distribution.
+
     3. The name of the author may not be used to endorse or promote products derived
-       from this software without specific prior written permission. 
+       from this software without specific prior written permission.
 
 THIS SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS"
 AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
@@ -68,7 +66,7 @@ See http://en.wikipedia.org/wiki/License_compatibility
 See http://www.gnu.org/licenses/license-list.html#GPLCompatibleLicenses
 
 The BSD License is less restrictive than GPL.
-It allows software released under the license to be incorporated into proprietary products. 
+It allows software released under the license to be incorporated into proprietary products.
 Works based on the software may be released under a proprietary license or as closed source software.
 http://en.wikipedia.org/wiki/BSD_licenses#3-clause_license_.28.22New_BSD_License.22.29
 
@@ -100,6 +98,7 @@ __all__ = ['ynbox'
 #    , 'EgStore'
     ]
 
+from past.builtins import cmp
 import sys, os
 import string
 import pickle

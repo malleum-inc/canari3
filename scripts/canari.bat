@@ -1,0 +1,1 @@
+@%~dp0..\python.exe %~dp0canari %*

@@ -41,7 +41,18 @@ def on_terminate(func):
 
 def message(m, fd=sys.stdout):
     """Write a MaltegoMessage to stdout and exit successfully"""
-    print(MaltegoMessage(message=m).render(fragment=True).encode('utf-8'), file=fd)
+
+    if sys.platform == 'win32':
+        decoding = sys.stdout.encoding if sys.version_info[0] > 2 else 'cp1252'
+        print(
+            MaltegoMessage(message=m).render(fragment=True, encoding='utf-8').decode(decoding),
+            file=fd
+        )
+    else:
+        print(
+            MaltegoMessage(message=m).render(fragment=True),
+            file=fd
+        )
     sys.exit(0)
 
 

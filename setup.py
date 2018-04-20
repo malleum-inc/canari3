@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+import sys
 
 from setuptools import setup, find_packages
 
@@ -71,16 +72,9 @@ if os.path.exists('README.rst'):
     long_description = open('README.rst').read()
 
 scripts = [
-    'src/scripts/canari',
-    'src/scripts/dispatcher',
+    'canari',
+    'dispatcher'
 ]
-
-if os.name == 'posix':
-    scripts.extend(
-        [
-            'src/scripts/pysudo'
-        ]
-    )
 
 extras = [
     'readline'
@@ -100,14 +94,16 @@ requires = [
     'future'
 ]
 
-if os.name == 'nt':
+if sys.platform == 'win32':
     requires.append('pyreadline')
-    scripts += ['%s.bat' % s for s in scripts]
+    scripts.extend(['%s.bat' % s for s in scripts])
+else:
+    scripts.append('pysudo')
 
 setup(
     name='canari',
     author='Nadeem Douba',
-    version='3.2.1',
+    version='3.2.2',
     author_email='ndouba@gmail.com',
     description='Canari Framework - Maltego rapid transform development and execution framework.',
     long_description=long_description,
@@ -115,11 +111,12 @@ setup(
     packages=find_packages('src'),
     package_dir={'': 'src'},
     include_package_data=True,
-    scripts=scripts,
+    # scripts=scripts,
     zip_safe=False,
     install_requires=requires,
     dependency_links=[],
     url='https://github.com/redcanari/canari',
+    scripts=[os.path.join('scripts', s) for s in scripts],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Environment :: Console',
