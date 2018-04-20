@@ -20,7 +20,10 @@ __all__ = [
 
 
 def find_script(name):
-    return os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])), name)
+    ext = ''
+    if sys.platform == 'win32':
+        ext = '.bat'
+    return os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])), name + ext)
 
 
 def find_dispatcher():
