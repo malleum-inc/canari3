@@ -1,6 +1,6 @@
-from past.builtins import basestring
-
 import sys
+
+from past.builtins import basestring
 
 from canari.utils.common import find_pysudo
 
@@ -11,16 +11,15 @@ else:
     from httplib import HTTPSConnection, HTTPConnection
 
 import subprocess
-from collections import defaultdict
 import os
 import sys
 import traceback
-from distutils.spawn import find_executable
+from collections import defaultdict
 from canari.mode import is_debug_exec_mode
 from importlib import import_module
 
 import re
-from defusedxml.cElementTree import fromstring
+from xml.etree.cElementTree import fromstring
 
 from safedexml import Model
 
@@ -209,7 +208,7 @@ def console_writer(msg, tab=-1):
     tab += 1
 
     if isinstance(msg, Model):
-        msg = fromstring(msg.render(fragment=True).encode('utf-8'))
+        msg = fromstring(msg.render())
 
     print('%s`- %s: %s %s' % (
         '  ' * tab,

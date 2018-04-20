@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from __future__ import print_function
+from future.builtins import bytes
 from past.builtins import unicode
 import sys
 import six

@@ -5,7 +5,7 @@ viewlets. Canari uses these elements to generate Maltego profiles that can be im
 """
 
 import time
-from canari.maltego.xml import MaltegoElement, fields as fields_
+from canari.maltego.oxml import MaltegoElement, fields as fields_
 
 
 __author__ = 'Nadeem Douba'

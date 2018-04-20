@@ -6,7 +6,7 @@ from datetime import datetime, date, timedelta
 from numbers import Number
 import re
 
-from canari.maltego.xml import MaltegoElement, fields as fields_
+from canari.maltego.oxml import MaltegoElement, fields as fields_
 
 
 __author__ = 'Nadeem Douba'
