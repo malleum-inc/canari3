@@ -42,7 +42,7 @@ def on_terminate(func):
 def message(m, fd=sys.stdout):
     """Write a MaltegoMessage to stdout and exit successfully"""
     print(
-        MaltegoMessage(message=m).render(fragment=True).decode(sys.stdout.encoding),
+        MaltegoMessage(message=m).render(fragment=True, encoding='utf-8').decode(sys.stdout.encoding),
         file=fd
     )
     sys.exit(0)
