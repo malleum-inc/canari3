@@ -1,1 +1,1 @@
-@python %~dp0\canari %*
+@%~dp0..\python.exe %~dp0canari %*

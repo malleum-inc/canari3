@@ -1,1 +1,1 @@
-@python %~dp0\dispatcher %*
+@%~dp0..\python.exe %~dp0dispatcher %*
