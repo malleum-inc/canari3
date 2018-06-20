@@ -35,7 +35,14 @@ __all__ = [
     'CanariConfigParser',
     'load_config',
     'NoOptionError',
-    'NoSectionError'
+    'NoSectionError',
+    'SECTION_LOCAL',
+    'SECTION_REMOTE',
+    'OPTION_LOCAL_CONFIGS',
+    'OPTION_LOCAL_PATH',
+    'OPTION_REMOTE_CONFIGS',
+    'OPTION_REMOTE_PACKAGES',
+    'OPTION_REMOTE_PATH'
 ]
 
 SECTION_LOCAL = 'canari.local'
