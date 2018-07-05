@@ -3,7 +3,9 @@
 import os
 import sys
 
+
 from setuptools import setup, find_packages
+
 
 long_description = """
 Canari Framework 3
@@ -80,7 +82,7 @@ extras = [
     'readline'
 ]
 
-requires = [
+extras_require = [
     'mr.bob',
     'argparse',
     'flask',
@@ -88,6 +90,10 @@ requires = [
     'pyopenssl',
     'service_identity',
     'pyasn1',
+    'boto3'
+]
+
+requires = [
     'safedexml',
     'lxml',
     'six',
@@ -103,7 +109,7 @@ else:
 setup(
     name='canari',
     author='Nadeem Douba',
-    version='3.2.2',
+    version='3.3.0',
     author_email='ndouba@gmail.com',
     description='Canari Framework - Maltego rapid transform development and execution framework.',
     long_description=long_description,
@@ -111,8 +117,10 @@ setup(
     packages=find_packages('src'),
     package_dir={'': 'src'},
     include_package_data=True,
-    # scripts=scripts,
     zip_safe=False,
+    extras_require={
+        'all': extras_require
+    },
     install_requires=requires,
     dependency_links=[],
     url='https://github.com/redcanari/canari',
