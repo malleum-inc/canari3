@@ -17,6 +17,7 @@ __all__ = [
     'is_dispatch_exec_mode',
     'is_remote_exec_mode',
     'is_plume_exec_mode',
+    'is_lambda_exec_mode',
     'is_shell_exec_mode',
     'is_unknown_exec_mode',
     'is_local_debug_exec_mode',
@@ -24,6 +25,8 @@ __all__ = [
     'is_local_unknown_exec_mode',
     'is_remote_plume_debug_exec_mode',
     'is_remote_plume_dispatch_exec_mode',
+    'is_remote_plume_lambda_debug_exec_mode',
+    'is_remote_plume_lambda_dispatch_exec_mode',
     'is_remote_unknown_exec_mode',
     'is_local_shell_debug_exec_mode',
     'get_canari_mode_str'
@@ -50,8 +53,11 @@ class CanariMode:
     Plume = 0x10
     Shell = 0x40
     Unknown = 0x80
+    Lambda = 0x100
     RemotePlumeDispatch = Remote | Dispatch | Plume
     RemotePlumeDebug = Remote | Debug | Plume
+    RemotePlumeLambdaDispatch = Remote | Lambda | Plume | Dispatch
+    RemotePlumeLambdaDebug = Remote | Lambda | Plume | Debug
     RemoteUnknown = Remote | Unknown
     LocalDispatch = Local | Dispatch
     LocalDebug = Local | Debug
@@ -167,6 +173,15 @@ def is_plume_exec_mode():
     return get_canari_mode() & CanariMode.Plume
 
 
+def is_lambda_exec_mode():
+    """
+    Returns a boolean specifying whether Canari is operating in Plume mode.
+
+    :return: True if Canari is operating in Plume mode.
+    """
+    return get_canari_mode() & CanariMode.Lambda
+
+
 def is_unknown_exec_mode():
     """
     Returns a boolean specifying whether Canari is operating in an unknown mode.
@@ -192,6 +207,24 @@ def is_remote_plume_debug_exec_mode():
     :return: True if Canari is operating in Plume debug mode.
     """
     return is_plume_exec_mode() and is_debug_exec_mode()
+
+
+def is_remote_plume_lambda_dispatch_exec_mode():
+    """
+    Returns a boolean specifying whether Canari is operating in Plume dispatch mode.
+
+    :return: True if Canari is operating in Plume dispatch mode.
+    """
+    return is_plume_exec_mode() and is_dispatch_exec_mode() and is_lambda_exec_mode()
+
+
+def is_remote_plume_lambda_debug_exec_mode():
+    """
+    Returns a boolean specifying whether Canari is operating in Plume debug mode.
+
+    :return: True if Canari is operating in Plume debug mode.
+    """
+    return is_plume_exec_mode() and is_debug_exec_mode() and is_lambda_exec_mode()
 
 
 def is_remote_unknown_exec_mode():
