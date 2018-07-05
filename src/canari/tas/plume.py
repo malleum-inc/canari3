@@ -108,14 +108,15 @@ class Plume(Flask):
             config = load_config()
             packages = config['canari.remote.packages']
         except NoSectionError:
-            sys.stderr.write('Exiting... You did not specify a [canari.remote] section and a "packages" '
-                             'option in your canari.conf file!\n')
+            print('Exiting... You did not specify a [canari.remote] section and a "packages" '
+                  'option in your canari.conf file!', file=sys.stderr)
             exit(-1)
 
         # Is packages not blank
         if not packages:
-            sys.stderr.write(
-                'Exiting... You did not specify any transform packages to load in your canari.conf file!\n')
+            print(
+                'Exiting... You did not specify any transform packages to load in your canari.conf file!',
+                file=sys.stderr)
             exit(-1)
         elif isinstance(packages, basestring):
             packages = [packages]
@@ -130,14 +131,14 @@ class Plume(Flask):
 
             distribution = TransformDistribution(p)
 
-            sys.stderr.write('Loading transform package %s\n' % repr(p))
+            print('Loading transform package %s' % repr(p), file=sys.stderr)
 
             for transform in distribution.remote_transforms:
                 transform_name = transform().name
-                sys.stderr.write('Loading transform %s at /%s...\n' % (repr(transform_name), transform_name))
+                print('Loading transform %s at /%s...' % (repr(transform_name), transform_name), file=sys.stderr)
                 if os.name == 'posix' and transform.superuser and os.geteuid() and __name__.startswith('_mod_wsgi_'):
-                    sys.stderr.write('WARNING: mod_wsgi does not allow applications to run with root privileges. '
-                                     'Transform %s ignored...\n' % repr(transform_name))
+                    print('WARNING: mod_wsgi does not allow applications to run with root privileges. '
+                          'Transform %s ignored...' % repr(transform_name), file=sys.stderr)
                     continue
 
                 self.transforms[transform_name] = transform
@@ -145,7 +146,7 @@ class Plume(Flask):
             self._copy_images(p)
 
         if not self.transforms:
-            sys.stderr.write('Exiting... Your transform packages have no remote transforms.\n')
+            print('Exiting... Your transform packages have no remote transforms.', file=sys.stderr)
             exit(-1)
 
         self.transforms['canari.Version'] = Version
@@ -235,7 +236,6 @@ def transform_runner(transform_name):
 
 # To run Flask standalone just type `python -m canari.tas.plume`
 if __name__ == '__main__':
-    set_canari_mode(CanariMode.RemotePlumeDebug)
     handler = RotatingFileHandler('plume.log', maxBytes=10000, backupCount=1)
     handler.setLevel(logging.INFO)
     application.logger.addHandler(handler)
