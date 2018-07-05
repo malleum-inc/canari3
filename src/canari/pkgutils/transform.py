@@ -1,22 +1,22 @@
 from __future__ import print_function
-from past.builtins import basestring
 
 import importlib
-from io import FileIO
-from pkgutil import iter_modules
+import os
 import string
 import sys
-import os
 from importlib import import_module
+from pkgutil import iter_modules
+
 from mrbob.configurator import Configurator
+from past.builtins import basestring
 from pkg_resources import resource_listdir, resource_filename
 
-from canari.pkgutils.maltego import MaltegoDistribution, MtzDistribution
-from canari.maltego.transform import Transform
-from canari.maltego.message import EntityTypeFactory
-from canari.question import parse_bool
 from canari.config import CanariConfigParser, OPTION_LOCAL_CONFIGS, SECTION_LOCAL, OPTION_REMOTE_PACKAGES, \
     SECTION_REMOTE, OPTION_REMOTE_CONFIGS
+from canari.maltego.message import EntityTypeFactory
+from canari.maltego.transform import Transform
+from canari.pkgutils.maltego import MaltegoDistribution, MtzDistribution
+from canari.question import parse_bool
 from canari.utils.fs import PushDir
 
 __author__ = 'Nadeem Douba'
@@ -76,7 +76,9 @@ class TransformDistribution(object):
         self._remote_transforms = [t for t in self._transforms if t.remote]
         self._config = '%s.conf' % self.name
         self._resources = '%s.resources' % self.name
-        self._package_path = os.path.abspath(self._package.__path__[0])
+        self._package_path = os.path.abspath(self._package.__path__[0]
+                                             if isinstance(self._package.__path__, list)
+                                             else self._package.__path__._path[0])
         self._default_prefix = os.path.join(os.path.expanduser('~'), '.canari') if self.is_site_package else os.getcwd()
         self._entities = list({v for v in EntityTypeFactory.registry.values()
                                if v.__module__.startswith(self._package_name)})
@@ -162,9 +164,8 @@ class TransformDistribution(object):
         return '%s.%s' % (self._resources, name)
 
     @staticmethod
-    def _write_config(src, dst, **kwargs):
-        if os.path.lexists(dst) and not \
-                parse_bool('%s already exists. Would you like to overwrite it?' % dst, default=False):
+    def _write_config(src, dst, defaults=False, **kwargs):
+        if not TransformDistribution._check_file_exists(dst, defaults):
             return
 
         print('Writing %s to %s' % (src, dst), file=sys.stderr)
@@ -189,7 +190,7 @@ class TransformDistribution(object):
         prefix = pkg.__name__
 
         if prefix == 'canari' and not cls._is_package_loaded('canari.maltego.entities'):
-            import canari.maltego.entities
+            pass
         else:
             for _, module_name, is_pkg in iter_modules(pkg.__path__):
                 module_name = '.'.join([prefix, module_name])
@@ -248,30 +249,34 @@ class TransformDistribution(object):
 
             config.write(open(canari_config, mode='w'))
 
-    def configure(self, install_prefix, load=True, remote=False, defaults=False, **kwargs):
-        if load:
-            dst = os.path.join(install_prefix, 'canari.conf')
-            if os.path.lexists(dst) and not defaults and \
-                    parse_bool('%s already exists. Would you like to overwrite it?' % dst, default=False):
-                print('Writing fresh copy of canari.conf to %r...' % dst, file=sys.stderr)
-                variables = {
-                    'canari.command': ' '.join(sys.argv),
-                    'profile.config': self.config_file if self.name != 'canari' else '',
-                    'profile.path': '${PATH},/usr/local/bin,/opt/local/bin' if os.name == 'posix' else ''
-                }
+    @staticmethod
+    def _check_file_exists(dst, defaults=False):
+        return not os.path.lexists(dst) or \
+               (not defaults and parse_bool('%s already exists. Would you like to overwrite it?' % dst, default=False))
 
-                configurator = Configurator('canari.resources.templates:create_profile',
-                                            install_prefix,
-                                            {'non_interactive': True, 'remember_answers': True},
-                                            variables=variables)
-                configurator.render()
-                return
+    def configure(self, install_prefix, load=True, remote=False, defaults=False, **kwargs):
+        dst_canari_conf = os.path.join(install_prefix, 'canari.conf')
+        if load and self._check_file_exists(dst_canari_conf, defaults):
+            print('Writing fresh copy of canari.conf to %r...' % dst_canari_conf, file=sys.stderr)
+            variables = {
+                'canari.command': ' '.join(sys.argv),
+                'profile.config': self.config_file if self.name != 'canari' else '',
+                'profile.path': '${PATH},/usr/local/bin,/opt/local/bin' if os.name == 'posix' else ''
+            }
+
+            configurator = Configurator('canari.resources.templates:create_profile',
+                                        install_prefix,
+                                        {'non_interactive': True, 'remember_answers': True},
+                                        variables=variables)
+            configurator.render()
 
         if self._package_name != 'canari':
+            dst_package_conf = os.path.join(install_prefix, self.config_file)
             if load:
+                print('Copying %r to %r...' % (self.config_file, dst_package_conf))
                 package_config = resource_filename(self.get_resource_module('etc'), self.config_file)
-                self._write_config(package_config, os.path.join(install_prefix, self.config_file))
-            self._update_config(os.path.join(install_prefix, 'canari.conf'), load, remote)
+                self._write_config(package_config, dst_package_conf, defaults)
+            self._update_config(dst_canari_conf, load, remote)
 
     def _init_install_prefix(self, install_prefix):
         if not install_prefix:
