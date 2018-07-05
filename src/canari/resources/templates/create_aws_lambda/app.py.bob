@@ -1,0 +1,158 @@
+from __future__ import print_function
+import sys
+
+from chalice import Chalice, Response
+from past.builtins import basestring
+
+if sys.version_info[0] > 2:
+    from configparser import NoSectionError
+else:
+    # noinspection PyUnresolvedReferences
+    from ConfigParser import NoSectionError
+
+# Builtin imports
+import os
+import traceback
+from hashlib import md5
+
+import canari.resource
+from canari.commands.common import fix_binpath, fix_pypath
+from canari.config import load_config, OPTION_REMOTE_PATH
+from canari.maltego.entities import Phrase, Unknown
+from canari.maltego.message import (MaltegoMessage, MaltegoTransformResponseMessage, MaltegoTransformExceptionMessage,
+                                    MaltegoException)
+from canari.maltego.transform import Transform
+from canari.mode import set_canari_mode, CanariMode
+from canari.pkgutils.transform import TransformDistribution
+
+__author__ = 'Nadeem Douba'
+__copyright__ = 'Copyright 2015, Canari Project'
+__credits__ = []
+
+__license__ = 'GPL'
+__version__ = '0.5'
+__maintainer__ = 'Nadeem Douba'
+__email__ = 'ndouba@gmail.com'
+__status__ = 'Development'
+
+__all__ = [
+    'app'
+]
+
+
+CONFIG = os.path.join('chalicelib', 'canari.conf')
+
+# Initialize Canari modes and bin path
+set_canari_mode(CanariMode.RemotePlumeLambdaDispatch)
+fix_binpath(load_config(CONFIG)[OPTION_REMOTE_PATH])
+fix_pypath()
+
+
+def get_base_url():
+    headers = app.current_request.headers
+    return '%s://%s/%s' % (headers['x-forwarded-proto'],
+                           headers['host'],
+                           app.current_request.context['stage'])
+
+
+def get_image_path(i):
+    # TODO: point to an S3 bucket
+    return os.path.join('static', md5(i).hexdigest())
+
+
+def get_image_url(i):
+    # TODO: point to an S3 bucket
+    return '%s/static/%s' % (get_base_url(), md5(i).hexdigest())
+
+
+# Monkey patch our resource lib to automatically rewrite icon urls
+_icon_resource = canari.resource.icon_resource
+canari.resource.icon_resource = lambda name, pkg=None: get_image_url(_icon_resource(name, pkg))
+
+_calling_package = canari.resource.calling_package
+canari.resource.calling_package = lambda frame=4: _calling_package(frame)
+
+
+class Version(Transform):
+    input_type = Phrase
+
+    def do_transform(self, r, res, config):
+        if r.entity.value == 'version':
+            res += Phrase('Canari v%s' % __version__)
+        return res
+
+
+app = Chalice('CanariAWSLambda')
+
+
+def croak(cause):
+    """Throw an exception in the Maltego GUI containing cause.
+
+    :param cause: a string containing the issue description.
+    """
+    return MaltegoMessage(
+        message=MaltegoTransformExceptionMessage(
+            exceptions=[
+                MaltegoException(cause)
+            ]
+        )
+    ).render()
+
+
+def message(msg):
+    """Write a MaltegoMessage to stdout and exit successfully"""
+    v = MaltegoMessage(message=msg).render()
+    return Response(v, status_code=200, headers={'Content-Type': 'text/xml'})
+
+
+def do_transform(transform):
+    try:
+        # Let's get an XML object tree
+        req = MaltegoMessage.parse(app.current_request.raw_body).message
+
+        # If our transform define an input entity type then we should check
+        # whether the request contains the right type
+        if transform.input_type and transform.input_type is not Unknown and \
+                not isinstance(req.entity, transform.input_type):
+            return Response(app.four_o_four, status_code=404)
+
+        # Execute it!
+        msg = transform().do_transform(
+            req,
+            MaltegoTransformResponseMessage(),
+            load_config(CONFIG)
+        )
+
+        # Let's serialize the return response and clean up whatever mess was left behind
+        if isinstance(msg, MaltegoTransformResponseMessage):
+            return message(msg)
+        else:
+            raise MaltegoException(str(msg))
+
+    # Unless we croaked somewhere, then we need to fix things up here...
+    except MaltegoException as me:
+        return croak(str(me))
+    except Exception:
+        if app.debug:
+            return croak(traceback.format_exc())
+        else:
+            return croak('Transform execution failed.')
+
+
+{{% for transform in package.transforms %}}
+# This is where the TDS will ask: "Are you a transform?" and we say "200 - Yes I am!" or "404 - PFO"
+@app.route('/{{{ transform.name }}}', methods=['GET'])
+def get_{{{ transform.name.replace('.', '_') }}}():
+    return Response('Yes?', status_code=200)
+
+
+# This is where we process a transform request.
+@app.route('/{{{ transform.name }}}', methods=['POST'],
+    content_types=['application/xml', 'text/xml', 'application/octet-stream'])
+def post_{{{ transform.name.replace('.', '_') }}}():
+    try:
+        from {{{ transform.__module__ }}} import {{{ transform.__class__.__name__ }}}
+        return do_transform({{{ transform.__class__.__name__ }}})
+    except e:
+        print(e)
+{{% endfor %}}

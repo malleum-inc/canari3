@@ -16,6 +16,7 @@ __all__ = [
     'create_package',
     'create_profile',
     'create_transform',
+    'create_aws_lambda',
     'csv2sheets',
     'debug_transform',
     'dockerize_package',

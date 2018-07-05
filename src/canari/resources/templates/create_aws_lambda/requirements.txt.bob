@@ -1,0 +1,4 @@
+canari>=3.3.0
+{{% for requirement in project.requirements %}}
+{{{ requirement }}}
+{{% endfor %}}
