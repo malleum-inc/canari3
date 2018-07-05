@@ -10,5 +10,5 @@ __status__ = 'Development'
 
 __all__ = [
     'etc',
-    'template'
+    'templates'
 ]
