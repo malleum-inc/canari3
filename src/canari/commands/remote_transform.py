@@ -149,6 +149,9 @@ def remote_transform(args):
             args.host,
             args.transform
         ), file=sys.stderr)
+        
+        if args.verbose:
+            print(r.read(), file=sys.stderr)
     except Exception as e:
         print('ERROR: %s' % e, file=sys.stderr)
     exit(-1)
