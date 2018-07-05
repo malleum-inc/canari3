@@ -208,7 +208,8 @@ class TransformDistribution(object):
             for sub_subclass in self.find_all_subclasses(subclass):
                 yield sub_subclass
 
-    def _update_config(self, canari_config, load=True, remote=False):
+    def _update_config(self, canari_config, load=True, remote=False, **kwargs):
+
         with PushDir(os.path.dirname(canari_config)):
 
             config = CanariConfigParser()
@@ -225,6 +226,9 @@ class TransformDistribution(object):
             configs = config.get_as_list(configs_option)
 
             if load:
+                for (k, v) in kwargs.get('additional_options', {}).items():
+                    config['.'.join([config_section, k])] = v
+
                 if self.config_file not in configs:
                     print('Updating %s...' % canari_config, file=sys.stderr)
                     configs.append(self.config_file)
@@ -276,7 +280,7 @@ class TransformDistribution(object):
                 print('Copying %r to %r...' % (self.config_file, dst_package_conf))
                 package_config = resource_filename(self.get_resource_module('etc'), self.config_file)
                 self._write_config(package_config, dst_package_conf, defaults)
-            self._update_config(dst_canari_conf, load, remote)
+            self._update_config(dst_canari_conf, load, remote, **kwargs)
 
     def _init_install_prefix(self, install_prefix):
         if not install_prefix:
