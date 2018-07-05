@@ -135,7 +135,10 @@ def install_defaults(opts):
 
     configurator.variables['plume.venv'] = os.environ.get('VIRTUAL_ENV')
     if configurator.variables['plume.venv']:
-        print('Will use the virtual environment in %r to run Plume...' % configurator.variables['plume.venv'], file=sys.stderr)
+        print(
+            'Will use the virtual environment in %r to run Plume...' % configurator.variables['plume.venv'],
+            file=sys.stderr
+        )
     configurator.variables['plume.enable_ssl'] = 'n'
     print('Installing init script to /etc/init.d...', file=sys.stderr)
     configurator.variables['plume.init'] = check_init_script(configurator, '', '/etc/init.d')
