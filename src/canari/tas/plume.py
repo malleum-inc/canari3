@@ -51,11 +51,11 @@ fix_pypath()
 
 
 def get_image_path(i):
-    return os.path.join('static', md5(i).hexdigest())
+    return os.path.join('static', md5(bytes(i)).hexdigest())
 
 
 def get_image_url(i):
-    return '%s/static/%s' % (request.host_url, md5(i).hexdigest())
+    return '%s/static/%s' % (request.host_url, md5(bytes(i)).hexdigest())
 
 
 # Monkey patch our resource lib to automatically rewrite icon urls
