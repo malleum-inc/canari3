@@ -177,7 +177,7 @@ def create_aws_lambda(opts):
             print("Copying %r project tree to the 'aws' directory." % project.name)
             shutil.copytree(project.name, dst_dir,
                             ignore=shutil.ignore_patterns("__pycache__", "*.pyc", ".*", "*.gif", "*.jpg", "*.jpeg",
-                                                          "*.png"))
+                                                          "*.png", "*.whl"))
 
             print("To deploy type 'chalice deploy' in the %r directory" % target)
             print('done!', file=sys.stderr)
