@@ -58,8 +58,6 @@ DEPENDENCY_DOWNLOAD_URL = os.environ.get(
     'https://github.com/redcanari/canari3/releases/download/v%s/%s' % (canari.__version__, DEPENDENCY_FILE_NAME)
 )
 
-DEPENDENCY_DOWNLOAD_URL = 'https://github.com/redcanari/canari3/archive/v3.3.0.zip'
-
 # Queue for blocking until we get a result from hook to setup(). Ugly but effective :P
 q = Queue()
 
