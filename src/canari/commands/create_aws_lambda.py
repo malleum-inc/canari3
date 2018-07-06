@@ -1,8 +1,11 @@
 from __future__ import print_function
 
+import math
 import sys
 import os
 import shutil
+import tempfile
+import zipfile
 
 from mimetypes import guess_type
 from hashlib import md5
@@ -10,8 +13,10 @@ from hashlib import md5
 import boto3
 
 from six import b
+from six.moves import urllib
 from mrbob.configurator import Configurator
 
+import canari
 from canari.commands.common import canari_main
 from canari.commands.framework import SubCommand, Argument
 from canari.pkgutils.transform import TransformDistribution
@@ -46,6 +51,15 @@ S3_CDN_BUCKET_POLICY = """{
     }]
 }"""
 
+DEPENDENCY_FILE_NAME = 'canari3-%s-aws-lambda-deps-py%s.zip' % (canari.__version__, sys.version_info[0])
+
+DEPENDENCY_DOWNLOAD_URL = os.environ.get(
+    'DEPS_DOWNLOAD_URL',
+    'https://github.com/redcanari/canari3/releases/download/v%s/%s' % (canari.__version__, DEPENDENCY_FILE_NAME)
+)
+
+DEPENDENCY_DOWNLOAD_URL = 'https://github.com/redcanari/canari3/archive/v3.3.0.zip'
+
 # Queue for blocking until we get a result from hook to setup(). Ugly but effective :P
 q = Queue()
 
@@ -65,6 +79,19 @@ def get_dependencies(project):
         hook_setup()
         import setup
     return set(q.get())
+
+
+def download_progress(count, size, total_bytes):
+    if total_bytes == 0:
+        print('Downloading %s...' % DEPENDENCY_FILE_NAME)
+
+    total_count = math.ceil(float(total_bytes)/size)
+    percent_done = count / total_count
+    print('Downloading %s |%-20s| %.2f complete' % (
+        DEPENDENCY_FILE_NAME,
+        '#' * int(percent_done * 20),
+        percent_done * 100
+    ), end='\r' if count < total_count else '\n', file=sys.stderr)
 
 
 def upload_images(project, opts):
@@ -173,12 +200,32 @@ def create_aws_lambda(opts):
             if os.path.lexists(dst_dir):
                 shutil.rmtree(dst_dir)
 
-            print("Copying %r project tree to the 'aws' directory." % project.name)
+            print("Copying %r project tree to the 'aws' directory..." % project.name, file=sys.stderr)
             shutil.copytree(project.name, dst_dir,
                             ignore=shutil.ignore_patterns("__pycache__", "*.pyc", ".*", "*.gif", "*.jpg", "*.jpeg",
                                                           "*.png", "*.whl"))
 
-            print("To deploy type 'chalice deploy' in the %r directory" % target)
+            deps_dst = os.path.join(tempfile.gettempdir(), DEPENDENCY_FILE_NAME)
+            try:
+                print("Copying Amazon dependencies for Canari to the 'aws/vendor' directory...", file=sys.stderr)
+                if not os.path.lexists(deps_dst):
+                    print("Downloading dependencies from %r... " % DEPENDENCY_DOWNLOAD_URL, file=sys.stderr)
+                    deps_dst, _ = urllib.request.urlretrieve(
+                        DEPENDENCY_DOWNLOAD_URL, deps_dst, reporthook=download_progress)
+                else:
+                    print("Using cached dependencies from %r" % deps_dst)
+
+                print("Decompressing dependencies into 'aws/vendor'", file=sys.stderr)
+                zip_file = zipfile.ZipFile(deps_dst, 'r')
+                zip_file.extractall("../aws/vendor")
+                zip_file.close()
+            except IOError:
+                if os.path.lexists(deps_dst):
+                    os.unlink(deps_dst)
+                print("Failed to download dependencies from %r..." % DEPENDENCY_DOWNLOAD_URL)
+                exit(-1)
+
+            print("To deploy type 'chalice deploy' in the %r directory" % target, file=sys.stderr)
             print('done!', file=sys.stderr)
     except ValueError as e:
         print(e, file=sys.stderr)
