@@ -80,7 +80,7 @@ the following::
 
 Once you've activated your virtual environment, it is now time to install Canari::
 
-    $ pip install canari[all]
+    $ pip install canari
 
 .. note::
 

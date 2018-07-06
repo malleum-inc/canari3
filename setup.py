@@ -82,7 +82,7 @@ extras = [
     'readline'
 ]
 
-extras_require = [
+requires = [
     'mr.bob',
     'argparse',
     'flask',
@@ -90,10 +90,7 @@ extras_require = [
     'pyopenssl',
     'service_identity',
     'pyasn1',
-    'boto3'
-]
-
-requires = [
+    'boto3',
     'safedexml',
     'lxml',
     'six',
@@ -109,7 +106,7 @@ else:
 setup(
     name='canari',
     author='Nadeem Douba',
-    version='3.3.0',
+    version='3.3.1',
     author_email='ndouba@gmail.com',
     description='Canari Framework - Maltego rapid transform development and execution framework.',
     long_description=long_description,
@@ -118,9 +115,6 @@ setup(
     package_dir={'': 'src'},
     include_package_data=True,
     zip_safe=False,
-    extras_require={
-        'all': extras_require
-    },
     install_requires=requires,
     dependency_links=[],
     url='https://github.com/redcanari/canari',
