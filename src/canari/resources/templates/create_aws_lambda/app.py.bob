@@ -108,7 +108,7 @@ def do_transform(transform):
             return croak('Transform execution failed.')
 
 
-@app.route('/{{{ transform.name }}}', methods=['POST'],
+@app.route('/canari.Version', methods=['POST'],
            content_types=['application/xml', 'text/xml'])
 def get_canari_Version():
     return do_transform(Version)

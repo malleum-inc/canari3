@@ -161,9 +161,8 @@ def create_aws_lambda(opts):
                 variables=variables
             )
 
-            configurator.ask_questions()
-
             print('Generating Chalice project for %r in %r...' % (project.name, target), file=sys.stderr)
+            configurator.ask_questions()
             configurator.render()
 
             transform_package.configure(os.path.join(target, 'chalicelib'), remote=True, additional_options={
