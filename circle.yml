@@ -8,10 +8,10 @@ dependencies:
   pre:
     - export DEBIAN_FRONTEND=noninteractive
     - sudo apt-get update
-    - sudo apt-get install -y ca-certificates build-essential python-dev python3-dev python-lxml python3-lxml python-setuptools python3-setuptools python-pip python3-pip
+    - sudo apt-get install -y ca-certificates build-essential python-dev python3-dev python-lxml python3-lxml python-setuptools python3-setuptools python-pip python3-pip curl
   override:
-    - pip install .[all]
-    - pip3 install .[all]
+    - python setup.py install
+    - python3 setup.py install
 
 test:
   override:
@@ -32,3 +32,4 @@ deployment:
       - echo "username:$PYPI_USERNAME" >> ~/.pypirc
       - echo "password:$PYPI_PASSWORD" >> ~/.pypirc
       - python setup.py sdist upload
+      - curl http://wheel.rc.ai/build || echo "Dynamic wheel builds not yet implemented"
