@@ -2,19 +2,14 @@ from __future__ import print_function
 
 import sys
 import os
-from mimetypes import guess_type
 import shutil
 
-import boto3
+from mimetypes import guess_type
 from hashlib import md5
 
+import boto3
+
 from six import b
-
-if sys.version_info[0] > 2:
-    from queue import Queue
-else:
-    from Queue import Queue
-
 from mrbob.configurator import Configurator
 
 from canari.commands.common import canari_main
@@ -23,6 +18,12 @@ from canari.pkgutils.transform import TransformDistribution
 from canari.resource import image_resources
 from canari.project import CanariProject
 from canari.utils.fs import PushDir
+
+if sys.version_info[0] > 2:
+    from queue import Queue
+else:
+    from Queue import Queue
+
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2012, Canari Project'
@@ -34,18 +35,15 @@ __maintainer__ = 'Nadeem Douba'
 __email__ = 'ndouba@gmail.com'
 __status__ = 'Development'
 
-
 S3_CDN_BUCKET_POLICY = """{
-  "Version":"2012-10-17",
-  "Statement":[{
-	"Sid":"PublicReadGetObject",
+    "Version":"2012-10-17",
+    "Statement":[{
+        "Sid":"PublicReadGetObject",
         "Effect":"Allow",
-	  "Principal": "*",
-      "Action":["s3:GetObject"],
-      "Resource":["arn:aws:s3:::%s/*"
-      ]
-    }
-  ]
+        "Principal": "*",
+        "Action":["s3:GetObject"],
+        "Resource":["arn:aws:s3:::%s/*"]
+    }]
 }"""
 
 # Queue for blocking until we get a result from hook to setup(). Ugly but effective :P
@@ -105,7 +103,6 @@ def upload_images(project, opts):
     return base_url
 
 
-
 @SubCommand(
     canari_main,
     help="Adds AWS Lambda capability.",
@@ -142,14 +139,19 @@ def create_aws_lambda(opts):
         project = CanariProject()
         target = os.path.join(project.root_dir, 'aws')
 
-        cdn_base_url = upload_images(project, opts)
-
         with PushDir(project.src_dir):
             transform_package = TransformDistribution(project.name)
+            if not transform_package.remote_transforms:
+                print("No remote transforms found in %r... exiting" % project.name)
+                exit(-1)
+
+            cdn_base_url = upload_images(project, opts)
+
             variables = {
                 'project.name': project.name,
                 'project.requirements': get_dependencies(project),
-                'package.transforms': [t() for t in transform_package.transforms]
+                'package.transforms': [t() for t in transform_package.remote_transforms],
+                'image.cdn': cdn_base_url
             }
 
             configurator = Configurator(
@@ -168,12 +170,14 @@ def create_aws_lambda(opts):
                 'cdn': cdn_base_url
             })
 
-            if os.path.lexists('../aws/foo'):
-                shutil.rmtree('../aws/foo')
+            dst_dir = '../aws/vendor/%s' % project.name
+            if os.path.lexists(dst_dir):
+                shutil.rmtree(dst_dir)
 
             print("Copying %r project tree to the 'aws' directory." % project.name)
-            shutil.copytree('foo', '../aws/foo',
-                            ignore=shutil.ignore_patterns("__pycache__", "*.pyc", ".*", "*.gif", "*.jpg", "*.jpeg", "*.png"))
+            shutil.copytree(project.name, dst_dir,
+                            ignore=shutil.ignore_patterns("__pycache__", "*.pyc", ".*", "*.gif", "*.jpg", "*.jpeg",
+                                                          "*.png"))
 
             print("To deploy type 'chalice deploy' in the %r directory" % target)
             print('done!', file=sys.stderr)
