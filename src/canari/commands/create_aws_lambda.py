@@ -80,7 +80,7 @@ def get_dependencies(project):
 
 
 def download_progress(count, size, total_bytes):
-    if total_bytes == 0:
+    if not total_bytes or not size:
         print('Downloading %s...' % DEPENDENCY_FILE_NAME)
 
     total_count = math.ceil(float(total_bytes)/size)
