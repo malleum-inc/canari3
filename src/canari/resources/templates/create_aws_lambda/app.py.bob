@@ -24,13 +24,13 @@ from canari.mode import set_canari_mode, CanariMode
 
 app = Chalice('test')
 
-CONFIG = os.path.join('chalicelib', 'canari.conf')
+global_config = load_config(os.path.join('chalicelib', 'canari.conf'))
 
 # Initialize Canari modes and bin path
 set_canari_mode(CanariMode.RemotePlumeLambdaDispatch)
 
 def get_base_url():
-    return os.environ.get('CANARI_IMAGE_CDN') or load_config(CONFIG, False).get('canari.remote', 'cdn')
+    return os.environ.get('CANARI_IMAGE_CDN') or global_config.get('canari.remote', 'cdn')
 
 
 def get_image_url(i):
@@ -89,7 +89,7 @@ def do_transform(transform):
         msg = transform().do_transform(
             req,
             MaltegoTransformResponseMessage(),
-            load_config(CONFIG)
+            global_config
         )
 
         # Let's serialize the return response and clean up whatever mess was left behind
