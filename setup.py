@@ -106,7 +106,7 @@ else:
 setup(
     name='canari',
     author='Nadeem Douba',
-    version='3.3.2',
+    version='3.3.3',
     author_email='ndouba@gmail.com',
     description='Canari Framework - Maltego rapid transform development and execution framework.',
     long_description=long_description,
