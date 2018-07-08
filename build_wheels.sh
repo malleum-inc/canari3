@@ -15,7 +15,7 @@ function download_wheels() {
 
     for d in "${@:3}"; do
         echo "Collecting wheel for $d";
-        if [[ $d == canari* ]]; then
+        if [[ $d == *canari* ]]; then
             $pip wheel --no-cache-dir --no-deps $d -w $working_dir
         else
             $pip wheel --no-cache-dir $d -w $working_dir
@@ -31,11 +31,17 @@ function download_wheels() {
         rm $d
     done
 
-    zip -r "../canari3-$canari_version-aws-lambda-deps-py$python_major_version.zip" *
+    local zip_file="canari3-$canari_version-aws-lambda-deps-py$python_major_version.zip"
+    zip -r ../$zip_file *
     popd
 
     rm -rf $working_dir
 
+    if [[ $GITHUB_API_TOKEN == "" ]]; then
+        read -sp "Please enter your GitHub API Token: " GITHUB_API_TOKEN
+    fi
+
+    ./upload-github-release-asset.sh github_api_token=$GITHUB_API_TOKEN owner=redcanari repo=canari3 tag=v$canari_version filename=$zip_file
 }
 
 for environment in $environments; do
