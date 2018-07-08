@@ -23,7 +23,7 @@ from canari.maltego.message import (MaltegoMessage, MaltegoTransformResponseMess
 from canari.maltego.transform import Transform
 from canari.mode import set_canari_mode, CanariMode
 
-app = Chalice('Canari')
+app = Chalice('Canari Lambda: {{{ project.name }}}')
 
 global_config = load_config(os.path.join('chalicelib', 'canari.conf'))
 
