@@ -1,4 +1,5 @@
 from __future__ import print_function
+from six import b
 
 import sys
 import os
@@ -33,17 +34,12 @@ def get_base_url():
     return os.environ.get('CANARI_IMAGE_CDN') or global_config.get('canari.remote', 'cdn')
 
 
-def get_image_url(i):
-    # TODO: point to an S3 bucket
-    return os.path.join(get_base_url(), md5(i).hexdigest())
-
-
 # Monkey patch our resource lib to automatically rewrite icon urls
-_icon_resource = canari.resource.icon_resource
-canari.resource.icon_resource = lambda name, pkg=None: get_image_url(_icon_resource(name, pkg))
+canari.resource.icon_resource = lambda name, pkg=None: os.path.join(get_base_url(), md5(b(name)).hexdigest())
 
-_calling_package = canari.resource.calling_package
-canari.resource.calling_package = lambda frame=4: _calling_package(frame)
+external_resource = canari.resource.external_resource
+canari.resource.external_resource = lambda name, pkg=None: external_resource(name, '{{{ project.name }}}.resources.external')
+
 
 class Version(Transform):
     input_type = Phrase
