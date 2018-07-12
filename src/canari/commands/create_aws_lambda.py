@@ -207,7 +207,7 @@ def create_aws_lambda(opts):
             print("Copying %r project tree to the 'aws' directory..." % project.name, file=sys.stderr)
             shutil.copytree(project.name, dst_dir,
                             ignore=shutil.ignore_patterns("__pycache__", "*.pyc", ".*", "*.gif", "*.jpg", "*.jpeg",
-                                                          "*.png", "*.whl"))
+                                                          "*.png", "*.whl", "*.mt*"))
 
             deps_dst = os.path.join(tempfile.gettempdir(), DEPENDENCY_FILE_NAME)
             try:
