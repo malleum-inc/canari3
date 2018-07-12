@@ -12,6 +12,7 @@ else:
     # noinspection PyUnresolvedReferences
     from ConfigParser import NoSectionError
 
+import chalice.app
 from chalice import Chalice, Response
 
 import canari
@@ -22,6 +23,16 @@ from canari.maltego.message import (MaltegoMessage, MaltegoTransformResponseMess
                                     MaltegoException)
 from canari.maltego.transform import Transform
 from canari.mode import set_canari_mode, CanariMode
+
+
+def _matches_content_type(content_type, valid_content_types):
+    if ';' in content_type:
+        content_type = [c.lower() for c in content_type.split(';', 1)[0].strip()]
+    else:
+        content_type = content_type.lower()
+    return content_type in valid_content_types
+
+chalice.app._matches_content_type = _matches_content_type
 
 app = Chalice('Canari Lambda: {{{ project.name }}}')
 
@@ -104,23 +115,17 @@ def do_transform(transform):
             return croak('Transform execution failed.')
 
 
-@app.route('/canari.Version', methods=['POST'],
-           content_types=['application/xml', 'text/xml'])
-def get_canari_Version():
+@app.route('/canari.Version', methods=['POST'], content_types=['application/xml', 'text/xml'])
+def post_canari_Version():
     return do_transform(Version)
 
 
 {{% for transform in package.transforms %}}
-# This is where the TDS will ask: "Are you a transform?" and we say "200 - Yes I am!" or "404 - PFO"
-@app.route('/{{{ transform.name }}}', methods=['GET'])
-def get_{{{ transform.name.replace('.', '_') }}}():
-    return Response('Yes?', status_code=200)
-
-
-# This is where we process a transform request.
 @app.route('/{{{ transform.name }}}', methods=['POST'],
-    content_types=['application/xml', 'text/xml'])
+           content_types=['application/xml', 'text/xml'])
 def post_{{{ transform.name.replace('.', '_') }}}():
+    if not app.current_request.headers.get('Content-Length', 0):
+        return Response('Yes?', status_code=200)
     from {{{ transform.__module__ }}} import {{{ transform.__class__.__name__ }}}
     return do_transform({{{ transform.__class__.__name__ }}})
 {{% endfor %}}
