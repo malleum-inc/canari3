@@ -112,6 +112,11 @@ def post_canari_Version():
 
 
 {{% for transform in package.transforms %}}
+@app.route('/{{{ transform.name }}}', methods=['GET'])
+def get_{{{ transform.name.replace('.', '_') }}}():
+    return Response('Yes?', status_code=200)
+
+
 @app.route('/{{{ transform.name }}}', methods=['POST'])
 def post_{{{ transform.name.replace('.', '_') }}}():
     if not app.current_request.headers.get('Content-Length', 0):
