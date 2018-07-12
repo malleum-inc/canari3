@@ -232,6 +232,8 @@ def static_fetcher(resource_name):
 def transform_runner(transform_name):
     if transform_name not in application.transforms:
         return Response(application.four_o_four, status=404)
+    if not request.content_length:
+        return Response('Yes?', status=200)
     return do_transform(application.transforms[transform_name])
 
 
