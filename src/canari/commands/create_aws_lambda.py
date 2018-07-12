@@ -169,6 +169,13 @@ def create_aws_lambda(opts):
     try:
         project = CanariProject()
         target = os.path.join(project.root_dir, 'aws')
+        dot_chalice = os.path.join(target, '.chalice')
+        dot_chalice_backup = None
+
+        if os.path.lexists(dot_chalice):
+            print("Saving original 'aws/.chalice' ...", file=sys.stderr)
+            dot_chalice_backup = tempfile.mkdtemp(prefix='.chalice', suffix='.bak')
+            shutil.move(dot_chalice, dot_chalice_backup)
 
         with PushDir(project.src_dir):
             transform_package = TransformDistribution(project.name)
@@ -229,8 +236,13 @@ def create_aws_lambda(opts):
                 print("Failed to download dependencies from %r..." % DEPENDENCY_DOWNLOAD_URL)
                 exit(-1)
 
-            print("To deploy type 'chalice deploy' in the %r directory" % target, file=sys.stderr)
-            print('done!', file=sys.stderr)
+        if dot_chalice_backup:
+            print("Restoring 'aws/.chalice' from %r..." % dot_chalice_backup, file=sys.stderr)
+            shutil.rmtree(dot_chalice)
+            shutil.move(os.path.join(dot_chalice_backup, '.chalice'), target)
+
+        print("To deploy type 'chalice deploy' in the %r directory" % target, file=sys.stderr)
+        print('done!', file=sys.stderr)
     except ValueError as e:
         print(e, file=sys.stderr)
         exit(-1)
