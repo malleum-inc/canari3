@@ -137,7 +137,7 @@ string whose root element is the ``<MaltegoTransformRequestMessage>`` tag, or by
 
             class HelloWorld(Transform):
                 # Ensure request.entity returns a Person object
-                input_set = Person
+                input_type = Person
 
                 def do_transform(self, request, response, config):
                     person = request.entity
