@@ -107,7 +107,7 @@ setup(
     name='canari',
     author='Nadeem Douba',
     version='3.3.6',
-    author_email='ndouba@gmail.com',
+    author_email='ndouba@redcanari.com',
     description='Canari Framework - Maltego rapid transform development and execution framework.',
     long_description=long_description,
     license='GPLv3',

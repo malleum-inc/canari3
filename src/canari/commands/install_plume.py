@@ -17,7 +17,7 @@ __credits__ = []
 __license__ = 'GPLv3'
 __version__ = '0.2'
 __maintainer__ = 'Nadeem Douba'
-__email__ = 'ndouba@gmail.com'
+__email__ = 'ndouba@redcanari.com'
 __status__ = 'Development'
 
 
