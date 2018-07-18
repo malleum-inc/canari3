@@ -1,9 +1,14 @@
 FROM amazonlinux:2017.03.1.20170812
 
+ARG GITHUB_API_TOKEN
+ARG CANARI_VERSION
+
 COPY build_wheels.sh /tmp
 
 COPY upload-github-release-asset.sh /tmp
 
-RUN sudo yum install -y gcc libxml2-devel libxslt-devel
+RUN set && yum install -y gcc libxml2-devel libxslt-devel python36 python27-pip
 
-RUN ./build_wheels canari lxml safedexml six future setuptools
+RUN pip-3.6 install wheel && pip-2.7 install wheel
+
+RUN chmod +x /tmp/build_wheels.sh && /tmp/build_wheels.sh canari==${CANARI_VERSION} lxml safedexml six future setuptools

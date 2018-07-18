@@ -32,4 +32,5 @@ deployment:
       - echo "username:$PYPI_USERNAME" >> ~/.pypirc
       - echo "password:$PYPI_PASSWORD" >> ~/.pypirc
       - python setup.py sdist upload
-      - cd lambda && docker build .
+      - export CANARI_VERSION=`python setup.py -V`
+      - cd lambda && docker build --build-arg GITHUB_API_TOKEN=$GITHUB_API_TOKEN --build-arg CANARI_VERSION=$CANARI_VERSION .
