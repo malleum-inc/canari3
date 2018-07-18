@@ -1,8 +1,9 @@
 :mod:`canari.maltego.entities` Maltego Entities
-===============================================
+================================================
 
 .. module:: canari.maltego.entities
     :synopsis: Maltego Entity Classes
+
 .. moduleauthor:: Nadeem Douba <ndouba@redcanari.com>
 .. sectionauthor:: Nadeem Douba <ndouba@redcanari.com>
 
@@ -11,28 +12,18 @@
 ----
 
 
-``maltego.Alias``
-^^^^^^^^^^^^^^^^^
-
-.. class:: Alias(**kwargs)
-
-        :keyword str alias: Alias (``properties.alias``)
-    
-
 
 -------------
 
 
-``maltego.affiliation.Facebook`` (alias: ``AffiliationFacebook``)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``maltego.TrackingCode`` (alias: ``maltego.UniqueIdentifier``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. class:: Facebook(**kwargs)
+.. class:: TrackingCode(**kwargs)
 
-        :keyword str uid: UID (``affiliation.uid``)
-        :keyword str profile_url: Profile URL (``affiliation.profile-url``)
-        :keyword str person_name: Name (``person.name``)
-        :keyword str network: Network (``affiliation.network``)
-
+        :keyword str unique_identifier: Uniqueidentifier (``properties.uniqueidentifier``)
+        :keyword str identifier_type: Identifier Type (``identifierType``)
+    
 
 
 -------------
@@ -50,22 +41,10 @@
 -------------
 
 
-``maltego.FacebookObject``
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+``maltego.affiliation.Bebo`` (alias: ``AffiliationBebo``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. class:: FacebookObject(**kwargs)
-
-        :keyword str object: Facebook Object (``properties.facebookobject``)
-    
-
-
--------------
-
-
-``maltego.affiliation.Affiliation``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. class:: Affiliation(**kwargs)
+.. class:: Bebo(**kwargs)
 
         :keyword str uid: UID (``affiliation.uid``)
         :keyword str profile_url: Profile URL (``affiliation.profile-url``)
@@ -77,52 +56,24 @@
 -------------
 
 
-``maltego.GPS``
-^^^^^^^^^^^^^^^
+``maltego.NominatimLocation``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. class:: GPS(**kwargs)
+.. class:: NominatimLocation(**kwargs)
 
-        :keyword float longitude: Longitude (``longitude``)
-        :keyword float latitude: Latitude (``latitude``)
-        :keyword str gps: GPS Co-ordinate (``properties.gps``)
+        :keyword str nominatim: Nominatim Location (``properties.nominatimlocation``)
     
 
 
 -------------
 
 
-``maltego.Domain``
-^^^^^^^^^^^^^^^^^^
+``maltego.EmailAddress``
+^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. class:: Domain(**kwargs)
+.. class:: EmailAddress(**kwargs)
 
-        :keyword str whois_info: WHOIS Info (``whois-info``)
-        :keyword str fqdn: Domain Name (``fqdn``)
-    
-
-
--------------
-
-
-``maltego.Image``
-^^^^^^^^^^^^^^^^^
-
-.. class:: Image(**kwargs)
-
-        :keyword str url: URL (``fullImage``)
-        :keyword str description: Description (``properties.image``)
-    
-
-
--------------
-
-
-``maltego.WebTitle``
-^^^^^^^^^^^^^^^^^^^^
-
-.. class:: WebTitle(**kwargs)
-
-        :keyword str title: Title (``title``)
+        :keyword str email: Email Address (``email``)
     
 
 
@@ -145,41 +96,49 @@
 -------------
 
 
-``maltego.URL``
-^^^^^^^^^^^^^^^
+``maltego.Unknown``
+^^^^^^^^^^^^^^^^^^^
 
-.. class:: URL(**kwargs)
+.. class:: Unknown(**kwargs)
+
+    
+
+
+-------------
+
+
+``maltego.DNSName``
+^^^^^^^^^^^^^^^^^^^
+
+.. class:: DNSName(**kwargs)
+
+        :keyword str fqdn: DNS Name (``fqdn``)
+    
+
+
+-------------
+
+
+``maltego.Webdir``
+^^^^^^^^^^^^^^^^^^
+
+.. class:: Webdir(**kwargs)
+
+        :keyword str name: Name (``directory.name``)
+    
+
+
+-------------
+
+
+``maltego.Document``
+^^^^^^^^^^^^^^^^^^^^
+
+.. class:: Document(**kwargs)
 
         :keyword str url: URL (``url``)
         :keyword str title: Title (``title``)
-        :keyword str short_title: Short title (``short-title``)
-    
-
-
--------------
-
-
-``maltego.IPv4Address`` (alias: ``IPAddress``)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. class:: IPv4Address(**kwargs)
-
-        :keyword str ipv4address: IP Address (``ipv4-address``)
-        :keyword bool internal: Internal (``ipaddress.internal``)
-    
-
-
--------------
-
-
-``maltego.Website``
-^^^^^^^^^^^^^^^^^^^
-
-.. class:: Website(**kwargs)
-
-        :keyword bool ssl_enabled: SSL Enabled (``website.ssl-enabled``)
-        :keyword int ports: Ports (``ports``)
-        :keyword str fqdn: Website (``fqdn``)
+        :keyword str metadata: Meta-Data (``document.metadata``)
     
 
 
@@ -201,26 +160,68 @@
 -------------
 
 
-``maltego.EmailAddress``
-^^^^^^^^^^^^^^^^^^^^^^^^
+``maltego.BuiltWithRelationship``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. class:: EmailAddress(**kwargs)
+.. class:: BuiltWithRelationship(**kwargs)
 
-        :keyword str email: Email Address (``email``)
+        :keyword str matches: Matches (``matches``)
+        :keyword str builtwith: BuiltWith Technology (``properties.builtwithrelationship``)
     
 
 
 -------------
 
 
-``maltego.Person``
-^^^^^^^^^^^^^^^^^^
+``maltego.Service``
+^^^^^^^^^^^^^^^^^^^
 
-.. class:: Person(**kwargs)
+.. class:: Service(**kwargs)
 
-        :keyword str lastname: Surname (``person.lastname``)
-        :keyword str fullname: Full Name (``person.fullname``)
-        :keyword str firstnames: First Names (``person.firstnames``)
+        :keyword str ports: Ports (``port.number``)
+        :keyword str name: Description (``service.name``)
+        :keyword str banner: Service Banner (``banner.text``)
+    
+
+
+-------------
+
+
+``maltego.Organization``
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. class:: Organization(**kwargs)
+
+        :keyword str name: Name (``title``)
+    
+
+
+-------------
+
+
+``maltego.URL``
+^^^^^^^^^^^^^^^
+
+.. class:: URL(**kwargs)
+
+        :keyword str url: URL (``url``)
+        :keyword str title: Title (``title``)
+        :keyword str short_title: Short title (``short-title``)
+    
+
+
+-------------
+
+
+``maltego.affiliation.Orkut`` (alias: ``AffiliationOrkut``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. class:: Orkut(**kwargs)
+
+        :keyword str uid: UID (``affiliation.uid``)
+        :keyword str profile_url: Profile URL (``affiliation.profile-url``)
+        :keyword str person_name: Name (``person.name``)
+        :keyword str network: Network (``affiliation.network``)
     
 
 
@@ -239,51 +240,20 @@
 -------------
 
 
-``maltego.DNSName``
-^^^^^^^^^^^^^^^^^^^
-
-.. class:: DNSName(**kwargs)
-
-        :keyword str fqdn: DNS Name (``fqdn``)
-    
-
-
--------------
-
-
-``maltego.BuiltWithTechnology``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. class:: BuiltWithTechnology(**kwargs)
-
-        :keyword str builtwith: BuiltWith Technology (``properties.builtwithtechnology``)
-    
-
-
--------------
-
-
-``maltego.Document``
+``maltego.Location``
 ^^^^^^^^^^^^^^^^^^^^
 
-.. class:: Document(**kwargs)
+.. class:: Location(**kwargs)
 
-        :keyword str url: URL (``url``)
-        :keyword str title: Title (``title``)
-        :keyword str metadata: Meta-Data (``document.metadata``)
-    
-
-
--------------
-
-
-``maltego.MXRecord``
-^^^^^^^^^^^^^^^^^^^^
-
-.. class:: MXRecord(**kwargs)
-
-        :keyword int priority: Priority (``mxrecord.priority``)
-        :keyword str fqdn: DNS Name (``fqdn``)
+        :keyword str streetaddress: Street Address (``streetaddress``)
+        :keyword str name: Name (``location.name``)
+        :keyword float longitude: Longitude (``longitude``)
+        :keyword float latitude: Latitude (``latitude``)
+        :keyword str countrycode: Country Code (``countrycode``)
+        :keyword str country: Country (``country``)
+        :keyword str city: City (``city``)
+        :keyword str areacode: Area Code (``location.areacode``)
+        :keyword str area: Area (``location.area``)
     
 
 
@@ -302,10 +272,34 @@
 -------------
 
 
-``maltego.affiliation.MySpace`` (alias: ``AffiliationMySpace``)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``maltego.Hashtag``
+^^^^^^^^^^^^^^^^^^^
 
-.. class:: MySpace(**kwargs)
+.. class:: Hashtag(**kwargs)
+
+        :keyword str hashtag: Hashtag (``twitter.hashtag``)
+    
+
+
+-------------
+
+
+``maltego.AS`` (alias: ``ASNumber``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. class:: AS(**kwargs)
+
+        :keyword int number: AS Number (``as.number``)
+    
+
+
+-------------
+
+
+``maltego.affiliation.Linkedin`` (alias: ``AffiliationLinkedin``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. class:: Linkedin(**kwargs)
 
         :keyword str uid: UID (``affiliation.uid``)
         :keyword str profile_url: Profile URL (``affiliation.profile-url``)
@@ -317,46 +311,51 @@
 -------------
 
 
-``maltego.Phrase``
-^^^^^^^^^^^^^^^^^^
+``maltego.File``
+^^^^^^^^^^^^^^^^
 
-.. class:: Phrase(**kwargs)
+.. class:: File(**kwargs)
 
-        :keyword str text: Text (``text``)
+        :keyword str source: Source (``source``)
+        :keyword str description: Description (``description``)
     
 
 
 -------------
 
 
-``maltego.Netblock``
-^^^^^^^^^^^^^^^^^^^^
+``maltego.CircularArea``
+^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. class:: Netblock(**kwargs)
+.. class:: CircularArea(**kwargs)
 
-        :keyword str ipv4range: IP Range (``ipv4-range``)
+        :keyword int radius: Radius (m) (``radius``)
+        :keyword float longitude: Longitude (``longitude``)
+        :keyword float latitude: Latitude (``latitude``)
+        :keyword str area_circular: Circular Area (``area.circular``)
     
 
 
 -------------
 
 
-``maltego.NominatimLocation``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``maltego.IPv4Address`` (alias: ``IPAddress``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. class:: NominatimLocation(**kwargs)
+.. class:: IPv4Address(**kwargs)
 
-        :keyword str nominatim: Nominatim Location (``properties.nominatimlocation``)
+        :keyword str ipv4address: IP Address (``ipv4-address``)
+        :keyword bool internal: Internal (``ipaddress.internal``)
     
 
 
 -------------
 
 
-``maltego.affiliation.Flickr`` (alias: ``AffiliationFlickr``)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``maltego.affiliation.Facebook`` (alias: ``AffiliationFacebook``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. class:: Flickr(**kwargs)
+.. class:: Facebook(**kwargs)
 
         :keyword str uid: UID (``affiliation.uid``)
         :keyword str profile_url: Profile URL (``affiliation.profile-url``)
@@ -384,10 +383,29 @@
 -------------
 
 
-``maltego.affiliation.Bebo`` (alias: ``AffiliationBebo``)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``maltego.Tweet``
+^^^^^^^^^^^^^^^^^
 
-.. class:: Bebo(**kwargs)
+.. class:: Tweet(**kwargs)
+
+        :keyword str tweet_id: Tweet ID (``id``)
+        :keyword str tweet: Tweet (``twit.name``)
+        :keyword str title: Title (``title``)
+        :keyword str image_link: Image Link (``imglink``)
+        :keyword str date_published: Date published (``pubdate``)
+        :keyword str content: Content (``content``)
+        :keyword str author_uri: Author URI (``author_uri``)
+        :keyword str author: Author (``author``)
+    
+
+
+-------------
+
+
+``maltego.affiliation.Flickr`` (alias: ``AffiliationFlickr``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. class:: Flickr(**kwargs)
 
         :keyword str uid: UID (``affiliation.uid``)
         :keyword str profile_url: Profile URL (``affiliation.profile-url``)
@@ -399,82 +417,80 @@
 -------------
 
 
-``maltego.Service``
-^^^^^^^^^^^^^^^^^^^
+``maltego.FacebookObject``
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. class:: Service(**kwargs)
+.. class:: FacebookObject(**kwargs)
 
-        :keyword str ports: Ports (``port.number``)
-        :keyword str name: Description (``service.name``)
-        :keyword str banner: Service Banner (``banner.text``)
+        :keyword str object: Facebook Object (``properties.facebookobject``)
     
 
 
 -------------
 
 
-``maltego.File``
-^^^^^^^^^^^^^^^^
-
-.. class:: File(**kwargs)
-
-        :keyword str source: Source (``source``)
-        :keyword str description: Description (``description``)
-    
-
-
--------------
-
-
-``maltego.Port``
-^^^^^^^^^^^^^^^^
-
-.. class:: Port(**kwargs)
-
-        :keyword str number: Ports (``port.number``)
-    
-
-
--------------
-
-
-``maltego.Location``
+``maltego.WebTitle``
 ^^^^^^^^^^^^^^^^^^^^
 
-.. class:: Location(**kwargs)
+.. class:: WebTitle(**kwargs)
 
-        :keyword str streetaddress: Street Address (``streetaddress``)
-        :keyword str name: Name (``location.name``)
+        :keyword str title: Title (``title``)
+    
+
+
+-------------
+
+
+``maltego.GPS``
+^^^^^^^^^^^^^^^
+
+.. class:: GPS(**kwargs)
+
         :keyword float longitude: Longitude (``longitude``)
         :keyword float latitude: Latitude (``latitude``)
-        :keyword str countrycode: Country Code (``countrycode``)
-        :keyword str country: Country (``country``)
-        :keyword str city: City (``city``)
-        :keyword str areacode: Area Code (``location.areacode``)
-        :keyword str area: Area (``location.area``)
+        :keyword str gps: GPS Co-ordinate (``properties.gps``)
     
 
 
 -------------
 
 
-``maltego.AS`` (alias: ``ASNumber``)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``maltego.MXRecord``
+^^^^^^^^^^^^^^^^^^^^
 
-.. class:: AS(**kwargs)
+.. class:: MXRecord(**kwargs)
 
-        :keyword int number: AS Number (``as.number``)
+        :keyword int priority: Priority (``mxrecord.priority``)
+        :keyword str fqdn: DNS Name (``fqdn``)
     
 
 
 -------------
 
 
-``maltego.Unknown``
-^^^^^^^^^^^^^^^^^^^
+``maltego.affiliation.Affiliation``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. class:: Unknown(**kwargs)
+.. class:: Affiliation(**kwargs)
 
+        :keyword str uid: UID (``affiliation.uid``)
+        :keyword str profile_url: Profile URL (``affiliation.profile-url``)
+        :keyword str person_name: Name (``person.name``)
+        :keyword str network: Network (``affiliation.network``)
+    
+
+
+-------------
+
+
+``maltego.Person``
+^^^^^^^^^^^^^^^^^^
+
+.. class:: Person(**kwargs)
+
+        :keyword str lastname: Surname (``person.lastname``)
+        :keyword str fullname: Full Name (``person.fullname``)
+        :keyword str firstnames: First Names (``person.firstnames``)
     
 
 
@@ -496,19 +512,13 @@
 -------------
 
 
-``maltego.Twit``
-^^^^^^^^^^^^^^^^
+``maltego.Domain``
+^^^^^^^^^^^^^^^^^^
 
-.. class:: Twit(**kwargs)
+.. class:: Domain(**kwargs)
 
-        :keyword str title: Title (``title``)
-        :keyword str pubdate: Date published (``pubdate``)
-        :keyword str name: Twit (``twit.name``)
-        :keyword str img_link: Image Link (``img_link``)
-        :keyword str id: Twit ID (``id``)
-        :keyword str content: Content (``content``)
-        :keyword str author_uri: Author URI (``author_uri``)
-        :keyword str author: Author (``author``)
+        :keyword str whois_info: WHOIS Info (``whois-info``)
+        :keyword str fqdn: Domain Name (``fqdn``)
     
 
 
@@ -521,6 +531,42 @@
 .. class:: Vulnerability(**kwargs)
 
         :keyword str id: ID (``vulnerability.id``)
+    
+
+
+-------------
+
+
+``maltego.Alias``
+^^^^^^^^^^^^^^^^^
+
+.. class:: Alias(**kwargs)
+
+        :keyword str alias: Alias (``properties.alias``)
+    
+
+
+-------------
+
+
+``maltego.Sentiment``
+^^^^^^^^^^^^^^^^^^^^^
+
+.. class:: Sentiment(**kwargs)
+
+        :keyword str sentiment: Sentiment (``properties.sentiment``)
+    
+
+
+-------------
+
+
+``maltego.Phrase``
+^^^^^^^^^^^^^^^^^^
+
+.. class:: Phrase(**kwargs)
+
+        :keyword str text: Text (``text``)
     
 
 
@@ -546,10 +592,98 @@
 -------------
 
 
-``maltego.affiliation.Orkut`` (alias: ``AffiliationOrkut``)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``maltego.BuiltWithTechnology``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. class:: Orkut(**kwargs)
+.. class:: BuiltWithTechnology(**kwargs)
+
+        :keyword str builtwith: BuiltWith Technology (``properties.builtwithtechnology``)
+    
+
+
+-------------
+
+
+``maltego.Port``
+^^^^^^^^^^^^^^^^
+
+.. class:: Port(**kwargs)
+
+        :keyword str number: Ports (``port.number``)
+    
+
+
+-------------
+
+
+``maltego.TwitterUserList``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. class:: TwitterUserList(**kwargs)
+
+        :keyword str uri: URI (``twitter.list.uri``)
+        :keyword str subscriber_count: Subscriber Count (``twitter.list.subscribers``)
+        :keyword str slug: Slug (``twitter.list.slug``)
+        :keyword str name: Name (``twitter.list.name``)
+        :keyword str member_count: Member Count (``twitter.list.members``)
+        :keyword str id_: ID (``twitter.list.id``)
+        :keyword str full_name: Full Name (``twitter.list.fullname``)
+        :keyword str description: Description (``twitter.list.description``)
+    
+
+
+-------------
+
+
+``maltego.Company``
+^^^^^^^^^^^^^^^^^^^
+
+.. class:: Company(**kwargs)
+
+        :keyword str name: Name (``title``)
+    
+
+
+-------------
+
+
+``maltego.Website``
+^^^^^^^^^^^^^^^^^^^
+
+.. class:: Website(**kwargs)
+
+        :keyword bool ssl_enabled: SSL Enabled (``website.ssl-enabled``)
+        :keyword int ports: Ports (``ports``)
+        :keyword str fqdn: Website (``fqdn``)
+    
+
+
+-------------
+
+
+``maltego.Twit``
+^^^^^^^^^^^^^^^^
+
+.. class:: Twit(**kwargs)
+
+        :keyword str title: Title (``title``)
+        :keyword str pubdate: Date published (``pubdate``)
+        :keyword str name: Twit (``twit.name``)
+        :keyword str img_link: Image Link (``img_link``)
+        :keyword str id: Twit ID (``id``)
+        :keyword str content: Content (``content``)
+        :keyword str author_uri: Author URI (``author_uri``)
+        :keyword str author: Author (``author``)
+    
+
+
+-------------
+
+
+``maltego.affiliation.MySpace`` (alias: ``AffiliationMySpace``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. class:: MySpace(**kwargs)
 
         :keyword str uid: UID (``affiliation.uid``)
         :keyword str profile_url: Profile URL (``affiliation.profile-url``)
@@ -561,26 +695,41 @@
 -------------
 
 
-``maltego.affiliation.Linkedin`` (alias: ``AffiliationLinkedin``)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``maltego.Image``
+^^^^^^^^^^^^^^^^^
 
-.. class:: Linkedin(**kwargs)
+.. class:: Image(**kwargs)
 
-        :keyword str uid: UID (``affiliation.uid``)
-        :keyword str profile_url: Profile URL (``affiliation.profile-url``)
-        :keyword str person_name: Name (``person.name``)
-        :keyword str network: Network (``affiliation.network``)
+        :keyword str url: URL (``fullImage``)
+        :keyword str description: Description (``properties.image``)
     
 
 
 -------------
 
 
-``maltego.Webdir``
-^^^^^^^^^^^^^^^^^^
+``maltego.Hash``
+^^^^^^^^^^^^^^^^
 
-.. class:: Webdir(**kwargs)
+.. class:: Hash(**kwargs)
 
-        :keyword str name: Name (``directory.name``)
+        :keyword str owner: Owner (``owner``)
+        :keyword str included_media_types: Included Media Types (``includeMediaType``)
+        :keyword str hash: Hash (``properties.hash``)
+        :keyword str excluded_media_types: Excluded Media Types (``excludeMediaType``)
+        :keyword date before: Before (``before``)
+        :keyword date after: After (``after``)
+    
+
+
+-------------
+
+
+``maltego.Netblock``
+^^^^^^^^^^^^^^^^^^^^
+
+.. class:: Netblock(**kwargs)
+
+        :keyword str ipv4range: IP Range (``ipv4-range``)
     
 
