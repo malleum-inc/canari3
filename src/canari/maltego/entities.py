@@ -21,12 +21,14 @@ __all__ = [
     'Orkut',
     'Spock',
     'Twitter',
+    'Alias',
+    'BuiltWithTechnology',
+    'BuiltWithRelationship',
+    'Company',
+    'Banner',
     'WikiEdit',
     'Zoominfo',
-    'Alias',
     'AS',
-    'Banner',
-    'BuiltWithTechnology',
     'Device',
     'DNSName',
     'Document',
@@ -56,7 +58,12 @@ __all__ = [
     'TrackingCode',
     'CircularArea',
     'Hash',
-    'Hashtag'
+    'Hashtag',
+    'Tweet',
+    'TwitterUserList',
+    'Organization',
+    'Sentiment',
+    'Unknown'
 ]
 
 
@@ -79,6 +86,12 @@ class Device(Entity):
 class BuiltWithTechnology(Entity):
     _category_ = 'Penetration Testing'
     builtwith = StringEntityField('properties.builtwithtechnology', display_name='BuiltWith Technology')
+
+
+class BuiltWithRelationship(Entity):
+    _category_ = 'Penetration Testing'
+    builtwith = StringEntityField('properties.builtwithrelationship', display_name='BuiltWith Technology')
+    matches = StringEntityField('matches', display_name='Matches')
 
 
 class Domain(Entity):
@@ -334,3 +347,42 @@ class Hash(Entity):
 class Hashtag(Entity):
     _category_ = 'Social'
     hashtag = StringEntityField('twitter.hashtag', display_name='Hashtag', is_value=True)
+
+
+class Company(Entity):
+    _category_ = "Groups"
+    name = StringEntityField('title', display_name='Name', is_value=True)
+
+
+class Organization(Entity):
+    _category_ = "Groups"
+    name = StringEntityField('title', display_name='Name', is_value=True)
+
+
+class Sentiment(Entity):
+    _category_ = "Personal"
+    sentiment = StringEntityField('properties.sentiment', display_name='Sentiment', is_value=True)
+
+
+class TwitterUserList(Entity):
+    _category_ = "Social Network"
+    name = StringEntityField('twitter.list.name', display_name='Name', is_value=True)
+    full_name = StringEntityField('twitter.list.fullname', display_name='Full Name')
+    id_ = StringEntityField('twitter.list.id', display_name='ID')
+    description = StringEntityField('twitter.list.description', display_name='Description')
+    member_count = StringEntityField('twitter.list.members', display_name='Member Count')
+    subscriber_count = StringEntityField('twitter.list.subscribers', display_name='Subscriber Count')
+    slug = StringEntityField('twitter.list.slug', display_name='Slug')
+    uri = StringEntityField('twitter.list.uri', display_name='URI')
+
+
+class Tweet(Entity):
+    _category = "Social Network"
+    tweet = StringEntityField('twit.name', display_name='Tweet', is_value=True)
+    tweet_id = StringEntityField('id', display_name='Tweet ID')
+    author = StringEntityField('author', display_name='Author')
+    author_uri = StringEntityField('author_uri', display_name='Author URI')
+    content = StringEntityField('content', display_name='Content')
+    image_link = StringEntityField('imglink', display_name='Image Link')
+    date_published = StringEntityField('pubdate', display_name='Date published')
+    title = StringEntityField('title', display_name='Title')
