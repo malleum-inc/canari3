@@ -4,7 +4,6 @@ import importlib
 import os
 import string
 import sys
-from importlib import import_module
 from pkgutil import iter_modules
 
 from mrbob.configurator import Configurator
@@ -26,7 +25,7 @@ __credits__ = ['Nadeem Douba']
 __license__ = 'GPLv3'
 __version__ = '0.1'
 __maintainer__ = 'Nadeem Douba'
-__email__ = 'ndouba@gmail.com'
+__email__ = 'ndouba@redcanari.com'
 __status__ = 'Development'
 
 __all__ = [
@@ -62,35 +61,44 @@ class TransformDistribution(object):
         self._package_name = package_name.replace('.transforms', '') \
             if package_name.endswith('.transforms') else package_name
 
-        self._package = import_module(self.name)
-
-        print('Looking for transforms in %s...' % self.name, file=sys.stderr)
-        try:
-            self.import_package(self._package)
-        except ImportError as e:
-            raise ImportError("Does not appear to be a valid canari package. "
-                              "Couldn't import the '%s.transforms' package in '%s'. Error message: %s" %
-                              (self.name, self.name, e))
-
-        self._transforms = list(self.find_all_subclasses(Transform))
-        self._remote_transforms = [t for t in self._transforms if t.remote]
-        self._config = '%s.conf' % self.name
-        self._resources = '%s.resources' % self.name
+        self._package = importlib.import_module(self.name)
         self._package_path = os.path.abspath(self._package.__path__[0]
                                              if isinstance(self._package.__path__, list)
                                              else self._package.__path__._path[0])
         self._default_prefix = os.path.join(os.path.expanduser('~'), '.canari') if self.is_site_package else os.getcwd()
-        self._entities = list({v for v in EntityTypeFactory.registry.values()
-                               if v.__module__.startswith(self._package_name)})
+        self._config = '%s.conf' % self.name
+        self._resources = '%s.resources' % self.name
         self._author = getattr(self._package, '__author__', '')
         self._email = getattr(self._package, '__email__', '')
-        try:
-            self._machines = [
-                m for m in resource_listdir(self.get_resource_module('maltego'), '') if m.endswith('.machine')]
-        except ImportError:
+
+        if self.name == 'canari':
+            self._transforms = []
+            self._remote_transforms = []
             self._machines = []
-        if self._package_name != 'canari' and not self.has_transforms:
-            raise ValueError('Error: no transforms found...')
+            # Import all the entities from the fixed location
+            importlib.import_module('canari.maltego.entities')
+            self._entities = list({v for v in EntityTypeFactory.registry.values()
+                                   if v.__module__.startswith(self._package_name)})
+        else:
+            print('Looking for transforms in %s...' % self.name, file=sys.stderr)
+            try:
+                self.import_package(self._package)
+            except ImportError as e:
+                raise ImportError("Does not appear to be a valid canari package. "
+                                  "Couldn't import the '%s.transforms' package in '%s'. Error message: %s" %
+                                  (self.name, self.name, e))
+
+            self._transforms = list(self.find_all_subclasses(Transform))
+            self._remote_transforms = [t for t in self._transforms if t.remote]
+            self._entities = list({v for v in EntityTypeFactory.registry.values()
+                                   if v.__module__.startswith(self._package_name)})
+            try:
+                self._machines = [
+                    m for m in resource_listdir(self.get_resource_module('maltego'), '') if m.endswith('.machine')]
+            except ImportError:
+                self._machines = []
+            if not self.has_transforms:
+                raise ValueError('Error: no transforms found...')
         print('Package loaded.', file=sys.stderr)
 
     @property
