@@ -2,7 +2,7 @@
 
 set -x
 
-PREFERED_BUILD=alpine
+PREFERRED_BUILD=alpine
 
 echo "Make sure your Docker environment has been set"
 
@@ -27,7 +27,7 @@ for i in Docker*; do
 done
 
 
-docker tag redcanari/canari:$VERSION-$PREFERED_BUILD redcanari/canari
+docker tag redcanari/canari:$VERSION-$PREFERRED_BUILD redcanari/canari
 
 if [ "$1" = "push" ]; then
     docker push redcanari/canari
