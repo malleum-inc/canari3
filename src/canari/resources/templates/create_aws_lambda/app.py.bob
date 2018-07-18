@@ -41,7 +41,7 @@ app.debug = 'CANARI_DEBUG' in os.environ
 global_config = load_config(os.path.join('chalicelib', 'canari.conf'))
 
 # Initialize Canari modes and bin path
-set_canari_mode(CanariMode.RemotePlumeLambdaDispatch)
+set_canari_mode(CanariMode.RemotePlumeLambdaDebug if app.debug else CanariMode.RemotePlumeLambdaDispatch)
 
 def get_base_url():
     return os.environ.get('CANARI_IMAGE_CDN') or global_config.get('canari.remote', 'cdn')
