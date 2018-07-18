@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "app_name": "canari",
+  "app_name": "{{{ project.name }}}",
   "environment_variables": {
     "CANARI_IMAGE_CDN": "{{{ image.cdn }}}"
   },
