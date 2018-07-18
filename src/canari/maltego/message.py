@@ -93,7 +93,7 @@ class Label(MaltegoElement):
     source of input.
     """
     def __init__(self, name=None, value=None, **kwargs):
-        super(Label, self).__init__(name=name, value=value, **kwargs)
+        super(Label, self).__init__(name=name, value=value or '', **kwargs)
 
     value = fields_.CDATA(tagname='.')
     type = fields_.String(attrname='Type', default='text/text')
