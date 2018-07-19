@@ -136,7 +136,7 @@ def remote_transform(args):
         )
 
         if r.status == 200:
-            data = r.read()
+            data = r.read().decode('utf8')
             if args.raw_output:
                 print(data, file=sys.stderr)
                 exit(0)

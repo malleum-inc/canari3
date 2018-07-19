@@ -56,7 +56,7 @@ class MaltegoException(MaltegoElement, Exception):
     value = fields_.String(tagname='.')
     code = fields_.Integer(attrname='code', required=False)
 
-    def __init__(self, value):
+    def __init__(self, value=None):
         super(MaltegoElement, self).__init__(value=value)
 
     def __str__(self):
