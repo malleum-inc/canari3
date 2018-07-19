@@ -23,7 +23,8 @@ __all__ = [
     'Deprecated',
     'EnableRemoteExecution',
     'EnableDebugWindow',
-    'ExternalCommand'
+    'ExternalCommand',
+    'RequestFilter'
 ]
 
 
@@ -91,15 +92,17 @@ class RequestFilter(object):
 
     def __call__(self, transform):
         if callable(filter):
-            if self.remote_only and is_remote_exec_mode():
-                orig_do_transform = transform.do_transform
+            if self.remote_only and not is_remote_exec_mode():
+                return transform
 
-                def do_transform(self_, request, response, config):
-                    if self.filter.__call__(request, response, config):
-                        return response
-                    return orig_do_transform(self_, request, response, config)
+            orig_do_transform = transform.do_transform
 
-                transform.do_transform = do_transform
+            def do_transform(self_, request, response, config):
+                if self.filter.__call__(request, response, config):
+                    return response
+                return orig_do_transform(self_, request, response, config)
+
+            transform.do_transform = do_transform
             return transform
         raise ValueError('Expected callable (got %s instead).' % type(self.filter).__name__)
 
