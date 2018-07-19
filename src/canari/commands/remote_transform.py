@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import sys
+import traceback
 
 from canari.commands.common import canari_main
 from canari.commands.framework import SubCommand, Argument
@@ -154,4 +155,6 @@ def remote_transform(args):
             print(r.read(), file=sys.stderr)
     except Exception as e:
         print('ERROR: %s' % e, file=sys.stderr)
+        if args.verbose:
+            traceback.print_exc()
     exit(-1)
