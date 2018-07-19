@@ -92,7 +92,7 @@ def do_transform(transform):
         # whether the request contains the right type
         if transform.input_type and transform.input_type is not Unknown and \
                 not isinstance(req.entity, transform.input_type):
-            return Response(app.four_o_four, status_code=404)
+            return Response('Not found', status_code=404)
 
         # Execute it!
         msg = transform().do_transform(
