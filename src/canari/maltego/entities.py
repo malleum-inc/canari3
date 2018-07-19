@@ -1,5 +1,5 @@
 from canari.maltego.message import (Entity, StringEntityField, IntegerEntityField,
-                                    FloatEntityField, BooleanEntityField, DateEntityField)
+                                    FloatEntityField, BooleanEntityField, DateEntityField, Unknown)
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2015, Canari Project'
@@ -65,10 +65,6 @@ __all__ = [
     'Sentiment',
     'Unknown'
 ]
-
-
-class Unknown(Entity):
-    _category_ = 'Unknown'
 
 
 class GPS(Entity):

@@ -28,6 +28,7 @@ __all__ = [
     'Field',
     'UIMessageType',
     'UIMessage',
+    'Unknown',
     'MaltegoTransformResponseMessage',
     'MaltegoMessage',
     'StringEntityField',
@@ -701,6 +702,10 @@ class Entity(with_metaclass(EntityTypeFactory, object)):
             self._entity.fields[key].value = value
 
 
+class Unknown(Entity):
+    _category_ = 'Unknown'
+
+
 class MaltegoTransformRequestMessage(MaltegoElement):
 
     __entities = fields_.List(_Entity, tagname='Entities', required=False)
@@ -731,7 +736,7 @@ class MaltegoTransformRequestMessage(MaltegoElement):
     @property
     def entities(self):
         if not self._entities:
-            self._entities = [EntityTypeFactory.create(e.type)(e) for e in self.__entities]
+            self._entities = [(EntityTypeFactory.create(e.type) or Unknown)(e) for e in self.__entities]
         return self._entities
 
     @property
