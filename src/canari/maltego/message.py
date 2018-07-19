@@ -550,7 +550,7 @@ class EntityTypeFactory(type):
 
     @classmethod
     def create(mcs, entity_type):
-        return mcs.registry[entity_type]
+        return mcs.registry.get(entity_type)
 
 
 class Bookmark:
