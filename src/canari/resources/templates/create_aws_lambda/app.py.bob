@@ -36,7 +36,7 @@ def _matches_content_type(content_type, valid_content_types):
 chalice.app._matches_content_type = _matches_content_type
 
 app = Chalice('Canari Lambda: {{{ project.name }}}')
-app.debug = 'CANARI_DEBUG' in os.environ
+app.debug = bool(os.environ.get('CANARI_DEBUG'))
 
 global_config = load_config(os.path.join('chalicelib', 'canari.conf'))
 
