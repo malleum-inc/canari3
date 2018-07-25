@@ -20,7 +20,7 @@ class {{{ transform.name }}}(Transform):
     # The transform input entity type.
     input_type = Unknown
 
-    def do_transform(self, requetransformst, response, config):
+    def do_transform(self, request, response, config):
         # TODO: write your code here.
         return response
 
