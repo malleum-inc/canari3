@@ -7,7 +7,7 @@ from xml.etree.cElementTree import XML
 from zipfile import ZipFile
 
 from canari.commands.framework import SubCommand, Argument
-from canari.commands.common import canari_main, to_utf8
+from canari.commands.common import canari_main
 
 
 __author__ = 'Nadeem Douba'
@@ -61,11 +61,11 @@ def mtgx2csv(opts):
                 node = node.find('{http://graphml.graphdrawing.org/xmlns}data/'
                                  '{http://maltego.paterva.com/xml/mtgx}MaltegoEntity')
 
-                row = [to_utf8(('Entity Type=%s' % node.get('type')).strip())]
+                row = [('Entity Type=%s' % node.get('type')).strip().encode('utf8')]
                 for prop in node.findall('{http://maltego.paterva.com/xml/mtgx}Properties/'
                                          '{http://maltego.paterva.com/xml/mtgx}Property'):
                     value = prop.find('{http://maltego.paterva.com/xml/mtgx}Value').text or ''
-                    row.append(to_utf8(('%s=%s' % (prop.get('displayName'), value)).strip()))
+                    row.append(('%s=%s' % (prop.get('displayName'), value)).strip().encode('utf8'))
                 row.append('Incoming Links=%s' % links.get(node_id, {}).get('in_', 0))
                 row.append('Outgoing Links=%s' % links.get(node_id, {}).get('out', 0))
                 csv.writerow(row)

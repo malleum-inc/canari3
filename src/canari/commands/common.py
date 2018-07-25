@@ -3,11 +3,10 @@ from __future__ import print_function
 import os
 import re
 import sys
-import unicodedata
-from getpass import getuser
 from argparse import Action
+from getpass import getuser
 
-from past.builtins import basestring, unicode
+from six import string_types
 
 from canari.commands.framework import Command
 from canari.config import load_config, OPTION_LOCAL_PATH
@@ -29,9 +28,16 @@ class ParseFieldsAction(Action):
     positional arguments are parsed and stored correctly.
     """
 
+    _unescaper = re.compile(r'\\([\\#=])')
+    _unescaped_equals = re.compile(r'(?<=[^\\])=')
+
+    @classmethod
+    def unescape(cls, field):
+        return cls._unescaper.sub(r'\1', field)
+
     def __call__(self, parser, namespace, values, option_string=None):
         # Does the value argument have an equals ('=') sign that is not escaped and is the params argument populated?
-        if namespace.params and re.search(r'(?<=[^\\])=', namespace.value):
+        if namespace.params and self._unescaped_equals.search(namespace.value):
             # if so, apply fix and pop last element of namespace.params into namespace.value
             # and copy what was in namespace.value into namespace.fields to fix everything
             values = namespace.value
@@ -40,15 +46,10 @@ class ParseFieldsAction(Action):
             # Next parse our fields argument into a dictionary
             fields = re.split(r'(?<=[^\\])#', values)
             if fields:
-                namespace.fields = dict(
-                    map(
-                        lambda x: [
-                            field.replace('\#', '#').replace('\=', '=').replace('\\\\', '\\')
-                            for field in re.split(r'(?<=[^\\])=', x, 1)
-                        ],
-                        fields
-                    )
-                )
+                namespace.fields = {}
+                for field in fields:
+                    k, v = self._unescaped_equals.split(field, 1)
+                    namespace.fields[self.unescape(k)] = self.unescape(v)
 
 
 @Command(description='Centralized Canari Management System')
@@ -65,10 +66,6 @@ def canari_main(opts):
         canari_main.parser.print_help()
     else:
         opts.command_function(opts)
-
-
-def to_utf8(s):
-    return unicodedata.normalize('NFKD', unicode(s)).encode('ascii', 'ignore')
 
 
 def uproot():
@@ -91,9 +88,7 @@ def fix_pypath():
 
 def fix_binpath(paths):
     if paths is not None and paths:
-        if isinstance(paths, basestring):
+        if isinstance(paths, string_types):
             os.environ['PATH'] = paths
         elif isinstance(paths, list):
             os.environ['PATH'] = os.pathsep.join(paths)
-
-
