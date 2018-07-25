@@ -1,10 +1,11 @@
-from past.builtins import basestring
-
-from subprocess import Popen
 import os
 import re
+from subprocess import Popen, PIPE
 
-from canari.mode import is_remote_exec_mode
+from canari.maltego.message import MaltegoMessage
+from six import string_types
+
+from canari.mode import is_remote_exec_mode, is_local_exec_mode
 from canari.resource import external_resource
 from canari.utils.stack import calling_package
 
@@ -129,30 +130,28 @@ class ExternalCommand(object):
         if args is None:
             args = []
         self.args = []
+        self.env = os.environ.copy()
 
         if interpreter:
             self.args.append(interpreter)
-            libpath = external_resource(
+            lib_path = external_resource(
                 os.path.dirname(program),
                 '%s.resources.external' % calling_package()
             )
             if interpreter.startswith('perl') or interpreter.startswith('ruby'):
-                self.args.append('-I%s' % libpath)
+                self.args.append('-I%s' % lib_path)
             elif interpreter.startswith('java'):
-                self.args.extend(['-cp', libpath])
+                self.args.extend(['-cp', lib_path])
+            elif interpreter.startswith('python'):
+                self.env['PYTHONPATH'] = ':'.join([self.env['PYTHONPATH'], lib_path])
 
         if ' ' in program:
             raise ValueError('Transform name %r cannot have spaces.' % program)
         else:
-            self.args.append(
-                external_resource(
-                    program,
-                    '%s.resources.external' % calling_package()
-                )
-            )
+            self.args.append(external_resource(program))
 
-        if isinstance(args, basestring):
-            self.args = re.split(r'\s+', args)
+        if isinstance(args, string_types):
+            self.args.extend(re.split(r'\s+', args))
         else:
             self.args.extend(args)
 
@@ -167,6 +166,12 @@ class ExternalCommand(object):
                      for k, v in request.entity.fields.items()]
                 )
             )
-        p = Popen(self.args)
-        p.communicate()
-        exit(p.returncode)
+        if is_local_exec_mode():
+            p = Popen(self.args, env=self.env)
+            p.communicate()
+            exit(p.returncode)
+        else:
+            p = Popen(self.args, env=self.env, stdout=PIPE)
+            out, _ = p.communicate()
+            return MaltegoMessage.parse(out)
+
