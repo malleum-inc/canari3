@@ -1,7 +1,10 @@
 import re
+import sys
 
+from canari.framework import classproperty
 from canari.maltego.configuration import AuthenticationType
 from canari.maltego.entities import Unknown
+from canari.maltego.message import ValidationError, ElementType
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2015, Canari Project'
@@ -14,50 +17,98 @@ __email__ = 'ndouba@redcanari.com'
 __status__ = 'Development'
 
 __all__ = [
-    'Transform'
+    'Transform',
+    'TransformSetting'
 ]
 
 
 def camel_to_title(s):
     return re.sub(
-            '([A-Z]+)([A-Z][a-z])',
+        '([A-Z]+)([A-Z][a-z])',
+        r'\1 \2',
+        re.sub(
+            '([a-z])([A-Z]+)',
             r'\1 \2',
             re.sub(
-                    '([a-z])([A-Z]+)',
-                    r'\1 \2',
-                    re.sub(
-                        '([0-9]+)',
-                        r' \1 ',
-                        s
-                    )
+                '([0-9]+)',
+                r' \1 ',
+                s
             )
+        )
     ).strip()
 
 
-class Transform(object):
+class TransformSetting(object):
+    type = ElementType.string
 
+    def __init__(self, display, default_value=None, optional=True, popup=False):
+        self.optional = optional
+        self.popup = popup
+        self.default_value = default_value
+        self.display = display
+
+    @classmethod
+    def parse(cls, value):
+        return cls.type(value)
+
+
+class StringSetting(TransformSetting):
+    pass
+
+
+class BooleanSetting(TransformSetting):
+    type = ElementType.boolean
+
+
+class DateSetting(TransformSetting):
+    type = ElementType.date
+
+
+class DoubleSetting(TransformSetting):
+    type = ElementType.double
+
+
+class FloatSetting(TransformSetting):
+    type = ElementType.float
+
+
+class IntegerSetting(TransformSetting):
+    type = ElementType.int
+
+
+class Transform(object):
     # Specifies the author of the transform. If not specified __author__ will be used for the create-profile command.
-    author = ''
+    @classproperty
+    def author(cls):
+        return getattr(sys.modules[cls.__module__], '__author__', '')
 
     # A detailed description of the transform. The description can be read from the Maltego Transforms dialog box. If
     # this is not set, the transform class' doc comments will be used.
-    description = ''
+    @classproperty
+    def description(cls):
+        return cls.__doc__ or ''
 
     # The label found in the transform context menu when right clicking on an entity.
-    display_name = ''
+    @classproperty
+    def display_name(cls):
+        return camel_to_title(cls.__name__)
 
     # Specifies the help URL for the specified transform.
     help_url = ''
 
     # The unique identifier of the transform. Should be in reverse dotted format similar to Java. For example,
     # sploitego.FastNmap. If none is specified, the name will be set to the module dot class name.
-    name = ''
+    @classproperty
+    def name(cls):
+        return '.'.join([cls.__module__.split('.', 1)[0], cls.__name__])
 
     # The Maltego input entity type.
     input_type = Unknown
 
     # The Maltego transform set name.
-    transform_set = ''
+    @classproperty
+    def transform_set(cls):
+        return cls.__module__.split('.', 1)[0].title()
 
     # Specifies whether or not the transform is deprecated.
     deprecated = False
@@ -80,15 +131,7 @@ class Transform(object):
     # Reserved for future external Maltego transforms support
     command = None
 
-    def __init__(self):
-        if not self.name:
-            self.name = '.'.join([self.__module__.split('.', 1)[0], self.__class__.__name__])
-        if not self.display_name:
-            self.display_name = camel_to_title(self.__class__.__name__)
-        if not self.description and self.__doc__:
-            self.description = self.__doc__
-        if not self.transform_set:
-            self.transform_set = self.__module__.split('.', 1)[0].title()
+    transform_settings = {}
 
     def do_transform(self, request, response, config):
         """
@@ -115,6 +158,19 @@ class Transform(object):
                 return response
         """
         raise NotImplementedError("The 'do_transform' method needs to be implemented!")
+
+    def get_setting(self, request, setting_name, default=None):
+        request_settings = request.settings
+
+        if setting_name in self.transform_settings:
+            transform_setting = self.transform_settings[setting_name]
+
+            if setting_name not in request_settings and not transform_setting.optional:
+                raise ValidationError("Required transform setting {!r} is missing. Aborting...".format(setting_name))
+
+            return transform_setting.parse(request_settings.get(setting_name, default))
+
+        return request_settings.get(setting_name, default)
 
     def on_terminate(self):
         """

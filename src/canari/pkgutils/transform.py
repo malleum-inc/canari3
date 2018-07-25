@@ -7,7 +7,7 @@ import sys
 from pkgutil import iter_modules
 
 from mrbob.configurator import Configurator
-from past.builtins import basestring
+from six import string_types
 from pkg_resources import resource_listdir, resource_filename
 
 from canari.config import CanariConfigParser, OPTION_LOCAL_CONFIGS, SECTION_LOCAL, OPTION_REMOTE_PACKAGES, \
@@ -298,7 +298,7 @@ class TransformDistribution(object):
         return install_prefix
 
     def install(self, install_prefix, distribution, configure=True, is_remote=False):
-        if isinstance(distribution, basestring) or not distribution:
+        if isinstance(distribution, string_types) or not distribution:
             distribution = MaltegoDistribution(distribution)
         if not isinstance(distribution, MtzDistribution):
             if distribution.version >= '3.4.0':

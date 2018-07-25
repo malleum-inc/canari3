@@ -1,5 +1,5 @@
 from future.standard_library import install_aliases
-from past.builtins import basestring
+from six import string_types
 
 install_aliases()
 
@@ -158,7 +158,7 @@ if sys.version_info[0] > 2:
 
         def get_as_list(self, key):
             opt = self.__getitem__(key)
-            if isinstance(opt, basestring):
+            if isinstance(opt, string_types):
                 opt = [opt] if opt else []
             return opt
 
@@ -253,7 +253,7 @@ else:
 
         def get_as_list(self, key):
             opt = self.__getitem__(key)
-            if isinstance(opt, basestring):
+            if isinstance(opt, string_types):
                 opt = [opt] if opt else []
             return opt
 

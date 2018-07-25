@@ -1,6 +1,5 @@
-from past.builtins import basestring
-
 from future.standard_library import install_aliases
+from six import string_types
 
 install_aliases()
 
@@ -24,7 +23,7 @@ __all__ = [
 
 
 def wordlist(uri, match='(.+?)\n*', ignore='^#.*', strip=None):
-    if isinstance(uri, basestring):
+    if isinstance(uri, string_types):
         words = []
         if not uri:
             return words

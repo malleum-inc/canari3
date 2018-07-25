@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 from __future__ import print_function
-from past.builtins import basestring
-from six import b
+from six import b, string_types
 
 import sys
 
@@ -119,7 +118,7 @@ class Plume(Flask):
                 'Exiting... You did not specify any transform packages to load in your canari.conf file!',
                 file=sys.stderr)
             exit(-1)
-        elif isinstance(packages, basestring):
+        elif isinstance(packages, string_types):
             packages = [packages]
 
         # Create the static directory for static file loading

@@ -54,8 +54,7 @@ class MtgConsole(InteractiveConsole):
         locals_ = {}
         asked = False
         config = load_config()
-        for transform_class in transform_classes:
-            transform = transform_class()
+        for transform in transform_classes:
             locals_['do' + transform.name.split('.')[-1]] = ShellCommand(transform, config)
             if not asked and transform.superuser and os.name == 'posix' and os.geteuid():
                 if not auto_sudo and parse_bool("A transform requiring 'root' access was detected."

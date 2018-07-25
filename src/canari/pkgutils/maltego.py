@@ -9,7 +9,7 @@ from distutils.version import LooseVersion
 from importlib import import_module
 from zipfile import ZipFile, ZIP_STORED
 
-from past.builtins import basestring
+from six import string_types
 from safedexml import Model
 
 from canari.maltego.configuration import (TransformSettings, CmdLineTransformPropertySetting, InputConstraint, Set,
@@ -283,21 +283,20 @@ class MaltegoDistribution(object):
     def _get_module_author(self, module_name):
         return getattr(import_module(module_name), '__author__', '')
 
-    def add_transform(self, working_dir, transform_repository, transform_class, server=None):
+    def add_transform(self, working_dir, transform_repository, transform, server=None):
         transform_repository_dir = self.get_transform_repository_dir(transform_repository)
 
-        transform = transform_class()
-        name = '.'.join([transform_class.__module__, transform_class.__name__])
-        author = transform.author or self._get_module_author(transform.__module__)
+        py_name = '.'.join([transform.__module__, transform.__name__])
+        author = transform.author
         transform_id = transform.name
         input_set = transform.transform_set
         input_entity = transform.input_type
 
         if transform.name in self.transform_uuids:
-            print('WARNING: Previous declaration of %s in transform %s. Overwriting...' % (transform_id, name),
+            print('WARNING: Previous declaration of %s in transform %s. Overwriting...' % (transform_id, py_name),
                   file=sys.stderr)
         else:
-            print('Installing transform %s from %s...' % (transform_id, name), file=sys.stderr)
+            print('Installing transform %s from %s...' % (transform_id, py_name), file=sys.stderr)
 
         sets = None
         if input_set:
@@ -334,7 +333,7 @@ class MaltegoDistribution(object):
 
         transform_settings_def = TransformSettings(properties=[
             CmdLineTransformPropertySetting(find_dispatcher()),
-            CmdParmTransformPropertySetting(name),
+            CmdParmTransformPropertySetting(py_name),
             CmdCwdTransformPropertySetting(working_dir),
             CmdDbgTransformPropertySetting(transform.debug)
         ])
@@ -408,7 +407,7 @@ class MaltegoDistribution(object):
         self.write_file(dst, contents)
 
     def add_entity(self, entity):
-        if isinstance(entity, basestring):
+        if isinstance(entity, string_types):
             entity = MaltegoEntity.parse(entity)
         if not isinstance(entity, MaltegoEntity):
             raise TypeError('Expected str or MaltegoEntity, not %s', type(entity).__name__)
@@ -787,7 +786,7 @@ class MtzDistribution(MtzZipFile, MaltegoDistribution):
                 self._append_transform_set(mtz_file.read_file(f))
 
     def add_entity(self, entity):
-        if isinstance(entity, basestring):
+        if isinstance(entity, string_types):
             entity = MaltegoEntity.parse(entity)
         if not isinstance(entity, MaltegoEntity):
             raise TypeError('Expected str or MaltegoEntity, not %s', type(entity).__name__)

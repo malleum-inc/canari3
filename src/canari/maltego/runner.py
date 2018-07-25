@@ -1,6 +1,6 @@
 import sys
 
-from past.builtins import basestring
+from six import string_types
 
 from canari.utils.common import find_pysudo
 
@@ -77,7 +77,7 @@ def remote_canari_transform_runner(host, base_path, transform, entities, paramet
     return c.getresponse()
 
 
-def local_transform_runner(transform, value, fields, params, config, message_writer=message):
+def local_transform_runner(transform_py_name, value, fields, params, config, message_writer=message):
     """
     Internal API: The local transform runner is responsible for executing the local transform.
 
@@ -97,7 +97,7 @@ def local_transform_runner(transform, value, fields, params, config, message_wri
     """
 
     try:
-        transform = load_object(transform)()
+        transform = load_object(transform_py_name)()
 
         if os.name == 'posix' and transform.superuser and os.geteuid():
             rc = sudo(sys.argv)
@@ -125,7 +125,7 @@ def local_transform_runner(transform, value, fields, params, config, message_wri
         )
         if isinstance(msg, MaltegoTransformResponseMessage):
             message_writer(msg)
-        elif isinstance(msg, basestring):
+        elif isinstance(msg, string_types):
             raise MaltegoException(msg)
         else:
             raise MaltegoException('Could not resolve message type returned by transform.')
@@ -168,8 +168,8 @@ def scriptable_transform_runner(transform, value, fields, params, config):
         scriptable_api_initialized = True
 
         def run_transform(self, transform, params=None, config=None):
-            if isinstance(transform, basestring):
-                transform = load_object(transform)()
+            if isinstance(transform, string_types):
+                transform = load_object(transform)
             return scriptable_transform_runner(
                 transform,
                 self.value,
@@ -187,14 +187,14 @@ def scriptable_transform_runner(transform, value, fields, params, config):
     request._entities = [to_entity(transform.input_type, value, fields)]
     request.limits = Limits(soft=10000)
 
-    msg = transform.do_transform(
+    msg = transform().do_transform(
         request,
         MaltegoTransformResponseMessage(),
         config
     )
     if isinstance(msg, MaltegoTransformResponseMessage):
         return Response(msg)
-    elif isinstance(msg, basestring):
+    elif isinstance(msg, string_types):
         raise MaltegoException(msg)
     else:
         raise MaltegoException('Could not resolve message type returned by transform.')

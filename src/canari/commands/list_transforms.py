@@ -45,8 +45,7 @@ def list_transforms(opts):
     try:
         with PushDir(opts.working_dir or CanariProject().src_dir):
             transform_package = TransformDistribution(opts.package)
-            for transform_class in transform_package.transforms:
-                transform = transform_class()
+            for transform in transform_package.transforms:
                 print('`- %s: %s' % (highlight(transform.name, 'green', True), transform.description), file=sys.stderr)
                 print(highlight('  `- Maltego identifiers:', 'black', True), file=sys.stderr)
                 print('    `- %s applies to %s in set %s' % (

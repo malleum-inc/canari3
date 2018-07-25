@@ -1,10 +1,12 @@
-from past.builtins import basestring, long
+from past.builtins import long
 from future.utils import with_metaclass
 
 from collections import Iterable
 from datetime import datetime, date, timedelta
 from numbers import Number
 import re
+
+from six import string_types
 
 from canari.maltego.oxml import MaltegoElement, fields as fields_
 
@@ -230,21 +232,21 @@ class EnumEntityField(StringEntityField):
     def __init__(self, name, choices=None, **extras):
         if not choices:
             raise ValueError('You must specify a non-empty set of choices.')
-        self.choices = [str(c) if not isinstance(c, basestring) else c for c in choices]
+        self.choices = [str(c) if not isinstance(c, string_types) else c for c in choices]
         super(EnumEntityField, self).__init__(name, **extras)
 
     def __get__(self, obj, objtype):
         if obj is None:
             return self
         c = super(EnumEntityField, self).__get__(obj, objtype)
-        if c is not None and not isinstance(c, basestring):
+        if c is not None and not isinstance(c, string_types):
             c = str(c)
         if c and c not in self.choices:
             raise ValidationError(self.get_error_msg(self.display_name or self.name, c, expected=self.choices))
         return c
 
     def __set__(self, obj, val):
-        val = str(val) if not isinstance(val, basestring) else val
+        val = str(val) if not isinstance(val, string_types) else val
         if val not in self.choices:
             raise ValidationError(self.get_error_msg(self.display_name or self.name, val, expected=self.choices))
         super(EnumEntityField, self).__set__(obj, val)
@@ -423,7 +425,7 @@ class RegexEntityField(StringEntityField):
         return v
 
     def __set__(self, obj, val):
-        if not isinstance(val, basestring):
+        if not isinstance(val, string_types):
             val = str(val)
         if not self.matcher.match(val):
             raise ValidationError(self.get_error_msg(self.display_name or self.name, val, pattern=self.matcher.pattern))
@@ -467,7 +469,7 @@ class ElementType(object):
     @staticmethod
     def matches_type(type_, value):
         return (type_ is ElementType.int and isinstance(value, int)) or \
-               (type_ is ElementType.string and isinstance(value, basestring)) or \
+               (type_ is ElementType.string and isinstance(value, string_types)) or \
                (type_ is ElementType.boolean and isinstance(value, bool)) or \
                ((type_ is ElementType.float or type_ is ElementType.double) and isinstance(value, float)) or \
                (type_ is ElementType.date and isinstance(value, date))
@@ -749,6 +751,10 @@ class MaltegoTransformRequestMessage(MaltegoElement):
         if 'canari.local.arguments' in self._parameters:
             return self._parameters['canari.local.arguments'].value
         return self._parameters
+
+    @property
+    def settings(self):
+        return {k: v.value for k, v in self._parameters.items()}
 
 
 class MaltegoMessage(MaltegoElement):
