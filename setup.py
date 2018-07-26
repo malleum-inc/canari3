@@ -3,7 +3,6 @@
 import os
 import sys
 
-
 from setuptools import setup, find_packages
 
 
@@ -106,10 +105,13 @@ if sys.platform == 'win32':
 else:
     scripts.append('pysudo')
 
+sys.path.insert(0, 'src')
+import canari
+
 setup(
     name='canari',
     author='Nadeem Douba',
-    version='3.3.7',
+    version=canari.version,
     author_email='ndouba@redcanari.com',
     description='Canari Framework - Maltego rapid transform development and execution framework.',
     long_description=long_description,
