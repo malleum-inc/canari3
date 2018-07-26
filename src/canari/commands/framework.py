@@ -76,11 +76,11 @@ class CanariContext(object):
     @property
     def config_dir(self):
         if not os.path.lexists(self._config_dir):
-            click.echo("Initializing Canari configuration: %s" % self.config_dir, err=True)
+            click.echo("Initializing Canari configuration: %s" % self._config_dir, err=True)
 
             configurator = Configurator(
                 'canari.resources.templates:init_canari',
-                self.config_dir,
+                self._config_dir,
                 {'non_interactive': True}
             )
 
@@ -109,10 +109,6 @@ class CanariContext(object):
     def working_dir(self, path):
         self._working_dir = PushDir(path)
         self._working_dir.__enter__()
-
-    def __del__(self):
-        if self._working_dir:
-            self._working_dir.__exit__()
 
 
 pass_context = click.make_pass_decorator(CanariContext, True)

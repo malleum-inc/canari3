@@ -1,15 +1,14 @@
 #!/usr/bin/env python
 import os
+import sys
 
 import click
-from future.builtins import bytes
-from past.builtins import unicode
-import sys
 import six
+from past.builtins import unicode
 
 # For some reason this function is being used in safedexml. We're going to avoid it completely.
 from canari import version
-from canari.commands.common import fix_binpath, fix_pypath, uproot
+from canari.commands.common import fix_binpath, fix_pypath
 from canari.commands.framework import (pass_context, CanariPackage, is_new_transform, CanariGroup,
                                        parse_transform_fields, unescape_transform_value, CanariRunnerCommand,
                                        MaltegoProfile)
@@ -18,12 +17,6 @@ from canari.config import OPTION_LOCAL_PATH
 six.u = unicode
 
 from canari.mode import CanariMode
-
-import subprocess
-import getpass
-
-from canari.utils.fs import FileMutex
-from canari.easygui import passwordbox
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2012, Canari Project'
@@ -294,6 +287,7 @@ def dispatcher(ctx, transform, params, value, fields):
 
 
 def pysudo():
+    from canari.easygui import passwordbox
     print(passwordbox('Please enter your password.', 'sudo', ''))
 
 
