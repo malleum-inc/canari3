@@ -38,10 +38,10 @@ def dockerize_package(project, os_, host):
     click.echo('Dockerizing %s transform package...' % project.name, err=True)
 
     configurator = Configurator(
-            'canari.resources.templates:dockerize_package',
-            project.root_dir,
-            {'non_interactive': True},
-            variables={'project.name': project.name, 'canari.version': version}
+        'canari.resources.templates:dockerize_package',
+        project.root_dir,
+        {'non_interactive': True},
+        variables={'project.name': project.name, 'canari.version': version}
     )
 
     click.echo('Creating Dockerfile for %s...' % project.name, err=True)
@@ -70,7 +70,7 @@ def dockerize_package(project, os_, host):
             exit(-1)
 
         click.echo('Attempting to discover available Docker machines.', err=True)
-        machines = get_output(run_command(['docker-machine', 'ls', '-q'],stdout=subprocess.PIPE)).split('\n')
+        machines = get_output(run_command(['docker-machine', 'ls', '-q'], stdout=subprocess.PIPE)).split('\n')
         machines.remove('')
 
         if not machines:
@@ -93,11 +93,11 @@ def dockerize_package(project, os_, host):
             click.echo('An error occurred while building the Docker container.', err=True)
             exit(-1)
 
-    if click.prompt('Would you like to run this container now?', default=False):
+    if click.confirm('Would you like to run this container now?', default=False):
         port = click.prompt('Which port would you like Plume to listen on externally?',
                             default=8080, type=click.IntRange(8080, 65535))
         click.echo('Plume will be listening on http://%s:%s' %
-              (re.findall('://([^:]+)', os.environ.get('DOCKER_HOST', 'http://0.0.0.0'))[0], port), err=True)
+                   (re.findall('://([^:]+)', os.environ.get('DOCKER_HOST', 'http://0.0.0.0'))[0], port), err=True)
         run_command(['docker'] + docker_hosts + ['run', '-it', '-p', '8080:%s' % port, container]).communicate()
 
     click.echo('done!', err=True)

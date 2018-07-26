@@ -265,7 +265,7 @@ class TransformDistribution(object):
     def _check_file_exists(dst, defaults=False):
         return not os.path.lexists(dst) or \
                (not defaults and
-                click.prompt('%s already exists. Would you like to overwrite it?' % dst, default=False))
+                click.confirm('%s already exists. Would you like to overwrite it?' % dst, default=False))
 
     def configure(self, install_prefix, load=True, remote=False, defaults=False, **kwargs):
         dst_canari_conf = os.path.join(install_prefix, 'canari.conf')
