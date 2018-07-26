@@ -1,31 +1,18 @@
 FROM redcanari/canari:{{{ canari.version }}}-ubuntu
 
-ADD . /root/sdist
+RUN groupadd --non-unique --gid 65534 nobody && \
+    mkdir -p /var/plume
 
-RUN apt-get update && \
-    apt-get -y dist-upgrade && \
-    apt-get install -y \
-        ca-certificates \
-        build-essential \
-        python-lxml \
-        python-dev \
-        python-setuptools \
-        python-pip \
-        libffi-dev \
-        libssl-dev
+COPY . /root/sdist
 
 RUN cd /root/sdist && \
-    pip install pyopenssl service_identity && \
     python setup.py install && \
     cd /root && \
-    groupadd --non-unique --gid 65534 nobody && \
-    rm -rf /root/sdist && \
-    mkdir -p /var/plume && \
-    cd /var/plume && \
+    rm -rf /root/sdist
+
+RUN cd /var/plume && \
     canari install-plume -y && \
     canari load-plume-package -y {{{ project.name }}} && \
-    cd /root && \
-    rm -rf sdist && \
     apt-get purge --auto-remove -y \
         build-essential \
         python-dev && \
