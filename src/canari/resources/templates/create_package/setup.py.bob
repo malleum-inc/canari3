@@ -16,7 +16,7 @@ setup(
         '': ['*.gif', '*.png', '*.conf', '*.mtz', '*.machine']  # list of resources
     },
     install_requires=[
-        'canari>=3.3.7'
+        'canari>={{{ canari.version }}},<{{{ canari.major_version + 1 }}}'
     ],
     dependency_links=[
         # custom links for the install_requires

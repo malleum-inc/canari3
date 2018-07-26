@@ -1,4 +1,5 @@
 from datetime import datetime
+from distutils.version import StrictVersion
 from getpass import getuser
 from os import path
 
@@ -27,7 +28,8 @@ def create_package(package_name):
         'entity.example_name': 'My%sEntity' % capitalized_package_name,
         'entity.base_name': '%sEntity' % capitalized_package_name,
         'created.year': datetime.now().year,
-        'canari.version': canari.__version__
+        'canari.version': canari.version,
+        'canari.major_version': StrictVersion(canari.version).version[0]
     }
 
     defaults = {
