@@ -296,10 +296,13 @@ def pysudo():
 
 
 if __name__ == '__main__':
+    os.environ.setdefault('TERM', 'dumb')
     command = os.environ.get('CANARI_COMMAND')
     if command == 'dispatcher':
+        sys.argv[0] = 'dispatcher'
         dispatcher(auto_envvar_prefix='CANARI')
     elif command == 'pysudo':
         pysudo()
     else:
+        sys.argv[0] = 'canari'
         main(auto_envvar_prefix='CANARI')
