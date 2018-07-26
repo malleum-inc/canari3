@@ -2,6 +2,10 @@ FROM alpine:3.7
 
 ENV BASE_OS_IMAGE=alpine
 
+ENV LC_ALL=en_US.utf-8
+
+ENV LANG=en_US.utf-8
+
 RUN apk add --no-cache \
         ca-certificates \
         alpine-sdk \
