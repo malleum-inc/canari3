@@ -16,6 +16,7 @@ from canari.config import CanariConfigParser, OPTION_LOCAL_CONFIGS, SECTION_LOCA
 from canari.maltego.message import EntityTypeFactory
 from canari.maltego.transform import Transform
 from canari.pkgutils.maltego import MaltegoDistribution, MtzDistribution
+from canari.project import CanariProject
 from canari.utils.fs import PushDir
 
 __author__ = 'Nadeem Douba'
@@ -298,7 +299,7 @@ class TransformDistribution(object):
             os.makedirs(install_prefix)
         return install_prefix
 
-    def install(self, install_prefix, distribution, configure=True, is_remote=False):
+    def install(self, install_prefix, distribution, configure=True, is_remote=False, in_project=False):
         if isinstance(distribution, string_types) or not distribution:
             distribution = MaltegoDistribution(distribution)
         if not isinstance(distribution, MtzDistribution):
@@ -308,14 +309,16 @@ class TransformDistribution(object):
 
         install_prefix = self._init_install_prefix(install_prefix)
 
-        self._install_transforms(install_prefix, distribution)
+        self._install_transforms(install_prefix, distribution, in_project)
         self._install_entities(distribution)
         self._install_machines(distribution)
 
         if configure:
             self.configure(install_prefix, remote=is_remote)
 
-    def _install_transforms(self, prefix, distribution):
+    def _install_transforms(self, prefix, distribution, in_project=False):
+        if in_project:
+            prefix = CanariProject().src_dir
         for transform in self.transforms:
             distribution.add_transform(prefix, 'Local', transform, server='Local')
 
@@ -332,7 +335,7 @@ class TransformDistribution(object):
             for icon_category in mtz.icon_categories:
                 icon_category_dir = distribution.get_icon_category_dir(icon_category)
                 for icon in mtz.get_icons_by_category(icon_category):
-                    data = mtz.read_file(icon)
+                    data = mtz.read_file(icon, False)
                     p = distribution.path_join(icon_category_dir, os.path.basename(icon))
                     print('Installing custom icon %s to %s...' % (icon, p), file=sys.stderr)
                     distribution.write_file(p, data)
@@ -379,11 +382,11 @@ class TransformDistribution(object):
         for transform in self.transforms:
             distribution.remove_transform('Local', transform, server='Local')
 
-    def create_profile(self, install_prefix, mtz_dir, configure=True):
+    def create_profile(self, install_prefix, mtz_dir, configure=True, in_project=False):
         mtz = os.path.join(mtz_dir, '%s.mtz' % self.name)
         print('Creating profile %s...' % mtz, file=sys.stderr)
         mtz = MtzDistribution(mtz, 'w')
-        self.install(install_prefix, mtz, configure)
+        self.install(install_prefix, mtz, configure, in_project=in_project)
         mtz.close()
 
         print("""

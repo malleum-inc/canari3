@@ -1,6 +1,4 @@
-import os
-import sys
-
+from distutils.spawn import find_executable
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2012, Canari Project'
@@ -20,10 +18,7 @@ __all__ = [
 
 
 def find_script(name):
-    ext = ''
-    if sys.platform == 'win32':
-        ext = '.bat'
-    return os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])), name + ext)
+    return find_executable(name)
 
 
 def find_dispatcher():

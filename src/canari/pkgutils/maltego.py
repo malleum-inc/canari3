@@ -1,5 +1,7 @@
 from __future__ import print_function
 
+from future.builtins import bytes
+
 import os
 import re
 import sys
@@ -477,6 +479,8 @@ class MtzZipFile(object):
         return namelist
 
     def writestr(self, zinfo_or_arcname, bytes_):
+        if isinstance(bytes_, string_types):
+            bytes_ = bytes(bytes_, 'utf8')
         if self._is_closed:
             raise RuntimeError('Attempt to read ZIP archive that was already closed')
         if self.mode == 'r':
@@ -485,7 +489,7 @@ class MtzZipFile(object):
         realdir = os.path.dirname(realpath)
         if not os.path.isdir(realdir):
             os.makedirs(realdir)
-        with open(realpath, mode='w') as f:
+        with open(realpath, mode='wb') as f:
             f.write(bytes_)
 
     def removefile(self, zinfo_or_arcname):
@@ -798,7 +802,9 @@ class MtzDistribution(MtzZipFile, MaltegoDistribution):
     def path_join(self, *args):
         return '/'.join(args)
 
-    def read_file(self, filename):
+    def read_file(self, filename, decode=True):
+        if decode:
+            return self.read(filename).decode('utf8')
         return self.read(filename)
 
     def close(self):
