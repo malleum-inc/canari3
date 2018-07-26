@@ -1,0 +1,15 @@
+mr.bob
+argparse
+flask
+Twisted
+pyopenssl
+service_identity
+pyasn1
+boto3
+safedexml
+lxml
+six
+future
+click
+colorama
+stringcase

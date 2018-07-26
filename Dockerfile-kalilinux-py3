@@ -2,8 +2,6 @@ FROM kalilinux/kali-linux-docker
 
 ENV BASE_OS_IMAGE=kali
 
-COPY . /root/sdist
-
 RUN apt-get update && \
     apt-get -y dist-upgrade && \
     apt-get install -y \
@@ -14,14 +12,15 @@ RUN apt-get update && \
         python3-setuptools \
         python3-pip
 
+COPY requirements.txt /tmp/requirements.txt
+
+RUN pip3 install -r /tmp/requirements.txt
+
+COPY . /root/sdist
+
 RUN cd /root/sdist && \
-    pip3 install -U pip setuptools && \
     python3 setup.py install && \
     cd /root && \
-    rm -rf sdist && \
-    apt-get purge --auto-remove -y \
-        build-essential \
-        python3-dev && \
-    apt-get clean
+    rm -rf sdist
 
 ENTRYPOINT ["canari"]

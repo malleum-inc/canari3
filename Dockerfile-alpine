@@ -2,8 +2,6 @@ FROM alpine:3.7
 
 ENV BASE_OS_IMAGE=alpine
 
-COPY . /root/sdist
-
 RUN apk add --no-cache \
         ca-certificates \
         alpine-sdk \
@@ -15,13 +13,15 @@ RUN apk add --no-cache \
         openssl-dev \
         libffi-dev
 
+COPY requirements.txt /tmp/requirements.txt
+
+RUN pip install -r /tmp/requirements.txt
+
+COPY . /root/sdist
+
 RUN cd /root/sdist && \
-    pip install -U pip setuptools && \
     python setup.py install && \
     cd /root && \
-    rm -rf sdist && \
-    apk del --purge \
-        alpine-sdk \
-        python-dev
+    rm -rf sdist
 
 ENTRYPOINT ["canari"]
