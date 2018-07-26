@@ -2,9 +2,9 @@ FROM kalilinux/kali-linux-docker
 
 ENV BASE_OS_IMAGE=kali
 
-ENV LC_ALL=en_US.utf-8
+ENV LC_ALL=C.UTF-8
 
-ENV LANG=en_US.utf-8
+ENV LANG=C.UTF-8
 
 RUN apt-get update && \
     apt-get -y dist-upgrade && \

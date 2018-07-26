@@ -2,9 +2,9 @@ FROM ubuntu:17.10
 
 ENV BASE_OS_IMAGE=ubuntu
 
-ENV LC_ALL=en_US.utf-8
+ENV LC_ALL=C.UTF-8
 
-ENV LANG=en_US.utf-8
+ENV LANG=C.UTF-8
 
 RUN apt-get update && \
     apt-get -y dist-upgrade && \
