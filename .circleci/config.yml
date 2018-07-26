@@ -1,0 +1,20 @@
+version: 2
+
+jobs:
+  build-py2:
+    docker:
+      - image: circleci/python:2.7.15-stretch-node
+    steps:
+      - checkout
+  build-py3:
+    docker:
+      - image: circleci/python:3.6.6-stretch-node-browsers
+    steps:
+      - checkout
+
+workflows:
+  version: 2
+  build-and-test:
+    jobs:
+      - build-py2
+      - build-py3
