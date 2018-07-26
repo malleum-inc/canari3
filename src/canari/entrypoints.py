@@ -269,6 +269,7 @@ def unload_plume_package(package, plume_dir):
     from canari.commands.unload_plume_package import unload_plume_package
     unload_plume_package(package, plume_dir)
 
+
 @main.command()
 def version():
     from canari.commands.version import version
