@@ -16,7 +16,9 @@ __maintainer__ = 'Nadeem Douba'
 __email__ = 'ndouba@redcanari.com'
 __status__ = 'Development'
 
-__all__ = []
+__all__ = [
+    'remote_transform'
+]
 
 
 def split_validate(value, type_):

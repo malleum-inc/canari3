@@ -239,7 +239,7 @@ def remote_transform(host, transform, input, entity_field, transform_parameter, 
                 callback=parse_transform_fields)
 @pass_context
 def run_transform(ctx, transform, params, value, fields):
-    ctx.mode = CanariMode.Local
+    ctx.mode = CanariMode.LocalDispatch
     fix_pypath()
     fix_binpath(ctx.config[OPTION_LOCAL_PATH])
     from canari.commands.run_transform import run_transform
@@ -255,7 +255,9 @@ def run_transform(ctx, transform, params, value, fields):
 )
 @click.option('--sudo', '-s', is_flag=True, default=False,
               help='Instructs the shell to automatically elevate privileges to root if necessary.')
-def shell(package, working_dir, sudo):
+@pass_context
+def shell(ctx, package, working_dir, sudo):
+    ctx.mode = CanariMode.LocalShellDebug
     from canari.commands.shell import shell
     shell(package, working_dir, sudo)
 
