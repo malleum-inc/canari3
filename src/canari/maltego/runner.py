@@ -48,7 +48,9 @@ __all__ = [
 
 
 def sudo(args):
-    p = subprocess.Popen([find_pysudo()] + args)
+    environ = os.environ.copy()
+    environ['SUDO_ASKPASS'] = find_pysudo()
+    p = subprocess.Popen(['sudo', '-A'] + args, env=environ)
     p.communicate()
     return p.returncode
 

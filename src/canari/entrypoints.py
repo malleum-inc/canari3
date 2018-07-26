@@ -241,7 +241,7 @@ def remote_transform(host, transform, input, entity_field, transform_parameter, 
 def run_transform(ctx, transform, params, value, fields):
     ctx.mode = CanariMode.Local
     fix_pypath()
-    fix_binpath([OPTION_LOCAL_PATH])
+    fix_binpath(ctx.config[OPTION_LOCAL_PATH])
     from canari.commands.run_transform import run_transform
     run_transform(transform, value, fields, params, ctx.project, ctx.config)
 
@@ -285,53 +285,13 @@ def version():
 def dispatcher(ctx, transform, params, value, fields):
     ctx.mode = CanariMode.Local
     fix_pypath()
-    fix_binpath([OPTION_LOCAL_PATH])
+    fix_binpath(ctx.config[OPTION_LOCAL_PATH])
     from canari.commands.run_transform import run_transform
     run_transform(transform, value, fields, params, ctx.project, ctx.config)
 
 
 def pysudo():
-    if not sys.argv[1:]:
-        print('usage: %s <command>' % sys.argv[0], file=sys.stderr)
-        exit(-1)
-
-    # Let's try and run it right away to see what happens
-    p = subprocess.Popen(['sudo', '-S'] + sys.argv[1:], stdin=subprocess.PIPE)
-    p.communicate()
-
-    # It ran!
-    if not p.returncode:
-        exit(0)
-
-    # It didn't :( - let's lock this region now to avoid having multiple password boxes pop-up
-    l = FileMutex('pysudo.%s.lock' % getpass.getuser())
-
-    # Try running it again (maybe another process authenticated... why ask for a password again?)
-    p = subprocess.Popen(['sudo', '-S'] + sys.argv[1:], stdin=subprocess.PIPE)
-    p.communicate()
-
-    if not p.returncode:
-        l.unlock()
-        exit(0)
-
-    # No we really need to ask for a password :(
-    for i in range(0, 3):
-        password = passwordbox('Please enter your password.', 'sudo', '')
-        if password is None:
-            exit(1)
-
-        # Try it out with a password now!
-        p = subprocess.Popen(['sudo', '-S', 'true'], stdin=subprocess.PIPE)
-        p.communicate(input=bytes('%s\n' % password, 'utf-8'))
-
-        # Did it work? Yes: let's do it!
-        if not p.returncode:
-            l.unlock()
-            p = subprocess.Popen(['sudo', '-S'] + sys.argv[1:], stdin=subprocess.PIPE)
-            p.communicate(input=bytes('%s\n' % password, 'utf-8'))
-            exit(p.returncode)
-
-    exit(2)
+    print(passwordbox('Please enter your password.', 'sudo', ''))
 
 
 if __name__ == '__main__':
