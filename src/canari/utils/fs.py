@@ -1,4 +1,7 @@
+from __future__ import print_function
 from future.standard_library import install_aliases
+
+from canari.maltego.utils import debug
 
 install_aliases()
 
@@ -170,11 +173,13 @@ class PushDir(object):
         if os.path.lexists(self.cwd):
             os.chdir(self.cwd)
         else:
-            sys.stderr.write('WARNING: %r directory does not exist. Falling back to %r.' %
-                             (self.cwd, self.original_dir))
+            print(
+                'WARNING: %r directory does not exist. Falling back to %r.' % (self.cwd, self.original_dir),
+                file=sys.stderr
+            )
         return self
 
-    def __exit__(self, type_, value, tb):
+    def __exit__(self, *args):
         os.chdir(self.original_dir)
 
 

@@ -156,11 +156,9 @@ def get_transform_version(transform):
 def debug(*args):
     """Send debug messages to the Maltego console."""
     for i in args:
-        sys.stderr.write('D:%s\n' % str(i))
-        sys.stderr.flush()
+        print('D:%s' % str(i), file=sys.stderr)
 
 
 def progress(i):
     """Send a progress report to the Maltego console."""
-    sys.stderr.write('%%%d\n' % min(max(i, 0), 100))
-    sys.stderr.flush()
+    print('%%%d' % min(max(i, 0), 100), file=sys.stderr)

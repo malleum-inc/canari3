@@ -26,7 +26,7 @@ __all__ = []
 
 class CanariProject(object):
 
-    marker = '.canari'
+    project_marker = '.canari'
 
     def __init__(self, path=None):
         if not path:
@@ -39,17 +39,27 @@ class CanariProject(object):
             sys.path.insert(0, self.src_dir)
         except ValueError:
             self._tree = dict(
-                    root=path,
-                    src=path,
-                    pkg=path,
-                    resources=path,
-                    transforms=path
+                root=path,
+                src=path,
+                pkg=path,
+                resources=path,
+                transforms=path
             )
             self._in_project = False
             self._configuration = {'variables': {'created.year': date.today().year, 'author.name': getpass.getuser(),
                                                  'project.name': 'canari', 'canari.version': canari.__version__,
-                                                 'author.email': 'transformer@canariframework.com',
+                                                 'author.email': canari.__author__,
                                                  'project.description': '', 'entity.base_name': 'Entity'}}
+
+    def _module_exists(self, path, mod_name):
+        return (os.path.lexists(os.path.join(path, mod_name)) or
+                os.path.lexists(os.path.join(path, '{}.py'.format(mod_name))))
+
+    def transform_exists(self, name):
+        assert self.is_valid, 'Must be executed within a Canari project directory.'
+        if '.' in name:
+            raise ValueError("Transform name ({!r}) cannot have dots".format(name))
+        return self._module_exists(self.transforms_dir, name)
 
     @property
     def entities_module(self):
@@ -97,7 +107,7 @@ class CanariProject(object):
         return self._configuration
 
     def _project_root(self):
-        marker = self.marker
+        marker = self.project_marker
         for i in range(0, 5):
             if os.path.exists(marker) and os.path.isfile(marker):
                 return os.path.dirname(os.path.realpath(marker))
@@ -109,11 +119,11 @@ class CanariProject(object):
             root = self._project_root()
 
             tree = dict(
-                    root=root,
-                    src=None,
-                    pkg=None,
-                    resources=None,
-                    transforms=None
+                root=root,
+                src=None,
+                pkg=None,
+                resources=None,
+                transforms=None
             )
 
             for base, dirs, files in os.walk(root):

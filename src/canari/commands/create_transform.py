@@ -1,14 +1,9 @@
-from __future__ import print_function
-
 import os
-import sys
 
+import click
+import stringcase
 from mrbob.configurator import Configurator
 from mrbob.parsing import parse_config
-
-from canari.project import CanariProject
-from canari.commands.common import canari_main
-from canari.commands.framework import SubCommand, Argument
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2012, Canari Project'
@@ -21,49 +16,21 @@ __email__ = 'ndouba@redcanari.com'
 __status__ = 'Development'
 
 
-def parse_args(args):
-    if args.transform in ['common', 'common.py']:
-        print("Error: 'common' is a reserved module. Please name your transform something else.", file=sys.stderr)
-        exit(-1)
-    return args
+def create_transform(project, module_name):
 
-
-@SubCommand(
-    canari_main,
-    help='Creates a new transform in the specified directory and auto-updates __init__.py.',
-    description='Creates a new transform in the specified directory and auto-updates __init__.py.'
-)
-@Argument(
-    'transform',
-    metavar='<transform name>',
-    help='The name of the transform you wish to create.'
-)
-def create_transform(args):
-
-    opts = parse_args(args)
-    project = CanariProject()
-
-    transform_module = (opts.transform if not opts.transform.endswith('.py') else opts.transform[:-3])
-    transform_name = ''.join([i[0].upper()+i[1:] for i in transform_module.split('_')])
-    transform_module = transform_module.lower()
-
-    if '.' in transform_module:
-        print("Transform name (%r) cannot have a dot ('.')." % transform_name, file=sys.stderr)
-        exit(-1)
-    elif not transform_module:
-        print("You must specify a valid transform name.", file=sys.stderr)
-        exit(-1)
+    transform_name = stringcase.pascalcase(module_name)
+    module_name = module_name.lower()
 
     target = project.root_dir
     transform_directory = project.transforms_dir
 
-    if os.path.exists(os.path.join(transform_directory, '%s.py' % transform_module)):
-        print('Transform %r already exists... quitting' % transform_module, file=sys.stderr)
+    if os.path.exists(os.path.join(transform_directory, '%s.py' % module_name)):
+        click.echo('Transform %r already exists... quitting' % module_name, err=True)
         exit(-1)
 
     variables = parse_config(os.path.join(target, '.mrbob.ini'))['variables']
 
-    variables.update({'transform.module': transform_module, 'transform.name': transform_name})
+    variables.update({'transform.module': module_name, 'transform.name': transform_name})
 
     configurator = Configurator(
         'canari.resources.templates:create_transform',
@@ -74,7 +41,7 @@ def create_transform(args):
 
     configurator.ask_questions()
 
-    print('Creating transform %r...' % transform_module, file=sys.stderr)
+    click.echo('Creating transform %r...' % module_name, err=True)
     configurator.render()
 
-    print('done!', file=sys.stderr)
+    click.echo('done!', err=True)

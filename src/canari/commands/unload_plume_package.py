@@ -1,14 +1,8 @@
-from __future__ import print_function
-
 import os
-import sys
 
-from canari.pkgutils.transform import TransformDistribution
+import click
+
 from canari.utils.fs import PushDir
-
-from canari.commands.common import canari_main
-from canari.commands.framework import SubCommand, Argument
-
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2012, Canari Project'
@@ -21,31 +15,14 @@ __email__ = 'ndouba@redcanari.com'
 __status__ = 'Development'
 
 
-@SubCommand(
-    canari_main,
-    help="Unloads a canari package from Plume.",
-    description="Unloads a canari package from Plume."
-)
-@Argument(
-    'package',
-    metavar='<package>',
-    help='the name of the canari transforms package to unload from Plume.'
-)
-@Argument(
-    '-d',
-    '--plume-dir',
-    metavar='[www dir]',
-    default=os.getcwd(),
-    help='the path where Plume is installed.'
-)
-def unload_plume_package(opts):
-    with PushDir(opts.plume_dir):
+def unload_plume_package(package, plume_dir):
+    with PushDir(plume_dir):
         if not os.path.exists('canari.conf'):
-            print('Plume does not appear to be installed in %s.' % opts.plume_dir, file=sys.stderr)
-            print("Please run 'canari install-plume' and try again.", file=sys.stderr)
+            click.echo('Plume does not appear to be installed in %s.' % plume_dir, err=True)
+            click.echo("Please run 'canari install-plume' and try again.", err=True)
             exit(-1)
         try:
-            TransformDistribution(opts.package).configure(opts.plume_dir, load=False, remote=True)
+            package.configure(plume_dir, load=False, remote=True)
         except ImportError:
             pass
 

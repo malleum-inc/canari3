@@ -1,27 +1,21 @@
-from __future__ import print_function
-
 import math
-import sys
 import os
 import shutil
+import sys
 import tempfile
 import zipfile
-
-from mimetypes import guess_type
 from hashlib import md5
+from mimetypes import guess_type
 
 import boto3
-
+import click
+from mrbob.configurator import Configurator
 from six import b
 from six.moves import urllib
-from mrbob.configurator import Configurator
 
 import canari
-from canari.commands.common import canari_main
-from canari.commands.framework import SubCommand, Argument
 from canari.pkgutils.transform import TransformDistribution
 from canari.resource import image_resources
-from canari.project import CanariProject
 from canari.utils.fs import PushDir
 
 if sys.version_info[0] > 2:
@@ -63,7 +57,7 @@ q = Queue()
 
 
 def setup_hook(**kwargs):
-    print("Gathering package requirements for %s..." % kwargs['name'], file=sys.stderr)
+    click.echo("Gathering package requirements for %s..." % kwargs['name'], err=True)
     q.put(([r for r in kwargs.get('install_requires', []) if not r.startswith('canari')]))
 
 
@@ -75,26 +69,27 @@ def hook_setup():
 def get_dependencies(project):
     with PushDir(project.root_dir):
         hook_setup()
+        # noinspection PyUnresolvedReferences
         import setup
     return set(q.get())
 
 
 def download_progress(count, size, total_bytes):
     if not total_bytes or not size:
-        print('Downloading %s...' % DEPENDENCY_FILE_NAME)
+        click.echo('Downloading %s...' % DEPENDENCY_FILE_NAME)
 
     total_count = math.ceil(float(total_bytes)/size)
     percent_done = count / total_count
-    print('Downloading %s |%-20s| %.2f complete' % (
+    click.echo('Downloading %s |%-20s| %.2f complete\r' % (
         DEPENDENCY_FILE_NAME,
         '#' * int(percent_done * 20),
         percent_done * 100
-    ), end='\r' if count < total_count else '\n', file=sys.stderr)
+    ), nl=(count >= total_count), err=True)
 
 
-def upload_images(project, opts):
-    bucket = opts.bucket or md5(b('canari-%s-transform-images' % project.name)).hexdigest()
-    region = opts.region_name or boto3.session.Session().region_name
+def upload_images(project, bucket, region_name, access_key, secret_key):
+    bucket = bucket or md5(b('canari-%s-transform-images' % project.name)).hexdigest()
+    region = region_name or boto3.session.Session().region_name
     base_url = 'about:blank'
 
     with PushDir(project.src_dir):
@@ -103,87 +98,55 @@ def upload_images(project, opts):
         if not imgs:
             return base_url
 
-        print('Uploading image resources to AWS S3 bucket %r' % bucket, file=sys.stderr)
+        click.echo('Uploading image resources to AWS S3 bucket %r' % bucket, err=True)
         s3 = boto3.client(
             's3',
             # Hard coded strings as credentials, not recommended.
-            aws_access_key_id=opts.aws_access_key_id,
-            aws_secret_access_key=opts.aws_secret_access_key,
+            aws_access_key_id=access_key,
+            aws_secret_access_key=secret_key,
             region_name=region
         )
 
         if bucket not in [bkt['Name'].lower() for bkt in s3.list_buckets()['Buckets']]:
-            print('Creating S3 bucket %r because it does not exist' % bucket)
+            click.echo('Creating S3 bucket %r because it does not exist' % bucket)
             s3.create_bucket(Bucket=bucket, CreateBucketConfiguration={'LocationConstraint': region})
 
         for i in imgs:
             img_name = os.path.basename(i)
             dst_path = 'static/%s' % md5(b(img_name)).hexdigest()
-            print('Uploading %r to %r...' % (i, dst_path))
+            click.echo('Uploading %r to %r...' % (i, dst_path))
             s3.upload_file(i, bucket, dst_path, ExtraArgs={'ContentType': guess_type(i)[0]})
 
-        print('Creating static website configuration for bucket %r...' % bucket)
+        click.echo('Creating static website configuration for bucket %r...' % bucket)
         s3.put_bucket_website(Bucket=bucket, WebsiteConfiguration={'IndexDocument': {'Suffix': 'index.html'}})
 
-        print('Adjusting bucket policy for public GetObject access...')
+        click.echo('Adjusting bucket policy for public GetObject access...')
         s3.put_bucket_policy(Bucket=bucket, Policy=S3_CDN_BUCKET_POLICY % bucket)
 
         base_url = 'http://%s.s3-website.%s.amazonaws.com/static/' % (bucket, region)
-        print('Static images are now hosted at %r!' % base_url)
+        click.echo('Static images are now hosted at %r!' % base_url)
 
     return base_url
 
 
-@SubCommand(
-    canari_main,
-    help="Adds AWS Lambda capability.",
-    description="Creates an AWS Chalice project for deployment to lambda."
-)
-@Argument(
-    '-b',
-    '--bucket',
-    metavar='<S3 bucket name>',
-    help="The name of the bucket to store image and other binary resources for transforms in."
-)
-@Argument(
-    '-r',
-    '--region-name',
-    default=None,
-    metavar='<AWS region>',
-    help="The region to store the S3 objects in"
-)
-@Argument(
-    '-k',
-    '--aws-access-key-id',
-    default=None,
-    metavar='<AWS access key ID>',
-    help="AWS access key ID"
-)
-@Argument(
-    '-s',
-    '--aws-secret-access-key',
-    metavar='<AWS secret access key>',
-    help="AWS secret access key"
-)
-def create_aws_lambda(opts):
+def create_aws_lambda(project, bucket, region_name, access_key, secret_key):
     try:
-        project = CanariProject()
         target = os.path.join(project.root_dir, 'aws')
         dot_chalice = os.path.join(target, '.chalice')
         dot_chalice_backup = None
 
         if os.path.lexists(dot_chalice):
-            print("Saving original 'aws/.chalice' ...", file=sys.stderr)
+            click.echo("Saving original 'aws/.chalice' ...", err=True)
             dot_chalice_backup = tempfile.mkdtemp(prefix='.chalice', suffix='.bak')
             shutil.move(dot_chalice, dot_chalice_backup)
 
         with PushDir(project.src_dir):
             transform_package = TransformDistribution(project.name)
             if not transform_package.remote_transforms:
-                print("No remote transforms found in %r... exiting" % project.name)
+                click.echo("No remote transforms found in %r... exiting" % project.name)
                 exit(-1)
 
-            cdn_base_url = upload_images(project, opts)
+            cdn_base_url = upload_images(project, bucket, region_name, access_key, secret_key)
 
             variables = {
                 'project.name': project.name,
@@ -199,7 +162,7 @@ def create_aws_lambda(opts):
                 variables=variables
             )
 
-            print('Generating Chalice project for %r in %r...' % (project.name, target), file=sys.stderr)
+            click.echo('Generating Chalice project for %r in %r...' % (project.name, target), err=True)
             configurator.ask_questions()
             configurator.render()
 
@@ -211,38 +174,38 @@ def create_aws_lambda(opts):
             if os.path.lexists(dst_dir):
                 shutil.rmtree(dst_dir)
 
-            print("Copying %r project tree to the 'aws' directory..." % project.name, file=sys.stderr)
+            click.echo("Copying %r project tree to the 'aws' directory..." % project.name, err=True)
             shutil.copytree(project.name, dst_dir,
                             ignore=shutil.ignore_patterns("__pycache__", "*.pyc", ".*", "*.gif", "*.jpg", "*.jpeg",
                                                           "*.png", "*.whl", "*.mt*"))
 
             deps_dst = os.path.join(tempfile.gettempdir(), DEPENDENCY_FILE_NAME)
             try:
-                print("Copying Amazon dependencies for Canari to the 'aws/vendor' directory...", file=sys.stderr)
+                click.echo("Copying Amazon dependencies for Canari to the 'aws/vendor' directory...", err=True)
                 if not os.path.lexists(deps_dst):
-                    print("Downloading dependencies from %r... " % DEPENDENCY_DOWNLOAD_URL, file=sys.stderr)
+                    click.echo("Downloading dependencies from %r... " % DEPENDENCY_DOWNLOAD_URL, err=True)
                     deps_dst, _ = urllib.request.urlretrieve(
                         DEPENDENCY_DOWNLOAD_URL, deps_dst, reporthook=download_progress)
                 else:
-                    print("Using cached dependencies from %r" % deps_dst)
+                    click.echo("Using cached dependencies from %r" % deps_dst)
 
-                print("Decompressing dependencies into 'aws/vendor'", file=sys.stderr)
+                click.echo("Decompressing dependencies into 'aws/vendor'", err=True)
                 zip_file = zipfile.ZipFile(deps_dst, 'r')
                 zip_file.extractall("../aws/vendor")
                 zip_file.close()
             except IOError:
                 if os.path.lexists(deps_dst):
                     os.unlink(deps_dst)
-                print("Failed to download dependencies from %r..." % DEPENDENCY_DOWNLOAD_URL)
+                click.echo("Failed to download dependencies from %r..." % DEPENDENCY_DOWNLOAD_URL)
                 exit(-1)
 
         if dot_chalice_backup:
-            print("Restoring 'aws/.chalice' from %r..." % dot_chalice_backup, file=sys.stderr)
+            click.echo("Restoring 'aws/.chalice' from %r..." % dot_chalice_backup, err=True)
             shutil.rmtree(dot_chalice)
             shutil.move(os.path.join(dot_chalice_backup, '.chalice'), target)
 
-        print("To deploy type 'chalice deploy' in the %r directory" % target, file=sys.stderr)
-        print('done!', file=sys.stderr)
+        click.echo("To deploy type 'chalice deploy' in the %r directory" % target, err=True)
+        click.echo('done!', err=True)
     except ValueError as e:
-        print(e, file=sys.stderr)
+        click.echo(e, err=True)
         exit(-1)

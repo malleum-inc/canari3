@@ -1,73 +1,187 @@
-#!/usr/bin/env python
+import os
+import re
 
-from argparse import ArgumentParser
+import click
+from mrbob.configurator import Configurator
 
-__author__ = 'Nadeem Douba'
-__copyright__ = 'Copyright 2012, Canari Project'
-__credits__ = ['Nadeem Douba']
-
-__license__ = 'GPLv3'
-__version__ = '0.1'
-__maintainer__ = 'Nadeem Douba'
-__email__ = 'ndouba@redcanari.com'
-__status__ = 'Development'
+from canari.config import load_config
+from canari.mode import set_debug_mode, is_debug_exec_mode, set_canari_mode, CanariMode, get_canari_mode
+from canari.pkgutils.transform import TransformDistribution
+from canari.project import CanariProject
+from canari.utils.fs import PushDir
 
 
-__all__ = [
-    'Command',
-    'SubCommand',
-    'Argument'
-]
+unescaped_equals = re.compile(r'(?<=[^\\])=')
+
+field_value_unescaper = re.compile(r'\\([\\#=])')
+
+field_splitter = re.compile(r'(?<=[^\\])#')
 
 
-class Command(object):
-    def __init__(self, *args, **kwargs):
-        self.parser = ArgumentParser(*args, **kwargs)
+class CanariRunnerCommand(click.Command):
+    def parse_args(self, ctx, args):
+        if not unescaped_equals.search(args[-1]):
+            args.append('')
 
-    def __call__(self, func, *args, **kwargs):
-        if hasattr(self.parser, 'parser_args'):
-            for a, k in func.parser_args:
-                self.parser.add_argument(*a, **k)
-
-        def _func(args_=None, namespace=None):
-            return func(self.parser.parse_args(args_, namespace))
-
-        _func.parser = self.parser
-        return _func
+        super(CanariRunnerCommand, self).parse_args(ctx, args)
 
 
-class SubCommand(object):
-    def __init__(self, parent, *args, **kwargs):
-        if not hasattr(parent, 'subparsers'):
-            parent.subparsers = parent.parser.add_subparsers(
-                title='subcommands',
-                description='valid subcommands',
-                help='additional help'
+class CanariGroup(click.Group):
+
+    runners = [
+        'debug-transform',
+        'run-transform'
+    ]
+
+    def parse_args(self, ctx, args):
+        # if args[0] in self.runners and not unescaped_equals.search(args[-1]):
+        #         args.append('')
+
+        super(CanariGroup, self).parse_args(ctx, args)
+
+
+class CanariContext(object):
+
+    def __init__(self):
+        self._config_dir = click.get_app_dir('canari', False, True)
+        self._config_file = os.path.join(self.config_dir, 'canari.conf')
+        self._config = None
+        self._project = None
+        self._working_dir = None
+
+    @property
+    def mode(self):
+        return get_canari_mode()
+
+    @mode.setter
+    def mode(self, value):
+        return set_canari_mode(value)
+
+    @property
+    def project(self):
+        if not self._project:
+            self._project = CanariProject()
+        return self._project
+
+    @property
+    def debug(self):
+        return is_debug_exec_mode()
+
+    @debug.setter
+    def debug(self, value):
+        if value:
+            click.echo('Debugging is enabled')
+        set_debug_mode(value)
+
+    @property
+    def config_dir(self):
+        if not os.path.lexists(self._config_dir):
+            click.echo("Initializing Canari configuration: %s" % self.config_dir, err=True)
+
+            configurator = Configurator(
+                'canari.resources.templates:init_canari',
+                self.config_dir,
+                {'non_interactive': True}
             )
-        self.args = args
-        self.kwargs = kwargs
-        self.subparsers = parent.subparsers
-        self.parser = None
 
-    def __call__(self, func, *args, **kwargs):
-        if not self.args:
-            self.args = [func.__name__.replace('_', '-')]
-        self.parser = self.subparsers.add_parser(*self.args, **self.kwargs)
-        if hasattr(func, 'parser_args'):
-            for a, k in func.parser_args:
-                self.parser.add_argument(*a, **k)
-        func.parser = self.parser
-        func.parser.set_defaults(command_function=func)
-        return func
+            configurator.ask_questions()
+            configurator.render()
+        return self._config_dir
+
+    @property
+    def config_file(self):
+        if not self._config_file:
+            self._config_file = os.path.join(self.config_dir, 'canari.conf')
+        return self._config_file
+
+    @property
+    def config(self):
+        if not self._config:
+            click.echo("Loading Canari configuration file %r" % self.config_file, err=True)
+            self._config = load_config(self.config_file)
+        return self._config
+
+    @property
+    def working_dir(self):
+        return self._working_dir.cwd
+
+    @working_dir.setter
+    def working_dir(self, path):
+        self._working_dir = PushDir(path)
+        self._working_dir.__enter__()
+
+    def __del__(self):
+        if self._working_dir:
+            self._working_dir.__exit__()
 
 
-class Argument(object):
-    def __init__(self, *args, **kwargs):
-        self.args = args
-        self.kwargs = kwargs
+pass_context = click.make_pass_decorator(CanariContext, True)
 
-    def __call__(self, func, *args, **kwargs):
-        if not hasattr(func, 'parser_args'):
-            func.parser_args = []
-        func.parser_args.insert(0, (self.args, self.kwargs))
-        return func
+
+class CanariPackage(click.ParamType):
+    name = 'package'
+
+    failure_message = 'required when this command is executed outside of a Canari project directory.'
+
+    def convert(self, value, param, ctx):
+        if not value:
+            if not ctx or not ctx.obj:
+                self.fail(self.failure_message)
+
+            if not ctx.obj.project.is_valid:
+                self.fail(self.failure_message)
+
+            value = ctx.obj.project.name
+        try:
+            return TransformDistribution(value)
+        except ImportError as e:
+            self.fail(str(e))
+
+
+def is_new_transform(ctx, param, value):
+    try:
+        if ctx.obj.project.transform_exists(value):
+            raise click.BadParameter("Transform or module already exists with name {!r}".format(value))
+    except ValueError as e:
+        raise click.BadParameter(str(e))
+    except AssertionError as e:
+        raise click.BadArgumentUsage(str(e))
+    return value
+
+
+def unescape_transform_value(ctx, param, value):
+    return value.replace('\\=', '=')
+
+
+def unescape_field_key_value(field):
+    return field_value_unescaper.sub(r'\1', field)
+
+
+def parse_transform_fields(ctx, param, value):
+    fields = {}
+    if value:
+        for field in re.split(r'(?<=[^\\])#', value):
+            k, v = unescaped_equals.split(field, 1)
+            fields[unescape_field_key_value(k)] = unescape_field_key_value(v)
+    return fields
+
+
+class MaltegoProfile(click.ParamType):
+    name = 'package'
+
+    failure_message = 'required when this command is executed outside of a Canari project directory.'
+
+    def convert(self, value, param, ctx):
+        if not value:
+            if not ctx or not ctx.obj:
+                self.fail(self.failure_message)
+
+            if not ctx.obj.project.is_valid:
+                self.fail(self.failure_message)
+
+            value = ctx.obj.project.entities_mtz
+
+        if not os.path.lexists(value):
+            self.fail('Maltego profile export does not exist: {}'.format(ctx.obj.project.entities_mtz))
+
+        return value

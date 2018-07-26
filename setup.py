@@ -94,7 +94,10 @@ requires = [
     'safedexml',
     'lxml',
     'six',
-    'future'
+    'future',
+    'click',
+    'colorama',
+    'stringcase'
 ]
 
 if sys.platform == 'win32':
@@ -118,7 +121,13 @@ setup(
     install_requires=requires,
     dependency_links=[],
     url='https://github.com/redcanari/canari',
-    scripts=[os.path.join('scripts', s) for s in scripts],
+    # scripts=[os.path.join('scripts', s) for s in scripts],
+    entry_points='''
+    [console_scripts]
+    canari=canari.entrypoints:main
+    dispatcher=canari.entrypoints:dispatcher
+    pysudo=canari.entrypoints:pysudo
+    ''',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Environment :: Console',

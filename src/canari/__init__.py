@@ -18,6 +18,9 @@ __all__ = [
     'mode',
     'resource',
     'tas',
-    'entrypoints'
+    'entrypoints',
+    'version'
 ]
+
+version = __version__
 

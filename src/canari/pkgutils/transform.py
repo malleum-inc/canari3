@@ -6,6 +6,7 @@ import string
 import sys
 from pkgutil import iter_modules
 
+import click
 from mrbob.configurator import Configurator
 from six import string_types
 from pkg_resources import resource_listdir, resource_filename
@@ -15,7 +16,6 @@ from canari.config import CanariConfigParser, OPTION_LOCAL_CONFIGS, SECTION_LOCA
 from canari.maltego.message import EntityTypeFactory
 from canari.maltego.transform import Transform
 from canari.pkgutils.maltego import MaltegoDistribution, MtzDistribution
-from canari.question import parse_bool
 from canari.utils.fs import PushDir
 
 __author__ = 'Nadeem Douba'
@@ -264,7 +264,8 @@ class TransformDistribution(object):
     @staticmethod
     def _check_file_exists(dst, defaults=False):
         return not os.path.lexists(dst) or \
-               (not defaults and parse_bool('%s already exists. Would you like to overwrite it?' % dst, default=False))
+               (not defaults and
+                click.prompt('%s already exists. Would you like to overwrite it?' % dst, default=False))
 
     def configure(self, install_prefix, load=True, remote=False, defaults=False, **kwargs):
         dst_canari_conf = os.path.join(install_prefix, 'canari.conf')
@@ -378,8 +379,8 @@ class TransformDistribution(object):
         for transform in self.transforms:
             distribution.remove_transform('Local', transform, server='Local')
 
-    def create_profile(self, install_prefix, current_dir, configure=True):
-        mtz = os.path.join(current_dir, '%s.mtz' % self.name)
+    def create_profile(self, install_prefix, mtz_dir, configure=True):
+        mtz = os.path.join(mtz_dir, '%s.mtz' % self.name)
         print('Creating profile %s...' % mtz, file=sys.stderr)
         mtz = MtzDistribution(mtz, 'w')
         self.install(install_prefix, mtz, configure)

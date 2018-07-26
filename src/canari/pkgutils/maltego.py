@@ -19,7 +19,7 @@ from canari.maltego.configuration import (TransformSettings, CmdLineTransformPro
                                           CmdParmTransformProperty, TransformSet, Transform, MaltegoServer, Protocol,
                                           Authentication, EntityCategory, Properties, attributes, fileobject, attr,
                                           MaltegoEntity)
-from canari.question import parse_int
+from canari.question import prompt_menu
 from canari.utils.common import find_dispatcher
 
 __author__ = 'Nadeem Douba'
@@ -253,7 +253,7 @@ class MaltegoDistribution(object):
             return os.path.join(maltego_base_dir, vs[0])
         elif vs:
             print('Multiple versions of Maltego detected: ', file=sys.stderr)
-            r = parse_int('Please select which version you wish to use', ['Maltego %s' % i for i in vs])
+            r = prompt_menu('Please select which version you wish to use', ['Maltego %s' % i for i in vs])
             return os.path.join(maltego_base_dir, vs[int(r)])
         print('Could not automatically find Maltego\'s settings directory. '
               'Use the -w parameter to specify its location, instead.', file=sys.stderr)

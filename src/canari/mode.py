@@ -29,7 +29,8 @@ __all__ = [
     'is_remote_plume_lambda_dispatch_exec_mode',
     'is_remote_unknown_exec_mode',
     'is_local_shell_debug_exec_mode',
-    'get_canari_mode_str'
+    'get_canari_mode_str',
+    'set_debug_mode'
 ]
 
 
@@ -126,6 +127,15 @@ def get_canari_mode_str():
     :return: human readable string of the global Canari operating mode.
     """
     return CanariMode.to_str(get_canari_mode())
+
+
+def set_debug_mode(value=True):
+    global canari_mode
+    old_mode = canari_mode
+    is_debug = is_debug_exec_mode()
+    if (not value and is_debug) or (value and not is_debug):
+        canari_mode ^= CanariMode.Debug
+    return old_mode
 
 
 def is_local_exec_mode():

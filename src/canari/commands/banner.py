@@ -1,6 +1,5 @@
-from canari.commands.common import canari_main
-from canari.commands.framework import SubCommand
-
+import click
+from canari.resource import external_resource
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2015, Canari Project'
@@ -13,18 +12,5 @@ __email__ = 'ndouba@redcanari.com'
 __status__ = 'Development'
 
 
-@SubCommand(
-    canari_main,
-    help='Show banner of Canari framework that is currently active.',
-    description='Show banner of Canari framework that is currently active.'
-)
-def banner(args):
-    print(r"""
-    Your running ...
-                                 _     ___ 
-         _______ ____  ___ _____(_)   /_  /
-        / __/ _ `/ _ \/ _ `/ __/ /   /_  /
-        \__/\_,_/_//_/\_,_/_/ /_/   /___/
-
-                                            ... http://github.com/redcanari/canari3
-    """)
+def banner():
+    click.secho(open(external_resource('banner.txt')).read(), fg='yellow')

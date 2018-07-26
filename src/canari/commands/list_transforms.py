@@ -1,14 +1,4 @@
-from __future__ import print_function
-
-import sys
-
-from canari.maltego.utils import highlight
-from canari.pkgutils.transform import TransformDistribution
-from canari.project import CanariProject
-from canari.commands.common import canari_main
-from canari.utils.fs import PushDir
-from canari.commands.framework import SubCommand, Argument
-
+import click
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2012, Canari Project'
@@ -21,39 +11,13 @@ __email__ = 'ndouba@redcanari.com'
 __status__ = 'Development'
 
 
-# Argument parser
-@SubCommand(
-    canari_main,
-    help="Lists transforms in a Canari package.",
-    description="Lists transforms in a Canari package."
-)
-@Argument(
-    'package',
-    metavar='<package>',
-    help='the name of the canari package to list transforms for.'
-)
-@Argument(
-    '-w',
-    '--working-dir',
-    metavar='[working dir]',
-    default=None,
-    help="the path that will be used as the working directory for "
-         "the canari package being listed (default: ~/.canari/)"
-)
-def list_transforms(opts):
-
-    try:
-        with PushDir(opts.working_dir or CanariProject().src_dir):
-            transform_package = TransformDistribution(opts.package)
-            for transform in transform_package.transforms:
-                print('`- %s: %s' % (highlight(transform.name, 'green', True), transform.description), file=sys.stderr)
-                print(highlight('  `- Maltego identifiers:', 'black', True), file=sys.stderr)
-                print('    `- %s applies to %s in set %s' % (
-                    highlight(transform.name, 'red', False),
-                    highlight(transform.input_type._type_, 'red', False),
-                    highlight(transform.transform_set, 'red', False)
-                ), file=sys.stderr)
-                print('', file=sys.stderr)
-    except ValueError as e:
-        print(e, file=sys.stderr)
-        exit(-1)
+def list_transforms(transform_package):
+    click.secho('Canari Transforms:', fg='yellow', bold=True)
+    for transform in transform_package.transforms:
+        click.echo('`- %s: %s' % (click.style(transform.name, 'green', bold=True), transform.description))
+        click.secho('  `- Maltego identifiers:', bold=True)
+        click.echo('    `- %s applies to %s in set %s' % (
+            click.style(transform.name, 'red', False),
+            click.style(transform.input_type._type_, 'red', False),
+            click.style(transform.transform_set, 'red', False)
+        ))

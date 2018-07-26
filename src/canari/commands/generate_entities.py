@@ -1,20 +1,14 @@
-from __future__ import print_function
-
 import keyword
 import os
 import re
-import sys
 
+import click
 from mrbob.configurator import Configurator
 from mrbob.rendering import jinja2_env
 
 from canari.maltego.configuration import MaltegoEntity
 from canari.maltego.message import Entity, StringEntityField
 from canari.pkgutils.maltego import MtzDistribution
-from canari.project import CanariProject
-from canari.question import parse_bool
-from canari.commands.common import canari_main
-from canari.commands.framework import SubCommand, Argument
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2012, Canari Project'
@@ -41,110 +35,33 @@ type_mapping = {
 }
 
 
-def parse_args(args):
-    project = CanariProject(args.out_path)
-
-    if project.is_valid:
-        args.out_path = project.common_dir
-        args.out_file = project.entities_py
-    else:
-        args.out_path = project.root_dir
-        args.out_file = os.path.join(args.out_path, 'entities.py')
-
-    if os.path.exists(args.out_file) and not args.append and not \
-            parse_bool('%r already exists. Are you sure you want to overwrite it?' % args.out_file, default=False):
-        exit(-1)
-
-    if not args.mtz_file:
-        if not project.is_valid or not os.path.lexists(project.entities_mtz):
-            print("Please specify a valid MTZ file.", file=sys.stderr)
-            exit(-1)
-        args.mtz_file = project.entities_mtz
-
-    if args.maltego_entities:
-        args.namespace.extend(args.exclude_namespace)
-        args.exclude_namespace = []
-
-    args.project = project
-
-    return args
-
-
 def normalize_fn(fn):
     # Get rid of starting underscores or numbers and bad chars for var names in python
     return re.sub(r'[^A-Za-z0-9]+', '_', re.sub(r'^[^A-Za-z]+', '', fn))
 
 
+def generate_entities(project, output_path, mtz_file, exclude_namespace, namespace, maltego_entities, append, entity):
 
-@SubCommand(
-    canari_main,
-    help='Converts Maltego entity definition files to Canari python classes. Excludes Maltego built-in entities by '
-         'default.',
-    description='Converts Maltego entity definition files to Canari python classes. Excludes Maltego built-in entities '
-                'by default.'
-)
-@Argument(
-    'out_path',
-    metavar='[output path]',
-    help='Which path to write the output to.',
-    default=os.getcwd(),
-    nargs='?'
-)
-@Argument(
-    '--mtz-file',
-    '-m',
-    metavar='<mtzfile>',
-    help='A *.mtz file containing an export of Maltego entities.',
-    required=False
-)
-@Argument(
-    '--exclude-namespace',
-    '-e',
-    metavar='<namespace>',
-    help='Name of Maltego entity namespace to ignore. Can be defined multiple times.',
-    required=False,
-    action='append',
-    default=['maltego', 'maltego.affiliation']
-)
-@Argument(
-    '--namespace',
-    '-n',
-    metavar='<namespace>',
-    help='Name of Maltego entity namespace to generate entity classes for. Can be defined multiple times.',
-    required=False,
-    action='append',
-    default=[]
-)
-@Argument(
-    '--maltego-entities',
-    '-M',
-    help="Generate entities belonging to the 'maltego' namespace.",
-    default=False,
-    action='store_true'
-)
-@Argument(
-    '--append',
-    '-a',
-    help='Whether or not to append to the existing *.py file.',
-    action='store_true',
-    default=False
-)
-@Argument(
-    '--entity',
-    '-E',
-    metavar='<entity>',
-    help='Name of Maltego entity to generate Canari python class for.',
-    required=False,
-    action='append',
-    default=[]
-)
-def generate_entities(args):
-    opts = parse_args(args)
+    if not output_path:
+        if project.is_valid:
+            output_path = project.common_dir
+        else:
+            output_path = os.getcwd()
 
-    mtz = MtzDistribution(opts.mtz_file)
-    target = opts.out_path
+    entities_py = os.path.join(output_path, 'entities.py')
 
-    variables = opts.project.configuration['variables']
+    if os.path.exists(entities_py) and not append:
+        click.confirm('{!r} already exists. Are you sure you want to overwrite it?'.format(entities_py),
+                      default=False, abort=True)
+
+    if maltego_entities:
+        namespace.extend(exclude_namespace)
+        exclude_namespace = []
+
+    mtz = MtzDistribution(mtz_file)
+    target = output_path
+
+    variables = project.configuration['variables']
 
     entity_definitions = {}
 
@@ -153,15 +70,15 @@ def generate_entities(args):
     for entity_file in mtz.entities:
         entity = MaltegoEntity.parse(mtz.read_file(entity_file))
         namespace, name = matcher.match(entity.id).groups()
-        if namespace in opts.exclude_namespace:
+        if namespace in exclude_namespace:
             continue
-        elif not opts.namespace or namespace in opts.namespace:
+        elif not namespace or namespace in namespace:
             entity_definitions[(namespace, name)] = entity
 
     entity_classes = []
 
-    if opts.append:
-        module = opts.project.entities_module
+    if append:
+        module = project.entities_module
         for entity_class in dir(module):
             entity_class = getattr(module, entity_class)
             if isinstance(entity_class, type) and issubclass(entity_class, Entity) and entity_class is not Entity \
@@ -212,9 +129,9 @@ def generate_entities(args):
 
     configurator.ask_questions()
 
-    print('Generating entities for %r...' % variables['project.name'], file=sys.stderr)
+    click.echo('Generating entities for %r...' % variables['project.name'], err=True)
     configurator.render()
 
-    print('done!', file=sys.stderr)
+    click.echo('done!', err=True)
 
 

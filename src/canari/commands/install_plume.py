@@ -1,14 +1,8 @@
-from __future__ import print_function
-
 import os
-import sys
 
+import click
 from mrbob.bobexceptions import ValidationError
 from mrbob.configurator import Configurator, Question
-
-from canari.commands.common import canari_main
-from canari.question import parse_bool
-from canari.commands.framework import SubCommand, Argument
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2012, Canari Project'
@@ -110,49 +104,37 @@ def configure_ssl(configurator, question, answer):
     return answer
 
 
-@SubCommand(
-    canari_main,
-    help='Sets up Canari Plume directory structure and configuration files.',
-    description='Sets up Canari Plume directory structure and configuration files.'
-)
-@Argument(
-    '--accept-defaults',
-    '-y',
-    help='Install Plume with all the defaults in non-interactive mode.',
-    default=False,
-    action='store_true'
-)
-def install_plume(opts):
+def install_plume(accept_defaults):
 
-    if not opts.accept_defaults:
-        return install_wizard(opts)
-    install_defaults(opts)
+    if not accept_defaults:
+        return install_wizard()
+    install_defaults()
 
 
-def install_defaults(opts):
+def install_defaults():
     configurator = Configurator('canari.resources.templates:install_plume', '.',
                                 {'non_interactive': True, 'remember_answers': False})
 
     configurator.variables['plume.venv'] = os.environ.get('VIRTUAL_ENV')
     if configurator.variables['plume.venv']:
-        print(
+        click.echo(
             'Will use the virtual environment in %r to run Plume...' % configurator.variables['plume.venv'],
-            file=sys.stderr
+            err=True
         )
     configurator.variables['plume.enable_ssl'] = 'n'
-    print('Installing init script to /etc/init.d...', file=sys.stderr)
+    click.echo('Installing init script to /etc/init.d...', err=True)
     configurator.variables['plume.init'] = check_init_script(configurator, '', '/etc/init.d')
-    print('Creating Plume root directory at /var/plume...', file=sys.stderr)
+    click.echo('Creating Plume root directory at /var/plume...', err=True)
     configurator.variables['plume.dir'] = check_mkdir(configurator, '', '/var/plume')
-    print('The PID file will be at /var/run/plume.pid...', file=sys.stderr)
+    click.echo('The PID file will be at /var/run/plume.pid...', err=True)
     configurator.variables['plume.run_dir'] = '/var/run'
-    print('The log files will be at /var/log/plume.log...', file=sys.stderr)
+    click.echo('The log files will be at /var/log/plume.log...', err=True)
     configurator.variables['plume.log_dir'] = '/var/log'
     configurator.variables['plume.user'] = check_uid(configurator, '', 'nobody')
     configurator.variables['plume.group'] = check_gid(configurator, '', 'nobody')
-    print('The Plume server will under UID/GID=%s/%s...' % (
-        configurator.variables['plume.user'], configurator.variables['plume.group']), file=sys.stderr)
-    print('TLS will be disabled by default...', file=sys.stderr)
+    click.echo('The Plume server will under UID/GID=%s/%s...' % (
+        configurator.variables['plume.user'], configurator.variables['plume.group']), err=True)
+    click.echo('TLS will be disabled by default...', err=True)
     configurator.variables['plume.certificate'] = ''
     configurator.variables['plume.private_key'] = ''
 
@@ -161,15 +143,17 @@ def install_defaults(opts):
     finish(configurator)
 
 
-def install_wizard(opts):
+def install_wizard():
     configurator = Configurator('canari.resources.templates:install_plume', '.',
                                 {'non_interactive': False, 'remember_answers': False})
     configurator.ask_questions()
 
     if os.environ.get('VIRTUAL_ENV'):
-        run_venv = parse_bool(
+        run_venv = click.prompt(
             "--> Canari has detected that you're running this install script from within a virtualenv.\n"
-            "--> Would you like to run Plume from this virtualenv (%r) as well?" % os.environ['VIRTUAL_ENV'], True)
+            "--> Would you like to run Plume from this virtualenv (%r) as well?" % os.environ['VIRTUAL_ENV'],
+            default=True
+        )
         configurator.variables['plume.venv'] = os.environ['VIRTUAL_ENV'] if run_venv else False
     else:
         configurator.variables['plume.venv'] = None
@@ -179,7 +163,7 @@ def install_wizard(opts):
 
 
 def finish(configurator):
-    print('Writing canari.conf to %r...' % configurator.variables['plume.dir'], file=sys.stderr)
+    click.echo('Writing canari.conf to %r...' % configurator.variables['plume.dir'], err=True)
 
     # move the canari.conf file from the init.d directory to the plume content directory
     src_file = os.path.join(configurator.variables['plume.init'], 'canari.conf')
@@ -193,4 +177,4 @@ def finish(configurator):
 
     os.chmod(os.path.join(configurator.variables['plume.init'], 'plume'), 0o755)
 
-    print('done!', file=sys.stderr)
+    click.echo('done!', err=True)

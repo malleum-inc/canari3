@@ -1,20 +1,15 @@
-from __future__ import print_function
-
 import os
 import sys
-from code import InteractiveConsole
 from atexit import register
+from code import InteractiveConsole
 
-from canari.mode import CanariMode, set_canari_mode
-from canari.pkgutils.transform import TransformDistribution
-from canari.commands.common import canari_main
-from canari.question import parse_bool
-from canari.utils.fs import PushDir
-from canari.commands.framework import SubCommand, Argument
-from canari.config import load_config
-from canari.maltego.utils import highlight
-from canari.maltego.runner import scriptable_transform_runner
+import click
+
 import canari
+from canari.config import load_config
+from canari.maltego.runner import scriptable_transform_runner
+from canari.maltego.utils import highlight
+from canari.utils.fs import PushDir
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2012, Canari Project'
@@ -27,8 +22,8 @@ __email__ = 'ndouba@redcanari.com'
 __status__ = 'Development'
 
 
-def sudo():
-    print(highlight("Need to be root to run this transform... sudo'ing...", 'green', True), file=sys.stderr)
+def do_sudo():
+    click.echo(highlight("Need to be root to run this transform... sudo'ing...", 'green', True), err=True)
     sys.argv.insert(0, 'sudo')
     os.execvp(sys.argv[0], sys.argv)
 
@@ -41,7 +36,7 @@ class ShellCommand(object):
 
     def __call__(self, value, *args, **kwargs):
         if os.name == 'posix' and self.transform.superuser and os.geteuid():
-            sudo()
+            do_sudo()
         if args and isinstance(args[0], dict):
             kwargs.update(args[0])
             args = args[1:]
@@ -57,9 +52,9 @@ class MtgConsole(InteractiveConsole):
         for transform in transform_classes:
             locals_['do' + transform.name.split('.')[-1]] = ShellCommand(transform, config)
             if not asked and transform.superuser and os.name == 'posix' and os.geteuid():
-                if not auto_sudo and parse_bool("A transform requiring 'root' access was detected."
-                                                " Would you like to run this shell as 'root'?", False):
-                    sudo()
+                if not auto_sudo and click.prompt("A transform requiring 'root' access was detected."
+                                                  " Would you like to run this shell as 'root'?", default=False):
+                    do_sudo()
                 asked = True
 
         InteractiveConsole.__init__(self, locals=locals_)
@@ -80,43 +75,7 @@ class MtgConsole(InteractiveConsole):
             pass
 
 
-@SubCommand(
-    canari_main,
-    help='Creates a Canari debug shell for the specified transform package.',
-    description='Creates a Canari debug shell for the specified transform package.'
-)
-@Argument(
-    'package',
-    metavar='<package name>',
-    help='The name of the canari package you wish to load local transform from for the Canari shell session.'
-)
-@Argument(
-    '-w',
-    '--working-dir',
-    metavar='[working dir]',
-    default=None,
-    help="the path that will be used as the working directory for "
-         "the transforms being executed in the shell (default: ~/.canari/)"
-)
-@Argument(
-    '-s',
-    '--sudo',
-    action='store_true',
-    default=False,
-    help='Instructs the shell to automatically elevate privileges to root if necessary.'
-)
-def shell(opts):
-
-    set_canari_mode(CanariMode.LocalShellDebug)
-
-    if not opts.package.endswith('transforms'):
-        opts.package = '%s.transforms' % opts.package
-
-    try:
-        transform_package = TransformDistribution(opts.package)
-        with PushDir(opts.working_dir or transform_package.default_prefix):
-            mtg_console = MtgConsole(transform_package.transforms, auto_sudo=opts.sudo)
-            mtg_console.interact(highlight('Welcome to Canari %s.' % canari.__version__, 'green', True))
-    except ValueError as e:
-        print(str(e), file=sys.stderr)
-        exit(-1)
+def shell(transform_package, working_dir, sudo):
+    with PushDir(working_dir or transform_package.default_prefix):
+        mtg_console = MtgConsole(transform_package.transforms, auto_sudo=sudo)
+        mtg_console.interact(highlight('Welcome to Canari %s.' % canari.__version__, 'green', True))
