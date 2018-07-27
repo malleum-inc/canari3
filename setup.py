@@ -72,10 +72,10 @@ please consider donating money to help accelerate development.
 if os.path.exists('README.rst'):
     long_description = open('README.rst').read()
 
-scripts = [
-    'canari',
-    'dispatcher'
-]
+# scripts = [
+#     'canari',
+#     'dispatcher'
+# ]
 
 extras = [
     'readline'
@@ -100,9 +100,9 @@ requires = [
 
 if sys.platform == 'win32':
     requires.append('pyreadline')
-    scripts.extend(['%s.bat' % s for s in scripts])
-else:
-    scripts.append('pysudo')
+    # scripts.extend(['%s.bat' % s for s in scripts])
+# else:
+#     scripts.append('pysudo')
 
 sys.path.insert(0, 'src')
 import canari
