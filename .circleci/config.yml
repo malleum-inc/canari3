@@ -15,6 +15,8 @@ docker-build: &docker-build
   steps:
     - restore_cache:
         key: repo-{{ .Environment.CIRCLE_SHA1 }}
+    - restore_cache:
+        key: docker-{{ .Environment.CIRCLE_SHA1 }}-{{ .Branch }}-{{ .Environment.TAG_SUFFIX }}
     - setup_remote_docker:
         docker_layer_caching: true
     - run:
@@ -22,6 +24,33 @@ docker-build: &docker-build
           CANARI_VERSION=`python setup.py --version`
           DOCKER=`([[ "$BASH_ENV" == *localbuild* ]] && echo sudo docker || echo docker)`
           $DOCKER build -f Dockerfile-${TAG_SUFFIX} . -t redcanari/canari:${CANARI_VERSION}-${TAG_SUFFIX}
+    - save_cache:
+        key: docker-{{ .Environment.CIRCLE_SHA1 }}-{{ .Branch }}-{{ .Environment.TAG_SUFFIX }}
+        paths:
+          - /tmp
+
+docker-push: &docker-push
+  steps:
+    - setup_remote_docker:
+        docker_layer_caching: true
+    - run:
+        command: |
+          CANARI_VERSION=`python setup.py --version`
+          DOCKER=`([[ "$BASH_ENV" == *localbuild* ]] && echo sudo docker || echo docker)`
+          docker login
+          $DOCKER build -f Dockerfile-${TAG_SUFFIX} . -t redcanari/canari:${CANARI_VERSION}-${TAG_SUFFIX}
+
+filter-any: &filter-any
+  filters:
+    tags:
+      only: /.*/
+
+filter-deploy: &filter-deploy
+  filters:
+    branches:
+      only: master
+    tags:
+      only: /v[0-9]+(\.[0-9]+)*/
 
 
 jobs:
@@ -123,34 +152,86 @@ workflows:
   build-and-test:
     jobs:
 #     First step
-      - checkout-code
+      - checkout-code:
+          <<: *filter-any
 
 #     Fan out to py2/3 build and test
       - build-and-test-py2:
           requires:
             - checkout-code
+          <<: *filter-any
       - build-and-test-py3:
           requires:
             - checkout-code
+          <<: *filter-any
 
 #     Fan out to docker builds py2
       - build-docker-alpine-py2:
           requires:
             - build-and-test-py2
+          <<: *filter-any
       - build-docker-ubuntu-py2:
           requires:
             - build-and-test-py2
+          <<: *filter-any
       - build-docker-kalilinux-py2:
           requires:
             - build-and-test-py2
+          <<: *filter-any
 
 #     Fan out to docker builds py3
       - build-docker-alpine-py3:
           requires:
             - build-and-test-py3
+          <<: *filter-any
       - build-docker-ubuntu-py3:
           requires:
             - build-and-test-py3
+          <<: *filter-any
       - build-docker-kalilinux-py3:
           requires:
             - build-and-test-py3
+          <<: *filter-any
+
+#     Fan out to docker builds py2
+      - push-docker-alpine-py2:
+          requires:
+            - build-docker-alpine-py2
+          <<: *filter-deploy
+      - push-docker-ubuntu-py2:
+          requires:
+            - build-docker-ubuntu-py2
+          <<: *filter-deploy
+      - push-docker-kalilinux-py2:
+          requires:
+            - build-docker-kalilinux-py2
+          <<: *filter-deploy
+
+#     Fan out to docker builds py3
+      - push-docker-alpine-py3:
+          requires:
+            - build-docker-alpine-py3
+          <<: *filter-deploy
+      - push-docker-ubuntu-py3:
+          requires:
+            - build-docker-ubuntu-py3
+          <<: *filter-deploy
+      - push-docker-kalilinux-py3:
+          requires:
+            - build-docker-kalilinux-py3
+          <<: *filter-deploy
+
+      - deploy-to-pypi:
+          requires:
+            - push-docker-alpine-py2
+            - push-docker-ubuntu-py2
+            - push-docker-kalilinux-py2
+            - push-docker-alpine-py3
+            - push-docker-ubuntu-py3
+            - push-docker-kalilinux-py3
+          <<: *filter-deploy
+
+      - upload-lambda-deps:
+          requires:
+            - deploy-to-pypi
+          <<: *filter-deploy
