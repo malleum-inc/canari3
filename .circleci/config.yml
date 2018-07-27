@@ -27,10 +27,10 @@ docker-build: &docker-build
           set +o pipefail
           CANARI_VERSION=`python setup.py --version`
           DOCKER=`([[ "$BASH_ENV" == *localbuild* ]] && echo sudo docker || echo docker)`
-          $DOCKER load -i /caches/canari.tar | true
+          $DOCKER load -i ~/docker-cache/canari.tar | true
           $DOCKER build --cache-from=canari -f Dockerfile-${TAG_SUFFIX} . -t redcanari/canari:${CANARI_VERSION}-${TAG_SUFFIX}
-          mkdir -p /caches
-          $DOCKER save -o /caches/canari.tar redcanari/canari:${CANARI_VERSION}-${TAG_SUFFIX}
+          mkdir -p ~/docker-cache
+          $DOCKER save -o ~/docker-cache/canari.tar redcanari/canari:${CANARI_VERSION}-${TAG_SUFFIX}
           if [ "${CIRCLE_BRANCH}" == "master" -a ! -z "${CIRCLE_TAG}" ]; then
             $DOCKER login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
             $DOCKER push redcanari/canari
@@ -38,7 +38,7 @@ docker-build: &docker-build
     - save_cache:
         key: docker-{{ .Branch }}-{{ .Environment.CIRCLE_JOB }}
         paths:
-          - /caches/canari.tar
+          - ~/docker-cache/canari.tar
 
 
 # Filters for workflow steps
