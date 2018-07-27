@@ -1,5 +1,7 @@
 version: 2
 
+# Use sudo docker when localbuild test
+
 # Anchors
 py2-image: &py2-image
   docker:
@@ -13,33 +15,33 @@ py3-image: &py3-image
 
 docker-build: &docker-build
   steps:
+    - setup_remote_docker:
+        docker_layer_caching: true
     - restore_cache:
         key: repo-{{ .Environment.CIRCLE_SHA1 }}
     - restore_cache:
-        key: docker-{{ .Environment.CIRCLE_SHA1 }}-{{ .Branch }}-{{ .Environment.CIRCLE_JOB }}
-    - setup_remote_docker:
-        docker_layer_caching: true
+        key: docker-{{ .Branch }}-{{ .Environment.CIRCLE_JOB }}
     - run:
+        name: Build Canari Docker Image
         command: |
+          set +o pipefail
           CANARI_VERSION=`python setup.py --version`
           DOCKER=`([[ "$BASH_ENV" == *localbuild* ]] && echo sudo docker || echo docker)`
-          $DOCKER build -f Dockerfile-${TAG_SUFFIX} . -t redcanari/canari:${CANARI_VERSION}-${TAG_SUFFIX}
+          $DOCKER load -i /caches/canari.tar | true
+          $DOCKER build --cache-from=canari -f Dockerfile-${TAG_SUFFIX} . -t redcanari/canari:${CANARI_VERSION}-${TAG_SUFFIX}
+          mkdir -p /caches
+          $DOCKER save -o /caches/canari.tar redcanari/canari:${CANARI_VERSION}-${TAG_SUFFIX}
+          if [ "${CIRCLE_BRANCH}" == "master" -a ! -z "${CIRCLE_TAG}" ]; then
+            $DOCKER login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
+            $DOCKER push redcanari/canari
+          fi;
     - save_cache:
-        key: docker-{{ .Environment.CIRCLE_SHA1 }}-{{ .Branch }}-{{ .Environment.CIRCLE_JOB }}
+        key: docker-{{ .Branch }}-{{ .Environment.CIRCLE_JOB }}
         paths:
-          - ~/canari
+          - /caches/canari.tar
 
-docker-push: &docker-push
-  steps:
-    - setup_remote_docker:
-        docker_layer_caching: true
-    - run:
-        command: |
-          CANARI_VERSION=`python setup.py --version`
-          DOCKER=`([[ "$BASH_ENV" == *localbuild* ]] && echo sudo docker || echo docker)`
-          docker login
-          $DOCKER build -f Dockerfile-${TAG_SUFFIX} . -t redcanari/canari:${CANARI_VERSION}-${TAG_SUFFIX}
 
+# Filters for workflow steps
 filter-any: &filter-any
   filters:
     tags:
