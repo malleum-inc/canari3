@@ -232,6 +232,7 @@ def remote_transform(host, transform, input, entity_field, transform_parameter, 
                 callback=parse_transform_fields)
 @pass_context
 def run_transform(ctx, transform, params, value, fields):
+    """Executes the transform like it would in Maltego"""
     ctx.mode = CanariMode.LocalDispatch
     fix_pypath()
     fix_binpath(ctx.config[OPTION_LOCAL_PATH])
@@ -250,6 +251,7 @@ def run_transform(ctx, transform, params, value, fields):
               help='Instructs the shell to automatically elevate privileges to root if necessary.')
 @pass_context
 def shell(ctx, package, working_dir, sudo):
+    """Runs a Canari interactive python shell"""
     ctx.mode = CanariMode.LocalShellDebug
     from canari.commands.shell import shell
     shell(package, working_dir, sudo)
@@ -267,6 +269,7 @@ def unload_plume_package(package, plume_dir):
 
 @main.command()
 def version():
+    """Shows the Canari version and platform it's running on."""
     from canari.commands.version import version
     version()
 
