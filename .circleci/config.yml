@@ -16,7 +16,7 @@ docker-build: &docker-build
     - restore_cache:
         key: repo-{{ .Environment.CIRCLE_SHA1 }}
     - restore_cache:
-        key: docker-{{ .Environment.CIRCLE_SHA1 }}-{{ .Branch }}-{{ .Environment.TAG_SUFFIX }}
+        key: docker-{{ .Environment.CIRCLE_SHA1 }}-{{ .Branch }}-{{ .Environment.CIRCLE_JOB }}
     - setup_remote_docker:
         docker_layer_caching: true
     - run:
@@ -25,9 +25,9 @@ docker-build: &docker-build
           DOCKER=`([[ "$BASH_ENV" == *localbuild* ]] && echo sudo docker || echo docker)`
           $DOCKER build -f Dockerfile-${TAG_SUFFIX} . -t redcanari/canari:${CANARI_VERSION}-${TAG_SUFFIX}
     - save_cache:
-        key: docker-{{ .Environment.CIRCLE_SHA1 }}-{{ .Branch }}-{{ .Environment.TAG_SUFFIX }}
+        key: docker-{{ .Environment.CIRCLE_SHA1 }}-{{ .Branch }}-{{ .Environment.CIRCLE_JOB }}
         paths:
-          - /tmp
+          - ~/canari
 
 docker-push: &docker-push
   steps:
