@@ -28,10 +28,14 @@ docker-build: &docker-build
         name: Build Canari Docker Image
         command: |
           set +o pipefail
+          set -x
           CANARI_VERSION=`python setup.py --version`
           DOCKER=`([[ "$BASH_ENV" == *localbuild* ]] && echo sudo docker || echo docker)`
           $DOCKER load -i ~/docker-cache/canari.tar | true
-          $DOCKER build --cache-from=canari -f Dockerfile-${TAG_SUFFIX} . -t redcanari/canari:${CANARI_VERSION}-${TAG_SUFFIX}
+          $DOCKER build --cache-from=redcanari/canari:${CANARI_VERSION}-${TAG_SUFFIX} -f Dockerfile-${TAG_SUFFIX} . -t redcanari/canari:${CANARI_VERSION}-${TAG_SUFFIX}
+          if [ "${TAG_SUFFIX}" == "alpine" ]; then
+            $DOCKER tag redcanari/canari:${CANARI_VERSION}-${TAG_SUFFIX} redcanari/canari:latest
+          fi;
           mkdir -p ~/docker-cache
           $DOCKER save -o ~/docker-cache/canari.tar redcanari/canari:${CANARI_VERSION}-${TAG_SUFFIX}
           if [ "${CIRCLE_BRANCH}" == "master" -a ! -z "${CIRCLE_TAG}" ]; then
@@ -86,6 +90,7 @@ jobs:
           key: deps-{{ .Branch }}-{{ .Environment.CIRCLE_JOB }}-{{ checksum "requirements.txt" }}
       - run:
           command: |
+            set -x
             virtualenv venv
             . venv/bin/activate
             pip install -r requirements.txt
@@ -95,6 +100,7 @@ jobs:
             - "venv"
       - run:
           command: |
+            set -x
             . venv/bin/activate
             python setup.py test
 
@@ -109,6 +115,7 @@ jobs:
           key: deps-{{ .Branch }}-{{ .Environment.CIRCLE_JOB }}-{{ checksum "requirements.txt" }}
       - run:
           command: |
+            set -x
             virtualenv venv
             . venv/bin/activate
             pip3 install -r requirements.txt
@@ -118,6 +125,7 @@ jobs:
             - "venv"
       - run:
           command: |
+            set -x
             . venv/bin/activate
             python3 setup.py test
 
@@ -131,6 +139,7 @@ jobs:
           key: repo-{{ .Environment.CIRCLE_SHA1 }}
       - run:
           command: |
+            set -x
             echo "[server-login]" > ~/.pypirc
             echo "repository:https://upload.pypi.org/legacy/" >> ~/.pypirc
             echo "username:$PYPI_USERNAME" >> ~/.pypirc
@@ -148,6 +157,7 @@ jobs:
           key: repo-{{ .Environment.CIRCLE_SHA1 }}
       - run:
           command: |
+            set -x
             cd lambda
             CANARI_VERSION=`python setup.py --version`
             DOCKER=`([[ "$BASH_ENV" == *localbuild* ]] && echo sudo docker || echo docker)`
