@@ -134,13 +134,13 @@ workflows:
             - checkout-code
 
 #     Fan out to docker builds py2
-      - build-docker-alpine:
+      - build-docker-alpine-py2:
           requires:
             - build-and-test-py2
-      - build-docker-ubuntu:
+      - build-docker-ubuntu-py2:
           requires:
             - build-and-test-py2
-      - build-docker-kalilinux:
+      - build-docker-kalilinux-py2:
           requires:
             - build-and-test-py2
 
