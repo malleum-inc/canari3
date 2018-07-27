@@ -1,3 +1,4 @@
+import os
 from imghdr import what
 from os.path import abspath
 
@@ -79,4 +80,4 @@ def image_resources(package=None, directory='resources'):
 
 
 # etc
-global_config = resource_filename('canari.resources.etc', 'canari.conf')
+global_config = os.path.abspath(resource_filename('canari.resources.etc', 'canari.conf'))

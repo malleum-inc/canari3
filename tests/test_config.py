@@ -41,7 +41,7 @@ class CanariConfigParserTest(TestCase):
 
     def test_no_recurse_load(self):
         self.assertSetEqual(set(self.config_parser.sections()),
-                             {'default', 'canari.local', 'canari.remote', 'types', 'types.dotted'})
+                            {'default', 'canari.local', 'canari.remote', 'types', 'types.dotted'})
 
     def test_recurse_load(self):
         # TODO: find a way of locating the sub conf file in unittests
@@ -157,6 +157,7 @@ class CanariConfigParserTest(TestCase):
         def set_callable():
             self.set_option(os.system, expected_value='object://posix/system',
                             expected_backend_value='object://posix/system')
+
         self.assertRaises(ValueError, set_callable)
 
     def test_set_list_option(self):
@@ -207,4 +208,3 @@ class CanariConfigParserTest(TestCase):
     def test_delete_section(self):
         del self.config_parser['default']
         self.assertFalse('default' in self.config_parser)
-

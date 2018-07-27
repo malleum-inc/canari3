@@ -83,7 +83,6 @@ extras = [
 
 requires = [
     'mr.bob',
-    'argparse',
     'flask',
     'Twisted',
     'pyopenssl',
