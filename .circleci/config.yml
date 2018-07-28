@@ -38,7 +38,7 @@ docker-build: &docker-build
           fi;
           mkdir -p ~/docker-cache
           $DOCKER save -o ~/docker-cache/canari.tar redcanari/canari:${CANARI_VERSION}-${TAG_SUFFIX}
-          if [ "${CIRCLE_BRANCH}" == "master" -a ! -z "${CIRCLE_TAG}" ]; then
+          if [ ! -z "${CIRCLE_TAG}" ]; then
             $DOCKER login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
             $DOCKER push redcanari/canari
           fi;
