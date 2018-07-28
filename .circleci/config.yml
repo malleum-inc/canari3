@@ -161,9 +161,8 @@ jobs:
           command: |
             set -x
             cd lambda
-            CANARI_VERSION=`python setup.py --version`
             DOCKER=`([[ "$BASH_ENV" == *localbuild* ]] && echo sudo docker || echo docker)`
-            $DOCKER build --build-arg GITHUB_API_TOKEN=${GITHUB_API_TOKEN} --build-arg CANARI_VERSION=${CANARI_VERSION} .
+            $DOCKER build --build-arg GITHUB_API_TOKEN=${GITHUB_API_TOKEN} --build-arg CANARI_VERSION=${CIRCLE_TAG:1} .
 
 
   # Fan out and build (and deploy) docker images in parallel
