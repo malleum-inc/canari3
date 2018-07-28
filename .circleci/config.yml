@@ -56,10 +56,10 @@ filter-any: &filter-any
 
 filter-deploy: &filter-deploy
   filters:
-    branches:
-      only: master
     tags:
       only: /v[0-9]+(\.[0-9]+)*/
+    branches:
+      ignore: /.*/
 
 
 # Job Definitions
