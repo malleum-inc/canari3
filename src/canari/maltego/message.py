@@ -1,3 +1,7 @@
+import base64
+import gzip
+import json
+
 from past.builtins import long
 from future.utils import with_metaclass
 
@@ -47,7 +51,14 @@ __all__ = [
     'ColorEntityField',
     'ArrayEntityField',
     'Entity',
-    'Limits'
+    'Limits',
+    'ValidationError',
+    'ElementType',
+    'Bookmark',
+    'LinkColor',
+    'LinkLabel',
+    'LinkStyle',
+    'EntityTypeFactory'
 ]
 
 
@@ -223,6 +234,43 @@ class StringEntityField(object):
 
     def get_error_msg(self, field, value, **extras):
         return self.error_msg.format(field=field, value=value, **extras)
+
+
+class CompressedEntityField(StringEntityField):
+
+    error_msg = 'The field value ({value!r}) set for field {field!r} is not a serializable object.'
+
+    def __init__(self, name, compression=gzip, serdes=json, **extras):
+        super(CompressedEntityField, self).__init__(name, **extras)
+        self.compression = compression
+        self.serdes = serdes
+
+    def __get__(self, obj, objtype):
+        if obj is None:
+            return self
+        j = super(CompressedEntityField, self).__get__(obj, objtype)
+        try:
+            return self.serdes.loads(
+                self.compression.decompress(
+                    base64.decodebytes(
+                        bytes(j, 'utf8')
+                    )
+                )
+            ) if j is not None else None
+        except:
+            raise ValidationError(self.get_error_msg(self.display_name or self.name, j))
+
+    def __set__(self, obj, val):
+        if not isinstance(val, (dict, list)):
+            raise ValidationError(self.get_error_msg(self.display_name or self.name, val))
+        val = base64.encodebytes(
+            self.compression.compress(
+                bytes(
+                    self.serdes.dumps(val), 'utf8'
+                )
+            )
+        ).decode('utf8')
+        super(CompressedEntityField, self).__set__(obj, val)
 
 
 class EnumEntityField(StringEntityField):
