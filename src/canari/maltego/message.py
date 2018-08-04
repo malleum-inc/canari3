@@ -751,6 +751,12 @@ class Entity(with_metaclass(EntityTypeFactory, object)):
         else:
             self._entity.fields[key].value = value
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
+
 
 class Unknown(Entity):
     _category_ = 'Unknown'
