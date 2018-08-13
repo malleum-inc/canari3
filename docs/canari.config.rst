@@ -133,3 +133,4 @@ Would result in the following::
     >>> config['foo.local.mypaths']
     /usr/bin:/bin:/usr/local/bin:/custom/path
     >>>
+
