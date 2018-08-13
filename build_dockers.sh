@@ -12,7 +12,7 @@ pushd src
 
 VERSION=`python -c 'import canari; print(canari.__version__)'`
 
-if [ -n "$CIRCLE_TAG" ]; then
+if [ -n "${CIRCLE_TAG}" ]; then
     VERSION="${CIRCLE_TAG#*v}"
 fi;
 
