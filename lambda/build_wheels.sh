@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
+set -ex
 
 environments="pip-3.6:3 pip-2.7:2"
 
@@ -37,7 +37,8 @@ function download_wheels() {
 
     rm -rf "${working_dir}"
 
-    if [[ ${GITHUB_API_TOKEN} == "" ]]; then
+    set
+    if [[ "${GITHUB_API_TOKEN}" == "" ]]; then
         read -sp "Please enter your GitHub API Token: " GITHUB_API_TOKEN
     fi
 
