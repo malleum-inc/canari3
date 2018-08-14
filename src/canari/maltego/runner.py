@@ -1,32 +1,23 @@
-import sys
-
-from six import string_types
-
-from canari.utils.common import find_pysudo
-
-if sys.version_info[0] > 2:
-    from http.client import HTTPSConnection, HTTPConnection
-else:
-    # noinspection PyUnresolvedReferences
-    from httplib import HTTPSConnection, HTTPConnection
-
+import re
 import subprocess
 import os
 import sys
 import traceback
 from collections import defaultdict
-from canari.mode import is_debug_exec_mode
 from importlib import import_module
-
-import re
 from xml.etree.cElementTree import fromstring
+from six import string_types
+from six.moves import http_client
 
 from safedexml import Model
 
+from canari.mode import is_debug_exec_mode
 from canari.config import load_config
-from canari.maltego.message import MaltegoTransformResponseMessage, UIMessage, MaltegoTransformRequestMessage, Field, \
-    MaltegoException, EntityTypeFactory, Entity, MaltegoMessage, Limits
+from canari.maltego.message import (MaltegoTransformResponseMessage, UIMessage, MaltegoTransformRequestMessage, Field,
+                                    MaltegoException, EntityTypeFactory, Entity, MaltegoMessage, Limits)
 from canari.maltego.utils import message, on_terminate, to_entity, croak, highlight
+from canari.pkgutils.transform import TransformDistribution
+from canari.utils.common import find_pysudo
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2015, canari Project'
@@ -43,7 +34,7 @@ __all__ = [
     'local_transform_runner',
     'remote_canari_transform_runner',
     'scriptable_transform_runner',
-
+    'console_writer'
 ]
 
 
@@ -58,11 +49,16 @@ def sudo(args):
 def load_object(classpath):
     package, cls = re.search(r'^(.*)\.([^.]+)$', classpath).groups()
     module = import_module(package)
-    return module.__dict__[cls]
+    if cls in module.__dict__:
+        return module.__dict__[cls]
+    for t in TransformDistribution(package).transforms:
+        if t.name == classpath:
+            return t
+    raise MaltegoException("Transform {!r} not found".format(classpath))
 
 
 def remote_canari_transform_runner(host, base_path, transform, entities, parameters, limits, is_ssl=False):
-    c = HTTPSConnection(host) if is_ssl else HTTPConnection(host)
+    c = http_client.HTTPSConnection(host) if is_ssl else http_client.HTTPConnection(host)
 
     m = MaltegoTransformRequestMessage()
 
@@ -74,11 +70,11 @@ def remote_canari_transform_runner(host, base_path, transform, entities, paramet
 
     m += limits
 
-    message = MaltegoMessage(message=m).render()
+    msg = MaltegoMessage(message=m).render()
     path = re.sub(r'/+', '/', '/'.join([base_path, transform]))
 
     if is_debug_exec_mode():
-        sys.stderr.write("Sending following message to {}{}:\n{}\n\n".format(host, path, message))
+        sys.stderr.write("Sending following message to {}{}:\n{}\n\n".format(host, path, msg))
 
     c.request('POST', path, message, headers={'Content-Type': 'application/xml'})
 
@@ -104,6 +100,7 @@ def local_transform_runner(transform_py_name, value, fields, params, config, mes
     This helper function is only used by the run-transform, debug-transform, and dispatcher commands.
     """
 
+    transform = None
     try:
         transform = load_object(transform_py_name)()
 
@@ -115,7 +112,7 @@ def local_transform_runner(transform_py_name, value, fields, params, config, mes
                 message_writer(MaltegoTransformResponseMessage() + UIMessage('Too many incorrect password attempts.'))
             elif rc:
                 message_writer(MaltegoTransformResponseMessage() + UIMessage('Unknown error occurred.'))
-            exit(rc)
+            sys.exit(rc)
 
         on_terminate(transform.on_terminate)
 
@@ -141,9 +138,9 @@ def local_transform_runner(transform_py_name, value, fields, params, config, mes
         croak(me, message_writer)
     except KeyboardInterrupt:
         # Ensure that the keyboard interrupt handler does not execute twice if a transform is sudo'd
-        if (transform.superuser and not os.geteuid()) or (not transform.superuser and os.geteuid()):
+        if transform and (transform.superuser and not os.geteuid()) or (not transform.superuser and os.geteuid()):
             transform.on_terminate()
-    except Exception:
+    except:
         croak(traceback.format_exc(), message_writer)
 
 
@@ -155,7 +152,7 @@ class Response(object):
         for m in maltego_response.messages:
             self._messages[m.type].append(m.message)
 
-    def toXML(self):
+    def to_xml(self):
         return self._response.render(fragment=True)
 
     @property
@@ -170,7 +167,7 @@ class Response(object):
 scriptable_api_initialized = False
 
 
-def scriptable_transform_runner(transform, value, fields, params, config):
+def scriptable_transform_runner(transform_, value, fields, params_, config_):
     global scriptable_api_initialized
     if not scriptable_api_initialized:
         scriptable_api_initialized = True
@@ -189,16 +186,16 @@ def scriptable_transform_runner(transform, value, fields, params, config):
         Entity.run_transform = run_transform
 
     request = MaltegoTransformRequestMessage(
-        parameters={'canari.local.arguments': Field(name='canari.local.arguments', value=params)}
+        parameters={'canari.local.arguments': Field(name='canari.local.arguments', value=params_)}
     )
 
-    request._entities = [to_entity(transform.input_type, value, fields)]
+    request._entities = [to_entity(transform_.input_type, value, fields)]
     request.limits = Limits(soft=10000)
 
-    msg = transform().do_transform(
+    msg = transform_().do_transform(
         request,
         MaltegoTransformResponseMessage(),
-        config
+        config_
     )
     if isinstance(msg, MaltegoTransformResponseMessage):
         return Response(msg)
