@@ -1,25 +1,21 @@
-from future.standard_library import install_aliases
 from six import string_types
-
-install_aliases()
+from six.moves.urllib import parse
 
 import sys
 import os
 import re
 import string
 
+from canari.mode import is_local_exec_mode, is_remote_exec_mode
+from canari.utils.fs import PushDir
+from canari.resource import global_config
+from canari.utils.wordlist import wordlist
+
 if sys.version_info[0] > 2:
     from configparser import ConfigParser, NoOptionError, NoSectionError, BasicInterpolation
 else:
     # noinspection PyUnresolvedReferences
     from ConfigParser import SafeConfigParser, NoOptionError, NoSectionError
-
-from urllib.parse import urlparse
-
-from canari.mode import is_local_exec_mode, is_remote_exec_mode
-from canari.utils.fs import PushDir
-from canari.resource import global_config
-from canari.utils.wordlist import wordlist
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2015, Canari Project'
@@ -89,7 +85,7 @@ if sys.version_info[0] > 2:
 
         def _parse_value(self, value):
             if value.startswith('object://') and is_local_exec_mode():
-                r = urlparse(value)
+                r = parse.urlparse(value)
                 try:
                     v = r.path.lstrip('/')
                     m = __import__(r.netloc, globals(), locals(), [v])
@@ -184,7 +180,7 @@ else:
 
         def _parse_value(self, value):
             if value.startswith('object://') and is_local_exec_mode():
-                r = urlparse(value)
+                r = parse.urlparse(value)
                 try:
                     v = r.path.lstrip('/')
                     m = __import__(r.netloc, globals(), locals(), [v])
