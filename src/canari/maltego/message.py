@@ -5,7 +5,7 @@ import json
 from past.builtins import long
 from future.utils import with_metaclass
 
-from collections import Iterable
+from collections import Iterable, OrderedDict
 from datetime import datetime, date, timedelta
 from numbers import Number
 import re
@@ -138,8 +138,8 @@ class _Entity(MaltegoElement):
         tagname = 'Entity'
 
     type = fields_.String(attrname='Type')
-    fields = fields_.Dict(Field, key='name', tagname='AdditionalFields', required=False)
-    labels = fields_.Dict(Label, key='name', tagname='DisplayInformation', required=False)
+    fields = fields_.Dict(Field, key='name', tagname='AdditionalFields', required=False, dictclass=OrderedDict)
+    labels = fields_.Dict(Label, key='name', tagname='DisplayInformation', required=False, dictclass=OrderedDict)
     value = fields_.String(tagname='Value')
     weight = fields_.Integer(tagname='Weight', default=1)
     icon_url = fields_.String(tagname='IconURL', required=False)
@@ -248,29 +248,29 @@ class CompressedEntityField(StringEntityField):
     def __get__(self, obj, objtype):
         if obj is None:
             return self
-        j = super(CompressedEntityField, self).__get__(obj, objtype)
+        value = super(CompressedEntityField, self).__get__(obj, objtype)
         try:
             return self.serdes.loads(
                 self.compression.decompress(
                     base64.decodebytes(
-                        bytes(j, 'utf8')
+                        bytes(value, 'utf8')
                     )
                 )
-            ) if j is not None else None
+            ) if value is not None else None
         except:
-            raise ValidationError(self.get_error_msg(self.display_name or self.name, j))
+            raise ValidationError(self.get_error_msg(self.display_name or self.name, value))
 
-    def __set__(self, obj, val):
-        if not isinstance(val, (dict, list)):
-            raise ValidationError(self.get_error_msg(self.display_name or self.name, val))
-        val = base64.encodebytes(
+    def __set__(self, obj, value):
+        if not isinstance(value, (dict, list)):
+            raise ValidationError(self.get_error_msg(self.display_name or self.name, value))
+        value = base64.encodebytes(
             self.compression.compress(
                 bytes(
-                    self.serdes.dumps(val), 'utf8'
+                    self.serdes.dumps(value), 'utf8'
                 )
             )
         ).decode('utf8')
-        super(CompressedEntityField, self).__set__(obj, val)
+        super(CompressedEntityField, self).__set__(obj, value)
 
 
 class EnumEntityField(StringEntityField):
