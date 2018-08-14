@@ -26,6 +26,7 @@ __email__ = 'ndouba@redcanari.com'
 __status__ = 'Development'
 
 __all__ = [
+    'CompressedEntityField',
     'MaltegoException',
     'MaltegoTransformExceptionMessage',
     'MaltegoTransformRequestMessage',
