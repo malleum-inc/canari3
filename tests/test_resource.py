@@ -26,7 +26,7 @@ class ResourceTests(TestCase):
         self.assertTrue(os.path.lexists(icon.replace('file://', '')))
 
     def test_image_resources(self):
-        images = image_resources('')
+        images = image_resources('tests.resources', 'images')
         self.assertTrue(images)
         self.assertTrue(len(images) == 4)
         for i, j in enumerate(sorted(images)):

@@ -13,7 +13,7 @@ from canari.utils.fs import PushDir
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2016, Canari Project'
-__credits__ = ['Nadeem Douba']
+__credits__ = []
 
 __license__ = 'GPLv3'
 __version__ = '0.2'

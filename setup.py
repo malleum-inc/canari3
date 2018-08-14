@@ -63,7 +63,7 @@ thanks to those of you who have supported the development of Canari 3 by
 donating money at our crowd-funding pages. If you like this project,
 please consider donating money to help accelerate development.
 
-.. |Build Status| image:: https://circleci.com/gh/redcanari/canari3.svg?style=shield&circle-token=da787a222c75b0a739152d0aa92a9465f702bae6
+.. |Build Status| image:: https://circleci.com/gh/redcanari/canari3.svg?style=svg
 .. |Doc Status| image:: https://readthedocs.org/projects/canari3/badge/?version=latest
 
 
@@ -104,7 +104,7 @@ if sys.platform == 'win32':
 # else:
 #     scripts.append('pysudo')
 
-sys.path.insert(0, 'src')
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 import canari
 
 setup(

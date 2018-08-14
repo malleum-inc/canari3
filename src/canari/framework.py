@@ -25,7 +25,8 @@ __all__ = [
     'EnableRemoteExecution',
     'EnableDebugWindow',
     'ExternalCommand',
-    'RequestFilter'
+    'RequestFilter',
+    'classproperty'
 ]
 
 

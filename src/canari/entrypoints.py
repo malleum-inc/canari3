@@ -1,22 +1,18 @@
 #!/usr/bin/env python
+import getpass
 import os
 import sys
 
 import click
-import six
-from past.builtins import unicode
 
-# For some reason this function is being used in safedexml. We're going to avoid it completely.
 from canari import version
+from canari.mode import CanariMode
 from canari.commands.common import fix_binpath, fix_pypath
 from canari.commands.framework import (pass_context, CanariPackage, is_new_transform, CanariGroup,
                                        parse_transform_fields, unescape_transform_value, CanariRunnerCommand,
                                        MaltegoProfile)
 from canari.config import OPTION_LOCAL_PATH
 
-six.u = unicode
-
-from canari.mode import CanariMode
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2012, Canari Project'
@@ -30,7 +26,8 @@ __status__ = 'Development'
 
 __all__ = [
     'dispatcher',
-    'pysudo'
+    'pysudo',
+    'main'
 ]
 
 
@@ -70,10 +67,14 @@ def create_aws_lambda(ctx, bucket, region_name, aws_access_key_id, aws_secret_ac
 
 @main.command(name='create-package')
 @click.argument('package', nargs=1, metavar='<package name>')
-def create_package(package):
+@click.option('--author', prompt='Author name', default=getpass.getuser())
+@click.option('--email', prompt='Author email')
+@click.option('--description', prompt='Project short description', default='')
+@click.option('--create-example', prompt='Would you like an example transform created?', is_flag=True, default=True)
+def create_package(package, author, email, description, create_example):
     """Creates a Canari transform package skeleton."""
     from canari.commands.create_package import create_package
-    create_package(package)
+    create_package(package, author, email, description, create_example)
 
 
 @main.command(name='create-profile')

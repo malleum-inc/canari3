@@ -36,11 +36,11 @@ class FrameworkTests(TestCase):
         # if is_external:
         #     ExternalCommand(TestTransform)
 
-        return self.assertConfigure(TestTransform(), is_superuser, is_deprecated, is_debug, is_remote,
-                                    is_external, **kwargs)
+        return self.assert_configure(TestTransform(), is_superuser, is_deprecated, is_debug, is_remote,
+                                     is_external, **kwargs)
 
-    def assertConfigure(self, transform, is_superuser=False, is_deprecated=False, is_debug=False, is_remote=False,
-                        is_external=False, **kwargs):
+    def assert_configure(self, transform, is_superuser=False, is_deprecated=False, is_debug=False, is_remote=False,
+                         is_external=False, **kwargs):
         self.assertEqual(transform.superuser, is_superuser)
         self.assertEqual(transform.deprecated, is_deprecated)
         self.assertEqual(transform.debug, is_debug)
