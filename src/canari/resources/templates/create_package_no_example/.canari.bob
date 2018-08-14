@@ -1,0 +1,6 @@
+[metadata]
+
+author = {{{ author.name }}}
+project = {{{ project.name }}}
+maintainer = {{{ author.name }}}
+email = {{{ author.email }}}

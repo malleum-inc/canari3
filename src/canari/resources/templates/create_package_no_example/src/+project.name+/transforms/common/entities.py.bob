@@ -1,0 +1,13 @@
+from canari.maltego.message import *
+
+__author__ = '{{{ author.name }}}'
+__copyright__ = 'Copyright {{{ created.year }}}, {{{ project.name }}} Project'
+__credits__ = []
+
+__license__ = 'GPLv3'
+__version__ = '0.1'
+__maintainer__ = '{{{ author.name }}}'
+__email__ = '{{{ author.email }}}'
+__status__ = 'Development'
+
+__all__ = []

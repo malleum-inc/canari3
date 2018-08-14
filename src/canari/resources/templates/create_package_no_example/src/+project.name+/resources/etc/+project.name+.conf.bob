@@ -1,0 +1,7 @@
+[{{{ project.name }}}.local]
+
+# TODO: put local transform options here
+
+[{{{ project.name }}}.remote]
+
+# TODO: put remote transform options here
