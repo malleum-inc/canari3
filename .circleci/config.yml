@@ -31,7 +31,7 @@ docker-build: &docker-build
           set -x
           CANARI_VERSION=`python setup.py --version`
           DOCKER=`([[ "$BASH_ENV" == *localbuild* ]] && echo sudo docker || echo docker)`
-          $DOCKER load -i ~/docker-cache/canari.tar | true
+          $DOCKER load -i ~/docker-cache/canari.tar || echo "Building docker image from scratch!"
           $DOCKER build --cache-from=redcanari/canari:${CANARI_VERSION}-${TAG_SUFFIX} -f Dockerfile-${TAG_SUFFIX} . -t redcanari/canari:${CANARI_VERSION}-${TAG_SUFFIX}
           if [ "${TAG_SUFFIX}" == "alpine" ]; then
             $DOCKER tag redcanari/canari:${CANARI_VERSION}-${TAG_SUFFIX} redcanari/canari:latest
@@ -45,7 +45,7 @@ docker-build: &docker-build
             $DOCKER push redcanari/canari
           fi;
     - save_cache:
-        key: docker-{{ .Branch }}-{{ .Environment.CIRCLE_JOB }}
+        key: docker-{{ .Branch }}-{{ .Environment.CIRCLE_JOB }}-{{ epoch }}
         paths:
           - ~/docker-cache/canari.tar
 
