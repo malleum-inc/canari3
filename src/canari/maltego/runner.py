@@ -140,7 +140,7 @@ def local_transform_runner(transform_py_name, value, fields, params, config, mes
         # Ensure that the keyboard interrupt handler does not execute twice if a transform is sudo'd
         if transform and (transform.superuser and not os.geteuid()) or (not transform.superuser and os.geteuid()):
             transform.on_terminate()
-    except:
+    except Exception:
         croak(traceback.format_exc(), message_writer)
 
 

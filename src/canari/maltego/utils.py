@@ -53,7 +53,7 @@ def message(m, fd=sys.stdout):
             MaltegoMessage(message=m).render(fragment=True),
             file=fd
         )
-    sys.exit(0)
+    exit(0)
 
 
 def highlight(s, color, bold):
