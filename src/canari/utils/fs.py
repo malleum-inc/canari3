@@ -1,13 +1,7 @@
 from __future__ import print_function
-from future.standard_library import install_aliases
-
-from canari.maltego.utils import debug
-
-install_aliases()
 
 import os
 import sys
-from io import FileIO
 
 from tempfile import NamedTemporaryFile, gettempdir
 from time import time
@@ -104,11 +98,11 @@ else:
     from fcntl import flock, LOCK_EX, LOCK_NB, LOCK_SH, LOCK_UN
 
 
-class FileSemaphore(FileIO):
+class FileSemaphore(object):
 
     def __init__(self, name, mode='rb', buffering=True):
         self.locked = False
-        super(FileSemaphore, self).__init__(name, mode, buffering)
+        self._file = open(name, mode, buffering=buffering)
 
     def lockex(self, nb=False):
         flags = LOCK_EX
@@ -136,14 +130,17 @@ class FileSemaphore(FileIO):
             self.unlock()
 
     def close(self):
-        super(FileSemaphore, self).close()
+        self.file.close()
         if self.locked and not self.closed:
             self.unlock()
 
     def __exit__(self, *args):
-        super(FileSemaphore, self).__exit__(*args)
+        self.file.__exit__(*args)
         if self.locked and not self.closed:
             self.unlock()
+
+    def __getattr__(self, item):
+        return getattr(self._file, item)
 
 
 class FileMutex(FileSemaphore):
@@ -153,7 +150,7 @@ class FileMutex(FileSemaphore):
         self.lockex()
 
 
-def UniqueFile(self, name, delete=False):
+def UniqueFile(name, delete=False):
     n, e = os.path.splitext(name)
     f = NamedTemporaryFile(suffix=e, prefix='%s_' % n, delete=delete)
     if os.name == 'posix':
