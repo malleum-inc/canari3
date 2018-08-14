@@ -8,7 +8,6 @@ import click
 import canari
 from canari.config import load_config
 from canari.maltego.runner import scriptable_transform_runner
-from canari.maltego.utils import highlight
 from canari.utils.fs import PushDir
 
 __author__ = 'Nadeem Douba'
@@ -23,7 +22,7 @@ __status__ = 'Development'
 
 
 def do_sudo():
-    click.echo(highlight("Need to be root to run this transform... sudo'ing...", 'green', True), err=True)
+    click.secho("Need to be root to run this transform... sudo'ing...", fg='green', err=True)
     sys.argv.insert(0, 'sudo')
     os.execvp(sys.argv[0], sys.argv)
 
@@ -78,4 +77,4 @@ class MtgConsole(InteractiveConsole):
 def shell(transform_package, working_dir, sudo):
     with PushDir(working_dir or transform_package.default_prefix):
         mtg_console = MtgConsole(transform_package.transforms, auto_sudo=sudo)
-        mtg_console.interact(highlight('Welcome to Canari %s.' % canari.__version__, 'green', True))
+        mtg_console.interact(click.style('Welcome to Canari %s.' % canari.__version__, fg='yellow'))

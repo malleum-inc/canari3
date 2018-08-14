@@ -1,21 +1,22 @@
+import os
 import re
 import subprocess
-import os
 import sys
 import traceback
 from collections import defaultdict
 from importlib import import_module
 from xml.etree.cElementTree import fromstring
+
+import click
+from safedexml import Model
 from six import string_types
 from six.moves import http_client
 
-from safedexml import Model
-
-from canari.mode import is_debug_exec_mode
 from canari.config import load_config
 from canari.maltego.message import (MaltegoTransformResponseMessage, UIMessage, MaltegoTransformRequestMessage, Field,
                                     MaltegoException, EntityTypeFactory, Entity, MaltegoMessage, Limits)
-from canari.maltego.utils import message, on_terminate, to_entity, croak, highlight
+from canari.maltego.utils import message, on_terminate, to_entity, croak
+from canari.mode import is_debug_exec_mode
 from canari.pkgutils.transform import TransformDistribution
 from canari.utils.common import find_pysudo
 
@@ -217,16 +218,16 @@ def console_writer(msg, tab=-1):
 
     print('%s`- %s: %s %s' % (
         '  ' * tab,
-        highlight(msg.tag, None, True),
-        highlight(msg.text, 'red', False) if msg.text is not None else '',
-        highlight(msg.attrib, 'green', True) if msg.attrib.keys() else ''
+        click.style(msg.tag, bold=True),
+        click.style(msg.text, fg='red') if msg.text is not None else '',
+        click.style(repr(msg.attrib), fg='green', bold=True) if msg.attrib.keys() else ''
     ))
     for c in msg.getchildren():
         print('  %s`- %s: %s %s' % (
             '  ' * tab,
-            highlight(c.tag, None, True),
-            highlight(c.text, 'red', False) if c.text is not None else '',
-            highlight(c.attrib, 'green', True) if c.attrib.keys() else ''
+            click.style(c.tag, bold=True),
+            click.style(c.text, fg='red') if c.text is not None else '',
+            click.style(repr(c.attrib), fg='green', bold=True) if c.attrib.keys() else ''
         ))
         for sc in c.getchildren():
             tab += 1
