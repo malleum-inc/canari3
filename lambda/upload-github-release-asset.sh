@@ -35,8 +35,9 @@ done
 
 # Define variables.
 GH_API="https://api.github.com"
-GH_REPO="$GH_API/repos/${owner}/${repo}"
-GH_TAGS="$GH_REPO/releases/tags/${tag}"
+GH_REPO="${GH_API}/repos/${owner}/${repo}"
+GH_RELEASES="${GH_REPO}/releases"
+GH_TAGS="${GH_REPO}/releases/tags/${tag}"
 AUTH="Authorization: token ${github_api_token}"
 WGET_ARGS="--content-disposition --auth-no-challenge --no-cookie"
 CURL_ARGS="-LJO#"
@@ -47,6 +48,15 @@ fi
 
 # Validate token.
 curl -o /dev/null -sH "${AUTH}" ${GH_REPO} || { echo "Error: Invalid repo, token or network issue!";  exit 1; }
+
+curl -H "${AUTH}" "${GH_RELEASES}" -d "{
+    \"tag_name\": \"${tag}\",
+    \"target_commitish\": \"master\",
+    \"name\": \"Canari ${tag}\",
+    \"body\": \"**Change log:**\",
+    \"draft\": false,
+    \"prerelease\": false
+}" || { echo "Error: Unable to create tagged release";  exit 1; }
 
 # Read asset tags.
 response=$(curl -sH "${AUTH}" ${GH_TAGS})
@@ -61,4 +71,4 @@ echo "Uploading asset... "
 # Construct url
 GH_ASSET="https://uploads.github.com/repos/${owner}/${repo}/releases/${id}/assets?name=$(basename ${filename})"
 
-curl --data-binary @"${filename}" -H "Authorization: token ${github_api_token}" -H "Content-Type: application/octet-stream" ${GH_ASSET}
+curl --data-binary @"${filename}" -H "${AUTH}" -H "Content-Type: application/octet-stream" ${GH_ASSET}

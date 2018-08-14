@@ -37,7 +37,6 @@ function download_wheels() {
 
     rm -rf "${working_dir}"
 
-    set
     if [[ "${GITHUB_API_TOKEN}" == "" ]]; then
         read -sp "Please enter your GitHub API Token: " GITHUB_API_TOKEN
     fi
