@@ -20,7 +20,7 @@ field_splitter = re.compile(r'(?<=[^\\])#')
 
 class CanariRunnerCommand(click.Command):
     def parse_args(self, ctx, args):
-        if not unescaped_equals.search(args[-1]):
+        if args and not unescaped_equals.search(args[-1]):
             args.append('')
 
         super(CanariRunnerCommand, self).parse_args(ctx, args)
