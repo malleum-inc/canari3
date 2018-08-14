@@ -1,11 +1,9 @@
-from __future__ import print_function
-
 import inspect
 import signal
 import sys
-import os
 
-from canari.maltego.entities import Unknown
+import click
+
 from canari.maltego.message import MaltegoMessage, MaltegoTransformExceptionMessage, MaltegoException, Field
 
 __author__ = 'Nadeem Douba'
@@ -22,7 +20,6 @@ __all__ = [
     'on_terminate',
     'message',
     'croak',
-    'guess_entity_type',
     'to_entity',
     'get_transform_version',
     'debug',
@@ -63,32 +60,6 @@ def croak(error, message_writer=message):
         message_writer(MaltegoTransformExceptionMessage(exceptions=[MaltegoException(error)]))
 
 
-def guess_entity_type(transform_module, fields):
-    """
-    Internal API: Returns the entity type based on the following best match algorithm:
-
-    1. If a transform does not specify the input entity types, the Unknown entity will be returned.
-    2. If a transform only has one input entity type, then that entity type will be returned.
-    3. If a transform has more than one input entity type, then the entity type that has the
-       most number of matching entity fields in the entity's class definition will be returned.
-
-    This is only used by the local transform runner to detect the input entity type since this information is excluded
-    at run-time.
-    """
-    if not hasattr(transform_module.dotransform, 'inputs') or not transform_module.dotransform.inputs:
-        return Unknown
-    if len(transform_module.dotransform.inputs) == 1 or not fields:
-        return transform_module.dotransform.inputs[0][1]
-    max_fields_matched = 0
-    best_match = Unknown
-    for category, entity_type in transform_module.dotransform.inputs:
-        fields_matched = len(set(entity_type._fields_to_properties_.keys()).intersection(fields.keys()))
-        if fields_matched > max_fields_matched:
-            max_fields_matched = fields_matched
-            best_match = entity_type
-    return best_match
-
-
 def to_entity(entity_type, value, fields):
     """
     Internal API: Returns an instance of an entity of type entity_type with the specified value and fields (stored in
@@ -121,21 +92,29 @@ def get_transform_version(transform):
     In both cases, version 3 transforms will be passed a local copy of the canari configuration object as the third
     argument. However, in the latter example, the configuration object will be stored in a tuple (i.e. (config,)).
     """
-    spec = inspect.getargspec(transform)
-    if spec.varargs is not None:
+
+    if sys.version_info[0] > 3:
+        spec = inspect.getfullargspec(transform)
+    else:
+        spec = inspect.getargspec(transform)
+
+    if spec.varargs:
         return 3
+
     n = len(spec.args)
+
     if 2 <= n <= 3:
         return n
+
     raise Exception('Could not determine transform version.')
 
 
 def debug(*args):
     """Send debug messages to the Maltego console."""
     for i in args:
-        print('D:%s' % str(i), file=sys.stderr)
+        click.echo('D:%s' % str(i), err=True)
 
 
 def progress(i):
     """Send a progress report to the Maltego console."""
-    print('%%%d' % min(max(i, 0), 100), file=sys.stderr)
+    click.echo('%%%d' % min(max(i, 0), 100), err=True)
