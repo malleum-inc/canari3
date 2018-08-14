@@ -11,18 +11,12 @@ import boto3
 import click
 from mrbob.configurator import Configurator
 from six import b
-from six.moves import urllib
+from six.moves import urllib, queue
 
 import canari
 from canari.pkgutils.transform import TransformDistribution
 from canari.resource import image_resources
 from canari.utils.fs import PushDir
-
-if sys.version_info[0] > 2:
-    from queue import Queue
-else:
-    from Queue import Queue
-
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2012, Canari Project'
@@ -53,7 +47,7 @@ DEPENDENCY_DOWNLOAD_URL = os.environ.get(
 )
 
 # Queue for blocking until we get a result from hook to setup(). Ugly but effective :P
-q = Queue()
+q = queue.Queue()
 
 
 def setup_hook(**kwargs):
