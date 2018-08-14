@@ -1,9 +1,8 @@
-from __future__ import print_function
-
 import os
 import sys
 from getpass import getuser
 
+import click
 from six import string_types
 
 __author__ = 'Nadeem Douba'
@@ -23,8 +22,10 @@ def uproot():
 
         if login != 'root':
             import pwd
-            print('Why are you using root to run this command? You should be using %s! Bringing you down...' % login,
-                  file=sys.stderr)
+            click.echo(
+                'Why are you using root to run this command? You should be using %s! Bringing you down...' % login,
+                err=True
+            )
             user = pwd.getpwnam(login)
             os.setgid(user.pw_gid)
             os.setuid(user.pw_uid)
