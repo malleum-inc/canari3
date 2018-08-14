@@ -40,15 +40,9 @@ def message(m, fd=sys.stdout):
 
     if sys.platform == 'win32':
         decoding = sys.stdout.encoding if sys.version_info[0] > 2 else 'cp1252'
-        print(
-            MaltegoMessage(message=m).render(fragment=True, encoding='utf-8').decode(decoding),
-            file=fd
-        )
+        click.echo(MaltegoMessage(message=m).render(fragment=True, encoding='utf-8').decode(decoding), file=fd)
     else:
-        print(
-            MaltegoMessage(message=m).render(fragment=True),
-            file=fd
-        )
+        click.echo(MaltegoMessage(message=m).render(fragment=True), file=fd)
     exit(0)
 
 
