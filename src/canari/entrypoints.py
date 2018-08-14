@@ -292,7 +292,7 @@ def dispatcher(ctx, transform, params, value, fields):
 
 def pysudo():
     from canari.easygui import passwordbox
-    print(passwordbox('Please enter your password.', 'sudo', ''))
+    click.echo(passwordbox('Please enter your password.', 'sudo', ''))
 
 
 if __name__ == '__main__':
