@@ -102,12 +102,12 @@ def guess_entity_type(transform_module, fields):
         return Unknown
     if len(transform_module.dotransform.inputs) == 1 or not fields:
         return transform_module.dotransform.inputs[0][1]
-    num_matches = 0
+    max_fields_matched = 0
     best_match = Unknown
     for category, entity_type in transform_module.dotransform.inputs:
-        l = len(set(entity_type._fields_to_properties_.keys()).intersection(fields.keys()))
-        if l > num_matches:
-            num_matches = l
+        fields_matched = len(set(entity_type._fields_to_properties_.keys()).intersection(fields.keys()))
+        if fields_matched > max_fields_matched:
+            max_fields_matched = fields_matched
             best_match = entity_type
     return best_match
 
