@@ -1,11 +1,8 @@
-from future.standard_library import install_aliases
 from six import string_types
-
-install_aliases()
+from six.moves.urllib import request
 
 import zlib
 import re
-from urllib.request import urlopen
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2015, Canari Project'
@@ -22,22 +19,30 @@ __all__ = [
 ]
 
 
-def wordlist(uri, match='(.+?)\n*', ignore='^#.*', strip=None):
+def wordlist(uri, match='(.+?)[\n\r]*', ignore='^\s*#.*', strip=None, decompressor=None):
     if isinstance(uri, string_types):
         words = []
         if not uri:
             return words
-        data = urlopen(uri).read()
-        if re.search('\.gz(ip)?$', uri) is not None:
+        data = request.urlopen(uri).read()
+
+        if decompressor:
+            data = decompressor(data)
+        elif uri.endswith(('.gz', '.gzip')):
             data = zlib.decompress(data, 16 + zlib.MAX_WBITS)
+
         if data:
             if callable(match):
                 words = match(data)
             else:
                 words = re.findall(match, data.decode('utf-8'))
-                if ignore is not None:
-                    words = [w for w in words if re.search(ignore, w) is None]
-                if strip is not None:
-                    words = map(lambda x: re.sub(strip, '', x), words)
+                if ignore:
+                    if isinstance(ignore, str):
+                        ignore = re.compile(ignore).search
+                    words = [w for w in words if not ignore(w) and w]
+                if strip:
+                    if isinstance(strip, str):
+                        strip = re.compile(strip).sub
+                    words = [strip('', w) for w in words]
         return words
     return uri
