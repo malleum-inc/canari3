@@ -59,6 +59,7 @@ __all__ = [
     'LinkColor',
     'LinkLabel',
     'LinkStyle',
+    'LinkDirection',
     'EntityTypeFactory'
 ]
 
@@ -641,6 +642,10 @@ class LinkColor:
     Yellow = '#FFE100'
     Pink = '#FEAFCA'
 
+class LinkDirection:
+    InputToOutput = 'input-to-output'
+    OutputToInput = 'output-to-input'
+
 
 class Entity(with_metaclass(EntityTypeFactory, object)):
 
@@ -664,6 +669,9 @@ class Entity(with_metaclass(EntityTypeFactory, object)):
                                  choices=[LinkColor.Black, LinkColor.DarkGray, LinkColor.LightGray, LinkColor.Red,
                                           LinkColor.Orange, LinkColor.DarkGreen, LinkColor.NavyBlue, LinkColor.Magenta,
                                           LinkColor.Cyan, LinkColor.Lime, LinkColor.Yellow, LinkColor.Pink],
+                                 matching_rule=MatchingRule.Loose)
+    link_direction = EnumEntityField('link#maltego.link.direction', display_name='Link Direction',
+                                 choices=[LinkDirection.InputToOutput, LinkDirection.OutputToInput],
                                  matching_rule=MatchingRule.Loose)
 
     def __init__(self, value='', **kwargs):
