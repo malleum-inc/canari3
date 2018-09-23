@@ -220,10 +220,15 @@ Let's go ahead and open our ``src/hello/transforms/whatismyip.py`` transform and
         input_type = Location
 
         def do_transform(self, request, response, config):
-            ip_json = urlopen('https://api.ipify.org?format=json').read() # <-- 1
-            ip_address = json.loads(ip_json)['ip'] # <------------------------- 2
-            response += IPv4Address(ip_address) # <---------------------------- 3
-            return response # <------------------------------------------------ 4
+            ip_json = requests.get('https://api.ipify.org?format=json')# <-- 1
+            ip_address = json.loads(ip_json.text)['ip'] # <----------------- 2
+            response += IPv4Address(ip_address) # <------------------------- 3
+            return response # <--------------------------------------------- 4
+
+        def on_terminate(self):
+            """This method gets called when transform execution is prematurely terminated. It is only applicable for local
+            transforms. It can be excluded if you don't need it."""
+            pass
 
 
 The ``input_type`` class property tells Canari to expect an input entity of type ``Location``. This ensures that the
