@@ -54,6 +54,10 @@ first. Then install the command-line tools like so::
     $ cd setuptools-18.4 && sudo python setup.py install
     $ sudo easy_install virtualenv
 
+**Windows**
+
+read https://www.scivision.co/python-windows-visual-c++-14-required/ for dependencies on windows
+
 Installing Canari
 ^^^^^^^^^^^^^^^^^
 Once you have all your dependencies installed, you can now install Canari. We recommend creating a virtual environment
@@ -77,6 +81,10 @@ the following::
     Virtual environments need to be activated every time you create a new terminal session. Otherwise, you'll be using
     the default Python installation. You can automate this process by adding the ``source`` statement above in your
     ``.profile`` or ``.bashrc`` file.
+
+**Windows**
+
+In order to activate on windows use .\"env"\Scripts\activate
 
 Once you've activated your virtual environment, it is now time to install Canari::
 
