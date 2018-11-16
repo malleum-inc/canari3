@@ -214,7 +214,7 @@ def console_writer(msg, tab=-1):
     tab += 1
 
     if isinstance(msg, Model):
-        msg = fromstring(msg.render())
+        msg = fromstring(msg.render().encode('utf-8'))
 
     print('%s`- %s: %s %s' % (
         '  ' * tab,
