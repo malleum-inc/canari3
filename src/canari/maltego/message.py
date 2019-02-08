@@ -761,6 +761,7 @@ class Entity(with_metaclass(EntityTypeFactory, object)):
 
 class Unknown(Entity):
     _category_ = 'Unknown'
+    _namespace_ = 'maltego'
 
 
 class MaltegoTransformRequestMessage(MaltegoElement):
