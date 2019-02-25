@@ -37,7 +37,6 @@ class CanariProject(object):
         try:
             self._tree = self.project_tree(path)
             self._in_project = True
-            self._configuration = parse_config(os.path.join(self.root_dir, '.mrbob.ini'))
             sys.path.insert(0, self.src_dir)
         except ValueError:
             self._tree = dict(
@@ -119,24 +118,15 @@ class CanariProject(object):
     def project_tree(self, path):
         with PushDir(path):
             root = self._project_root()
+            self._configuration = parse_config(os.path.join(root, '.mrbob.ini'))
 
             tree = dict(
                 root=root,
-                src=None,
-                pkg=None,
-                resources=None,
-                transforms=None
+                src=os.path.join(root, 'src'),
+                pkg=os.path.join(root, 'src', self.name),
+                resources=os.path.join(root, 'src', self.name, 'resources'),
+                transforms=os.path.join(root, 'src', self.name, 'transforms'),
+                common=os.path.join(root, 'src', self.name, 'transforms', 'common')
             )
-
-            for base, dirs, files in os.walk(root):
-                if base.endswith('src'):
-                    tree['src'] = base
-                elif 'resources' in dirs:
-                    tree['pkg'] = base
-                elif base.endswith('resources'):
-                    tree['resources'] = base
-                elif base.endswith('transforms'):
-                    tree['transforms'] = base
-                    tree['common'] = os.path.join(base, 'common')
 
             return tree
