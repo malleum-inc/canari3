@@ -17,7 +17,7 @@ from canari.maltego.oxml import MaltegoElement, fields as fields_
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2015, Canari Project'
-__credits__ = []
+__credits__ = ['Jakub Burgis', 'mshirley']
 
 __license__ = 'GPLv3'
 __version__ = '0.1'
@@ -642,6 +642,12 @@ class LinkColor:
     Pink = '#FEAFCA'
 
 
+class LinkDirection:
+    InputToOutput = 'input-to-output'
+    OutputToInput = 'output-to-input'
+    Bidirectional = 'bidirectional'
+
+
 class Entity(with_metaclass(EntityTypeFactory, object)):
 
     _namespace_ = None
@@ -665,6 +671,9 @@ class Entity(with_metaclass(EntityTypeFactory, object)):
                                           LinkColor.Orange, LinkColor.DarkGreen, LinkColor.NavyBlue, LinkColor.Magenta,
                                           LinkColor.Cyan, LinkColor.Lime, LinkColor.Yellow, LinkColor.Pink],
                                  matching_rule=MatchingRule.Loose)
+    link_direction = EnumEntityField('link#maltego.link.direction', display_name='Link Direction',
+                                     choices=[LinkDirection.InputToOutput, LinkDirection.OutputToInput,
+                                              LinkDirection.Bidirectional], matching_rule=MatchingRule.Loose)
 
     def __init__(self, value='', **kwargs):
         if isinstance(value, _Entity):
