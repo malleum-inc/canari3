@@ -56,7 +56,7 @@ first. Then install the command-line tools like so::
 
 **Windows**
 
-read https://www.scivision.co/python-windows-visual-c++-14-required/ for dependencies on windows
+It is highly recommended to install `ActivePython 3.x <https://www.activestate.com/products/activepython/downloads/>`_ as it provides a number of pre-compiled modules and great support.
 
 Installing Canari
 ^^^^^^^^^^^^^^^^^
@@ -75,16 +75,16 @@ the following::
     $ source canari3/bin/activate
     $ which python
     canari3/bin/python
+    
+To activate your virtual environment in Windows, do the following::
+    
+    > .\canari3\Scripts\activate
 
 .. attention::
 
     Virtual environments need to be activated every time you create a new terminal session. Otherwise, you'll be using
     the default Python installation. You can automate this process by adding the ``source`` statement above in your
     ``.profile`` or ``.bashrc`` file.
-
-**Windows**
-
-In order to activate on windows use .\"env"\Scripts\activate
 
 Once you've activated your virtual environment, it is now time to install Canari::
 
