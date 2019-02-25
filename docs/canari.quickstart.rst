@@ -220,7 +220,7 @@ Let's go ahead and open our ``src/hello/transforms/whatismyip.py`` transform and
         input_type = Location
 
         def do_transform(self, request, response, config):
-            ip_json = requests.get('https://api.ipify.org?format=json')# <-- 1
+            ip_json = requests.get('https://api.ipify.org?format=json') # <- 1
             ip_address = json.loads(ip_json.text)['ip'] # <----------------- 2
             response += IPv4Address(ip_address) # <------------------------- 3
             return response # <--------------------------------------------- 4
