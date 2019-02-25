@@ -54,6 +54,10 @@ first. Then install the command-line tools like so::
     $ cd setuptools-18.4 && sudo python setup.py install
     $ sudo easy_install virtualenv
 
+**Windows**
+
+It is highly recommended to install `ActivePython 3.x <https://www.activestate.com/products/activepython/downloads/>`_ as it provides a number of pre-compiled modules and great support.
+
 Installing Canari
 ^^^^^^^^^^^^^^^^^
 Once you have all your dependencies installed, you can now install Canari. We recommend creating a virtual environment
@@ -71,6 +75,10 @@ the following::
     $ source canari3/bin/activate
     $ which python
     canari3/bin/python
+    
+To activate your virtual environment in Windows, do the following::
+    
+    > .\canari3\Scripts\activate
 
 .. attention::
 
