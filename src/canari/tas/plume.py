@@ -172,7 +172,7 @@ def croak(cause):
 
 def message(msg):
     """Write a MaltegoMessage to stdout and exit successfully"""
-    v = MaltegoMessage(message=msg).render()
+    v = MaltegoMessage(message=msg).render(encoding='utf-8')
     return Response(v, status=200, mimetype='text/xml')
 
 

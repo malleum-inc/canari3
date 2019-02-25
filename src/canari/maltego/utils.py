@@ -42,7 +42,7 @@ def message(m, fd=sys.stdout):
         decoding = sys.stdout.encoding if sys.version_info[0] > 2 else 'cp1252'
         click.echo(MaltegoMessage(message=m).render(fragment=True, encoding='utf-8').decode(decoding), file=fd)
     else:
-        click.echo(MaltegoMessage(message=m).render(fragment=True), file=fd)
+        click.echo(MaltegoMessage(message=m).render(encoding='utf-8', fragment=True), file=fd)
     exit(0)
 
 

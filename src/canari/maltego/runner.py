@@ -71,7 +71,7 @@ def remote_canari_transform_runner(host, base_path, transform, entities, paramet
 
     m += limits
 
-    msg = MaltegoMessage(message=m).render()
+    msg = MaltegoMessage(message=m).render(encoding='utf-8')
     path = re.sub(r'/+', '/', '/'.join([base_path, transform]))
 
     if is_debug_exec_mode():
@@ -154,7 +154,7 @@ class Response(object):
             self._messages[m.type].append(m.message)
 
     def to_xml(self):
-        return self._response.render(fragment=True)
+        return self._response.render(encoding='utf-8', fragment=True)
 
     @property
     def entities(self):

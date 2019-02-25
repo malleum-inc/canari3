@@ -74,12 +74,12 @@ def croak(cause):
                 MaltegoException(cause)
             ]
         )
-    ).render()
+    ).render(encoding='utf-8')
 
 
 def message(msg):
     """Write a MaltegoMessage to stdout and exit successfully"""
-    v = MaltegoMessage(message=msg).render()
+    v = MaltegoMessage(message=msg).render(encoding='utf-8')
     return Response(v, status_code=200, headers={'Content-Type': 'text/xml'})
 
 

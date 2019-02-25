@@ -416,7 +416,7 @@ class MaltegoDistribution(object):
         entity_category_dir = self.get_entity_category_dir(entity.category)
         entity_filename = '%s.entity' % self.path_join(entity_category_dir, entity.id)
         print('Installing entity %s to %s...' % (entity.id, entity_filename), file=sys.stderr)
-        self.write_file(entity_filename, entity.render(fragment=True, pretty=True))
+        self.write_file(entity_filename, entity.render(encoding='utf-8', fragment=True, pretty=True))
 
     def path_join(self, *args):
         return os.path.join(*args)
@@ -427,7 +427,7 @@ class MaltegoDistribution(object):
                                       'not support direct management of any files within the configuration directory.')
         with open(filename, 'w') as f:
             if isinstance(contents, Model):
-                f.write(contents.render(fragment=True, pretty=True))
+                f.write(contents.render(encoding='utf-8', fragment=True, pretty=True))
             else:
                 f.write(contents)
 
@@ -437,7 +437,7 @@ class MaltegoDistribution(object):
     def _write_pending(self):
         nbattrs = self.path_join(self.machines_dir, '.nbattrs')
         with open(nbattrs, mode='w') as f:
-            f.write(self._machine_nbattr.render(fragment=True, pretty=True))
+            f.write(self._machine_nbattr.render(encoding='utf-8', fragment=True, pretty=True))
 
     def remove_file(self, filename):
         if os.path.lexists(filename):
@@ -702,7 +702,7 @@ class MtzDistribution(MtzZipFile, MaltegoDistribution):
         if '\\' in zinfo_or_arcname:
             zinfo_or_arcname.replace('\\', '/')
         if isinstance(contents, Model):
-            contents = contents.render(fragment=True, pretty=True)
+            contents = contents.render(encoding='utf-8', fragment=True, pretty=True)
         self.writestr(zinfo_or_arcname, contents)
 
     def add_transform_to_set(self, transform_id, transform_set):
@@ -797,7 +797,7 @@ class MtzDistribution(MtzZipFile, MaltegoDistribution):
         self.add_entity_category(entity.category)
         entity_filename = '%s.entity' % self.path_join(self.entities_dir, entity.id)
         print('Installing entity %s to %s...' % (entity.id, entity_filename), file=sys.stderr)
-        self.write_file(entity_filename, entity.render(fragment=True, pretty=True))
+        self.write_file(entity_filename, entity.render(encoding='utf-8', fragment=True, pretty=True))
 
     def path_join(self, *args):
         return '/'.join(args)
