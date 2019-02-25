@@ -54,6 +54,10 @@ first. Then install the command-line tools like so::
     $ cd setuptools-18.4 && sudo python setup.py install
     $ sudo easy_install virtualenv
 
+**Windows**
+
+It is highly recommended to install `ActivePython 3.x <https://www.activestate.com/products/activepython/downloads/>`_ as it provides a number of pre-compiled modules and great support.
+
 Installing Canari
 ^^^^^^^^^^^^^^^^^
 Once you have all your dependencies installed, you can now install Canari. We recommend creating a virtual environment
@@ -71,6 +75,10 @@ the following::
     $ source canari3/bin/activate
     $ which python
     canari3/bin/python
+    
+To activate your virtual environment in Windows, do the following::
+    
+    > .\canari3\Scripts\activate
 
 .. attention::
 
@@ -220,10 +228,15 @@ Let's go ahead and open our ``src/hello/transforms/whatismyip.py`` transform and
         input_type = Location
 
         def do_transform(self, request, response, config):
-            ip_json = urlopen('https://api.ipify.org?format=json').read() # <-- 1
-            ip_address = json.loads(ip_json)['ip'] # <------------------------- 2
-            response += IPv4Address(ip_address) # <---------------------------- 3
-            return response # <------------------------------------------------ 4
+            ip_json = requests.get('https://api.ipify.org?format=json') # <- 1
+            ip_address = json.loads(ip_json.text)['ip'] # <----------------- 2
+            response += IPv4Address(ip_address) # <------------------------- 3
+            return response # <--------------------------------------------- 4
+
+        def on_terminate(self):
+            """This method gets called when transform execution is prematurely terminated. It is only applicable for local
+            transforms. It can be excluded if you don't need it."""
+            pass
 
 
 The ``input_type`` class property tells Canari to expect an input entity of type ``Location``. This ensures that the
