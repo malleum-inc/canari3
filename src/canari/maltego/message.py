@@ -17,7 +17,7 @@ from canari.maltego.oxml import MaltegoElement, fields as fields_
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2015, Canari Project'
-__credits__ = ['Jakub Burgis', 'mshirley']
+__credits__ = ['Jakub Burgis', 'mshirley', 'Christophe Vandeplas']
 
 __license__ = 'GPLv3'
 __version__ = '0.1'
@@ -770,6 +770,7 @@ class Entity(with_metaclass(EntityTypeFactory, object)):
 
 class Unknown(Entity):
     _category_ = 'Unknown'
+    _namespace_ = 'maltego'
 
 
 class MaltegoTransformRequestMessage(MaltegoElement):
