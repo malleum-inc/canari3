@@ -77,7 +77,7 @@ def remote_canari_transform_runner(host, base_path, transform, entities, paramet
     if is_debug_exec_mode():
         sys.stderr.write("Sending following message to {}{}:\n{}\n\n".format(host, path, msg))
 
-    c.request('POST', path, message, headers={'Content-Type': 'application/xml'})
+    c.request('POST', path, msg, headers={'Content-Type': 'application/xml'})
 
     return c.getresponse()
 
