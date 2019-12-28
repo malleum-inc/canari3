@@ -688,7 +688,9 @@ location transform and make it a remote transform::
             return response
 
 By simply setting the class property ``remote`` to ``True`` (1) we have now told Plume that this transform can be run
-remotely. Now all we have to do is install Canari, Plume, and our transform package on the Internet-accessible server.
+remotely. If you need, for example, an apikey from a user, configured as TDS Transform Settings, you can access the 
+values using `request.parameters['apikey'].value` for example. Now all we have to do is install Canari, Plume, and our 
+transform package on the Internet-accessible server.
 Follow the same steps to install Canari on your remote transform server as mentioned in the :ref:`Installation` section.
 Now archive and upload your ``hello`` Canari package to the server and run the :program:`python setup.py install`
 script::
