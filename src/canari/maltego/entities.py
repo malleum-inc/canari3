@@ -342,7 +342,7 @@ class Hash(Entity):
 
 class Hashtag(Entity):
     _category_ = 'Social'
-    hashtag = StringEntityField('twitter.hashtag', display_name='Hashtag', is_value=True)
+    hashtag = StringEntityField('maltego.hashtag', display_name='Hashtag', is_value=True)
 
 
 class Company(Entity):
