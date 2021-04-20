@@ -394,6 +394,14 @@ class EntityProperties(MaltegoElement):
     fields = fields_.Dict(Field, key='name', tagname='Fields', required=False)
 
 
+class BaseEntities(MaltegoElement):
+
+    class meta:
+        tagname = 'BaseEntities'
+
+    base_entity = fields_.String(tagname='BaseEntity', default='')
+
+
 class RegexGroup(MaltegoElement):
 
     property = fields_.String(required=False)
@@ -421,3 +429,4 @@ class MaltegoEntity(MaltegoElement):
     smallicontag = fields_.String(tagname='SmallIcon', required=False)
     converter = fields_.Model(Converter, required=False)
     properties = fields_.Model(EntityProperties, required=False)
+    base = fields_.Model(BaseEntities, required=False)
