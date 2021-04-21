@@ -1,5 +1,6 @@
 from canari.maltego.message import (Entity, StringEntityField, IntegerEntityField,
-                                    FloatEntityField, BooleanEntityField, DateEntityField, Unknown)
+                                    FloatEntityField, BooleanEntityField, DateEntityField, 
+                                    ArrayEntityField, Unknown)
 
 __author__ = 'Nadeem Douba'
 __copyright__ = 'Copyright 2015, Canari Project'
@@ -114,6 +115,10 @@ class IPv4Address(Entity):
     _alias_ = 'IPAddress'
     ipv4address = StringEntityField('ipv4-address', display_name='IP Address', is_value=True)
     internal = BooleanEntityField('ipaddress.internal', display_name='Internal')
+
+
+class IPv6Address(IPv4Address):
+    pass
 
 
 class Netblock(Entity):
@@ -382,3 +387,21 @@ class Tweet(Entity):
     image_link = StringEntityField('imglink', display_name='Image Link')
     date_published = StringEntityField('pubdate', display_name='Date published')
     title = StringEntityField('title', display_name='Title')
+
+class SSLCertificate(Entity):
+    _category_ = "Infrastructure"
+    _type_ = "maltego.X509Certificate"
+    subject = StringEntityField("subject", display_name="Subject", is_value=True)
+    issuer = StringEntityField("issuer", display_name="Issuer")
+    subjectDN = StringEntityField("subjectDN", display_name="Subject DN")
+    issuerDN = StringEntityField("issuerDN", display_name="Issuer DN")
+    ski = StringEntityField("ski", display_name="SKI")
+    aki = StringEntityField("aki", display_name="AKI")
+    serial = StringEntityField("serial", display_name="Serial")
+    san = ArrayEntityField("san", display_name="SAN")
+    usage = ArrayEntityField("usage", display_name="Usage")
+    issuanceid = IntegerEntityField("issuanceid", display_name="Issuance ID")
+    validFrom = StringEntityField("validFrom", display_name="Valid From")
+    validTo = StringEntityField("validTo", display_name="Valid Until")
+    country = StringEntityField("country", display_name="Country")
+    organization = StringEntityField("organization", display_name="Organization")
